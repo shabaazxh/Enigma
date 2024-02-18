@@ -3,6 +3,7 @@
 #include <Volk/volk.h>
 #include <optional>
 #include <iostream>
+#include <vector>
 
 namespace Enigma
 {
@@ -32,12 +33,15 @@ namespace Enigma
 			uint32_t graphicsFamilyIndex = 0;
 			VkQueue graphicsQueue = VK_NULL_HANDLE;
 			VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
-
-		private:
-			VkInstance CreateVulkanInstance(const std::vector<const char*>& enabledLayers, const std::vector<const char*>& enabledExtensions, bool enabledDebugUtils);
 	};
 
 	VulkanContext MakeVulkanContext();
+
+	VkInstance CreateVulkanInstance(const std::vector<const char*>& enabledLayers, const std::vector<const char*>& enabledExtensions, bool enabledDebugUtils);
+	float ScoreDevice(VkPhysicalDevice pDevice);
+	VkPhysicalDevice SelectDevice(VkInstance instance);
+	std::optional<uint32_t> FindGraphicsQueueFamily(VkPhysicalDevice pDevice);
+	VkDevice CreateDevice(VkPhysicalDevice pDevice, uint32_t graphicsFamilyIndex);
 	
 
 }
