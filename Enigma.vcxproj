@@ -104,8 +104,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Shahb\source\repos\Enigma\Enigma\libs;C:\Users\Shahb\source\repos\Enigma\Enigma\libs\vulkan\include;C:\Users\Shahb\source\repos\Enigma\Enigma\libs\Volk;$(ProjectDir)\libs\glfw-3.3.4.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>C:\Users\Shahb\source\repos\Enigma\Enigma\libs\VulkanMemoryAllocator\include;C:\Users\Shahb\source\repos\Enigma\Enigma\libs;C:\Users\Shahb\source\repos\Enigma\Enigma\libs\vulkan\include;C:\Users\Shahb\source\repos\Enigma\Enigma\libs\Volk;$(ProjectDir)\libs\glfw-3.3.4.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -122,8 +122,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Shahb\source\repos\Enigma\Enigma\libs;C:\Users\Shahb\source\repos\Enigma\Enigma\libs\vulkan\include;C:\Users\Shahb\source\repos\Enigma\Enigma\libs\Volk;$(ProjectDir)\libs\glfw-3.3.4.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>C:\Users\Shahb\source\repos\Enigma\Enigma\libs\VulkanMemoryAllocator\include;C:\Users\Shahb\source\repos\Enigma\Enigma\libs;C:\Users\Shahb\source\repos\Enigma\Enigma\libs\vulkan\include;C:\Users\Shahb\source\repos\Enigma\Enigma\libs\Volk;$(ProjectDir)\libs\glfw-3.3.4.bin.WIN64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -136,11 +136,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\VulkanWindow.cpp" />
+    <ClCompile Include="src\Graphics\Image.cpp" />
     <ClCompile Include="src\Graphics\VulkanContext.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Core\VulkanWindow.h" />
+    <ClInclude Include="src\Graphics\Image.h" />
     <ClInclude Include="src\Graphics\VulkanContext.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

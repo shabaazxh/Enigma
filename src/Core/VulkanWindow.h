@@ -1,20 +1,14 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
+
 #include "../Graphics/VulkanContext.h"
-#include <unordered_set>
 
-namespace
-{
-	std::vector<VkSurfaceFormatKHR> GetSurfaceFormats(VkPhysicalDevice pDevice, VkSurfaceKHR surface);
-	std::unordered_set<VkPresentModeKHR> GetPresentModes(VkPhysicalDevice pDevice, VkSurfaceKHR);
-
-	std::tuple<VkSwapchainKHR, VkFormat, VkExtent2D> CreateSwapchain();
-}
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
 
 namespace Enigma
 {
-	class VulkanWindow
+	class VulkanWindow final : public VulkanContext
 	{
 		public:
 			VulkanWindow(VulkanContext& vulkanContext);
@@ -30,6 +24,7 @@ namespace Enigma
 			VkSwapchainKHR swapchain = VK_NULL_HANDLE;
 			std::vector<VkImage> swapchainImages;
 			std::vector<VkImageView> swapchainImageViews;
+			std::vector<VkFramebuffer> swapchainFramebuffers;
 
 			VkFormat swapchainFormat;
 			VkExtent2D swapchainExtent;

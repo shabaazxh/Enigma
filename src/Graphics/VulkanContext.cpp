@@ -7,11 +7,16 @@
 #include <unordered_set>
 #include <cassert>
 
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+#include <vulkan/vulkan.h>
+
 namespace
 {
 	std::unordered_set<std::string> GetInstanceLayers();
 	std::unordered_set<std::string> GetInstanceExtensions();
 
+	VkDebugUtilsMessengerEXT CreateDebugMessenger(VkInstance instance);
 	VKAPI_ATTR VkBool32 VKAPI_CALL debug_util_callback(VkDebugUtilsMessageSeverityFlagBitsEXT aSeverity, VkDebugUtilsMessageTypeFlagsEXT aType, VkDebugUtilsMessengerCallbackDataEXT const* aData, void*);
 
 }
@@ -98,6 +103,12 @@ namespace Enigma
 
 		float score = 0.f;
 
+		uint32_t extensionCount = 0;
+		vkEnumerateDeviceExtensionProperties(pDevice, nullptr, &extensionCount, nullptr);
+
+		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+		vkEnumerateDeviceExtensionProperties(pDevice, nullptr, &extensionCount, availableExtensions.data());
+
 		// prefer to select and use a discrete GPU over an integrated one 
 		if (props.deviceType = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
 		{
@@ -173,10 +184,15 @@ namespace Enigma
 		VkPhysicalDeviceFeatures deviceFeatures{};
 		// we have no extra features we would need at the moment
 		
+		std::vector<const char*> extensions{ VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+
 		VkDeviceCreateInfo deviceInfo{};
+		deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		deviceInfo.queueCreateInfoCount = 1;
 		deviceInfo.pQueueCreateInfos = &queueInfo;
 		deviceInfo.pEnabledFeatures = &deviceFeatures;
+		deviceInfo.enabledExtensionCount = uint32_t(extensions.size());
+		deviceInfo.ppEnabledExtensionNames = extensions.data();
 
 		VkDevice device = VK_NULL_HANDLE;
 
@@ -197,17 +213,36 @@ namespace Enigma
 		std::vector<const char*> enabledLayers;
 		std::vector<const char*> enabledExtensions;
 
+		bool enabledDebugUtils = true;
+
 # if !defined(NDEBUG) // DEBUG BUILD LAYERS AND EXTENSIONS
-		if (supportedLayers.count("VK_LAYER_KHORNOS_validation"))
+		if (supportedLayers.count("VK_LAYER_KHRONOS_validation"))
 		{
-			enabledLayers.emplace_back("VK_LAYER_KHORNOS_validation");
+			enabledLayers.emplace_back("VK_LAYER_KHRONOS_validation");
 		}
 
 		if (supportedExtensions.count("VK_EXT_debug_utils"))
 		{
+			enabledDebugUtils = true;
 			enabledExtensions.emplace_back("VK_EXT_debug_utils");
 		}
 #endif
+
+		glfwInit();
+
+		// cannot do this before the window is created 
+		uint32_t reqExtCount = 0;
+		const char** requiredExt = glfwGetRequiredInstanceExtensions(&reqExtCount);
+
+		for (uint32_t i = 0; i < reqExtCount; i++)
+		{
+			if (!supportedExtensions.count(requiredExt[i]))
+			{
+				std::runtime_error("GLFW/Vulkan: required instance extension not supported");
+			}
+
+			enabledExtensions.emplace_back(requiredExt[i]);
+		}
 
 		// output the enabled layers and extensions
 		for (const auto& layer : enabledLayers)
@@ -217,12 +252,13 @@ namespace Enigma
 
 
 		// init the vulkan instance
-		context.instance = CreateVulkanInstance(enabledLayers, enabledExtensions, true);
-
-		// debug messenger set up 
-
+		context.instance = CreateVulkanInstance(enabledLayers, enabledExtensions, enabledDebugUtils);
 
 		volkLoadInstance(context.instance);
+
+		// debug messenger set up 
+		if (enabledDebugUtils)
+			context.debugMessenger = CreateDebugMessenger(context.instance);
 
 		context.physicalDevice = SelectDevice(context.instance);
 
@@ -293,6 +329,21 @@ namespace
 			res.insert(extension.extensionName);
 
 		return res;
+	}
+
+	VkDebugUtilsMessengerEXT CreateDebugMessenger(VkInstance instance)
+	{
+		VkDebugUtilsMessengerCreateInfoEXT debugInfo{};
+		debugInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+		debugInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+		debugInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT;
+		debugInfo.pfnUserCallback = &debug_util_callback;
+		debugInfo.pUserData = nullptr;
+
+		VkDebugUtilsMessengerEXT messenger = VK_NULL_HANDLE;
+		VK_CHECK(vkCreateDebugUtilsMessengerEXT(instance, &debugInfo, nullptr, &messenger));
+
+		return messenger;
 	}
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL debug_util_callback(VkDebugUtilsMessageSeverityFlagBitsEXT aSeverity, VkDebugUtilsMessageTypeFlagsEXT aType, VkDebugUtilsMessengerCallbackDataEXT const* aData, void*)
