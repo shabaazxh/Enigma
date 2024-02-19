@@ -25,6 +25,7 @@ namespace Enigma
 			std::vector<VkImage> swapchainImages;
 			std::vector<VkImageView> swapchainImageViews;
 			std::vector<VkFramebuffer> swapchainFramebuffers;
+			VkRenderPass renderPass;
 
 			VkFormat swapchainFormat;
 			VkExtent2D swapchainExtent;

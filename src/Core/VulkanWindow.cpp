@@ -18,7 +18,9 @@ namespace
 
 	std::vector<VkImage> GetSwapchainImages(VkDevice device, VkSwapchainKHR swapchain);
 	std::vector<VkImageView> CreateSwapchainImageViews(VkDevice device, VkFormat format, const std::vector<VkImage>& images);
-	void CreateSwapchainFramebuffers();
+	std::vector<VkFramebuffer> CreateSwapchainFramebuffers(VkDevice device, std::vector<VkImageView>& swapchainImageViews, VkRenderPass renderPass, VkExtent2D extent);
+	VkRenderPass CreateSwapchainRenderPass(VkDevice device, VkFormat format);
+
 	std::optional<uint32_t> FindQueueFamilyIndex(VkPhysicalDevice pDevice, VkSurfaceKHR surface, VkQueueFlagBits flags);
 }
 
@@ -67,6 +69,10 @@ namespace Enigma
 		windowContext.swapchainImages = GetSwapchainImages(context.device, windowContext.swapchain);
 		windowContext.swapchainImageViews = CreateSwapchainImageViews(context.device, windowContext.swapchainFormat, windowContext.swapchainImages);
 		
+		// Make swapchain render pass
+		windowContext.renderPass = CreateSwapchainRenderPass(context.device, windowContext.swapchainFormat);
+
+		windowContext.swapchainFramebuffers = CreateSwapchainFramebuffers(context.device, windowContext.swapchainImageViews, windowContext.renderPass, windowContext.swapchainExtent);
 		
 		return windowContext;
 	}
@@ -198,7 +204,7 @@ namespace
 
 		vkCreateSwapchainKHR(device, &swapchainInfo, nullptr, &swapc);
 
-		return { swapc, swapFormat.format, extent };
+		return { swapc, VK_FORMAT_B8G8R8A8_SRGB, extent };
 	}
 
 	std::vector<VkImage> GetSwapchainImages(VkDevice device, VkSwapchainKHR swapchain)
@@ -242,6 +248,84 @@ namespace
 
 		return swapchainImageViews;
 
+	}
+
+	std::vector<VkFramebuffer> CreateSwapchainFramebuffers(VkDevice device, std::vector<VkImageView>& swapchainImageViews, VkRenderPass renderPass, VkExtent2D extent)
+	{
+		std::vector<VkFramebuffer> framebuffers;
+		for (const auto& imageView : swapchainImageViews)
+		{
+
+			VkImageView attachments[1]{ imageView };
+
+			VkFramebufferCreateInfo fb_info{};
+			fb_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+			fb_info.renderPass = renderPass;
+			fb_info.attachmentCount = static_cast<uint32_t>(1);
+			fb_info.pAttachments = attachments;
+			fb_info.width = extent.width;
+			fb_info.height = extent.height;
+			fb_info.layers = 1;
+
+			VkFramebuffer framebuffer = VK_NULL_HANDLE;
+			VK_CHECK(vkCreateFramebuffer(device, &fb_info, nullptr, &framebuffer));
+
+			framebuffers.push_back(framebuffer);
+		}
+
+		return framebuffers;
+	}
+
+	VkRenderPass CreateSwapchainRenderPass(VkDevice device, VkFormat format)
+	{
+		VkAttachmentDescription attachment{};
+		attachment.format = format;
+		attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR; // clear the framebuffer before writing to it 
+		attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE; // store the result
+		attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // not using stencil, use don't care
+		attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE; // not using stencil, use don't care
+		attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; // layout of the resource as it enters render pass
+		attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; // layout of resource at the end of the render pass
+
+		// we need depth attachment, leaving it for now 
+
+		VkAttachmentDescription attachments[1] = { attachment };
+
+		VkAttachmentReference colorReference = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+		
+		VkSubpassDescription subpass{};
+		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subpass.colorAttachmentCount = 1;
+		subpass.pColorAttachments = &colorReference;
+		
+		VkSubpassDependency dependency{};
+		// Wait for EXTERNAL render pass to finish outputting
+		dependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependency.srcAccessMask = 0;
+		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+		// Destination eeds to wait for EXTERNAL to finishing outputting before writing 
+		dependency.dstSubpass = 0;
+		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		
+
+		VkRenderPassCreateInfo rp_info{};
+		rp_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		rp_info.attachmentCount = 1;
+		rp_info.pAttachments = attachments;
+		rp_info.subpassCount = 1;
+		rp_info.pSubpasses = &subpass;
+		rp_info.dependencyCount = 1;
+		rp_info.pDependencies = &dependency;
+
+		VkRenderPass renderPass = VK_NULL_HANDLE;
+
+		VK_CHECK(vkCreateRenderPass(device, &rp_info, nullptr, &renderPass));
+
+		return renderPass;
 	}
 
 	std::optional<uint32_t> FindQueueFamilyIndex(VkPhysicalDevice pDevice, VkSurfaceKHR surface, VkQueueFlagBits flags)
