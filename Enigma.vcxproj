@@ -135,15 +135,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Core\Engine.cpp" />
     <ClCompile Include="src\Core\VulkanWindow.cpp" />
     <ClCompile Include="src\Graphics\Image.cpp" />
+    <ClCompile Include="src\Graphics\Renderer.cpp" />
     <ClCompile Include="src\Graphics\VulkanContext.cpp" />
+    <ClCompile Include="src\Graphics\VulkanObjects.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Core\Engine.h" />
     <ClInclude Include="src\Core\VulkanWindow.h" />
     <ClInclude Include="src\Graphics\Image.h" />
+    <ClInclude Include="src\Graphics\Renderer.h" />
     <ClInclude Include="src\Graphics\VulkanContext.h" />
+    <ClInclude Include="src\Graphics\VulkanObjects.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

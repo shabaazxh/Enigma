@@ -306,7 +306,7 @@ namespace
 		dependency.srcAccessMask = 0;
 		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
-		// Destination eeds to wait for EXTERNAL to finishing outputting before writing 
+		// Destination needs to wait for EXTERNAL to finishing outputting before writing 
 		dependency.dstSubpass = 0;
 		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;

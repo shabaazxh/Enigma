@@ -12,14 +12,18 @@
 
 #include "Core/VulkanWindow.h"
 #include "Graphics/VulkanContext.h"
+#include "Graphics/Renderer.h"
 
 int main() {
 
     Enigma::VulkanContext context = Enigma::MakeVulkanContext();
     Enigma::VulkanWindow window = Enigma::MakeVulkanWindow(context);
 
+    Enigma::Renderer renderer = Enigma::Renderer(context, window);
 
     while (!glfwWindowShouldClose(window.window)) {
+
+        renderer.DrawScene();
         glfwPollEvents();
     }
 
