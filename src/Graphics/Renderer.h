@@ -21,8 +21,8 @@ namespace Enigma
 		private:
 			void CreateRendererResources();
 		private:
-			VulkanContext context;
-			VulkanWindow window;
+			const VulkanContext& context;
+			const VulkanWindow& window;
 
 
 			// need fences and semaphores for sync

@@ -11,7 +11,7 @@ namespace Enigma
 	class VulkanWindow final : public VulkanContext
 	{
 		public:
-			VulkanWindow(VulkanContext& vulkanContext);
+			VulkanWindow(const VulkanContext& vulkanContext);
 			~VulkanWindow();
 
 		public:
@@ -31,7 +31,7 @@ namespace Enigma
 			VkExtent2D swapchainExtent;
 
 		private:
-			VulkanContext context;
+			const VulkanContext& context;
 	};
 
 	VulkanWindow MakeVulkanWindow(VulkanContext& context);

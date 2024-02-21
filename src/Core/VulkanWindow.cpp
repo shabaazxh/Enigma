@@ -26,12 +26,18 @@ namespace
 
 namespace Enigma
 {
-	VulkanWindow::VulkanWindow(VulkanContext& context) : context{ context } {}
+	VulkanWindow::VulkanWindow(const VulkanContext& context) : context{ context } {}
 
 	VulkanWindow::~VulkanWindow()
 	{
+		for (const auto& framebuffer : swapchainFramebuffers)
+			vkDestroyFramebuffer(context.device, framebuffer, nullptr);
+
 		for (const auto& view : swapchainImageViews)
 			vkDestroyImageView(context.device, view, nullptr);
+
+		if (renderPass != VK_NULL_HANDLE)
+			vkDestroyRenderPass(context.device, renderPass, nullptr);
 
 		if (swapchain != VK_NULL_HANDLE)
 			vkDestroySwapchainKHR(context.device, swapchain, nullptr);

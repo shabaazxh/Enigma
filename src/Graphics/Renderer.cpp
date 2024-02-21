@@ -19,6 +19,11 @@ namespace Enigma
 
 	Renderer::~Renderer()
 	{
+		for (size_t i = 0; i < max_frames_in_flight; i++)
+		{
+			vkWaitForFences(context.device, 1, &m_fences[i].handle, VK_TRUE, UINT64_MAX);
+			vkResetFences(context.device, 1, &m_fences[i].handle);
+		}
 		// destroy the command buffers
 		for (size_t i = 0; i < max_frames_in_flight; i++)
 		{
