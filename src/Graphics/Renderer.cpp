@@ -8,7 +8,7 @@ namespace
 
 namespace Enigma
 {
-	Renderer::Renderer(const VulkanContext& context, const VulkanWindow& window) : context{ context }, window{ window } {
+	Renderer::Renderer(const VulkanContext& context, VulkanWindow& window) : context{ context }, window{ window } {
 	
 		// This will set up :
 		// Fences
@@ -19,6 +19,9 @@ namespace Enigma
 
 	Renderer::~Renderer()
 	{
+		// Ensure all commands have finished and the GPU is now idle
+		vkDeviceWaitIdle(context.device);
+
 		// destroy the command buffers
 		for (size_t i = 0; i < max_frames_in_flight; i++)
 		{
@@ -83,16 +86,9 @@ namespace Enigma
 		uint32_t index;
 		VkResult getImageIndex = vkAcquireNextImageKHR(context.device, window.swapchain, UINT64_MAX, m_imagAvailableSemaphores[currentFrame].handle, VK_NULL_HANDLE, &index);
 
-		// Check if the swapchain needs to be resized
-		if (getImageIndex == VK_SUBOPTIMAL_KHR || getImageIndex == VK_ERROR_OUT_OF_DATE_KHR)
-		{
-			// TODO: begin resizing the swapchain
-			// ...
-		}
-
 		vkResetCommandBuffer(m_renderCommandBuffers[currentFrame], 0);
 
-		// Rendering
+		// Rendering ( Record commands for submission )
 		{
 			VkCommandBufferBeginInfo beginInfo{};
 			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -102,11 +98,15 @@ namespace Enigma
 			VkRenderPassBeginInfo renderpassInfo{};
 			renderpassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 			renderpassInfo.renderPass = window.renderPass;
-			renderpassInfo.framebuffer = window.swapchainFramebuffers[currentFrame];
+			renderpassInfo.framebuffer = window.swapchainFramebuffers[index];
 			renderpassInfo.renderArea.extent = window.swapchainExtent;
 			renderpassInfo.renderArea.offset = { 0,0 };
 
 			VkClearValue clearColor = { 1.0f, 0.0f, 0.0f, 1.0f };
+			if (window.hasResized)
+			{
+				clearColor = { 0.0f, 0.0f, 1.0f, 1.0f };
+			}
 			renderpassInfo.clearValueCount = 1;
 			renderpassInfo.pClearValues = &clearColor;
 
@@ -153,7 +153,16 @@ namespace Enigma
 		present.waitSemaphoreCount = 1;
 		present.pWaitSemaphores = &m_renderFinishedSemaphores[currentFrame].handle;
 
-		VK_CHECK(vkQueuePresentKHR(context.graphicsQueue, &present));
+		VkResult res = vkQueuePresentKHR(context.graphicsQueue, &present);
+		
+		// Check if the swapchain is outdated
+		// if it is, recreate the swapchain to ensure it's rendering at the new window size
+		if (window.isSwapchainOutdated(res))
+		{
+			vkDeviceWaitIdle(context.device);
+			Enigma::RecreateSwapchain(context, window);
+			window.hasResized = true;
+		}
 
 		currentFrame = (currentFrame + 1) % max_frames_in_flight;
 	}

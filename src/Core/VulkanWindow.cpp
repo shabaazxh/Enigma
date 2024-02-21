@@ -26,12 +26,18 @@ namespace
 
 namespace Enigma
 {
-	VulkanWindow::VulkanWindow(VulkanContext& context) : context{ context } {}
+	VulkanWindow::VulkanWindow(const VulkanContext& context) : context{ context } {}
 
 	VulkanWindow::~VulkanWindow()
 	{
+		for (const auto& framebuffer : swapchainFramebuffers)
+			vkDestroyFramebuffer(context.device, framebuffer, nullptr);
+
 		for (const auto& view : swapchainImageViews)
 			vkDestroyImageView(context.device, view, nullptr);
+
+		if (renderPass != VK_NULL_HANDLE)
+			vkDestroyRenderPass(context.device, renderPass, nullptr);
 
 		if (swapchain != VK_NULL_HANDLE)
 			vkDestroySwapchainKHR(context.device, swapchain, nullptr);
@@ -44,6 +50,14 @@ namespace Enigma
 			glfwDestroyWindow(window);
 			glfwTerminate();
 		}
+	}
+
+	// Helper function to check if the swapchain needs  to be resized 
+	bool VulkanWindow::isSwapchainOutdated(VkResult result)
+	{
+		// suboptimal and out of date let us know we need to re-size the swapchain
+		if (result == VK_SUBOPTIMAL_KHR || result == VK_ERROR_OUT_OF_DATE_KHR) return true;
+		return false;
 	}
 
 	VulkanWindow MakeVulkanWindow(VulkanContext& context)
@@ -77,6 +91,52 @@ namespace Enigma
 		return windowContext;
 	}
 
+	void TearDownSwapchain(const VulkanContext& context, VulkanWindow& window)
+	{
+		vkDeviceWaitIdle(context.device);
+
+		window.swapchainImages.clear();
+
+		for (const auto& framebuffer : window.swapchainFramebuffers)
+		{
+			vkDestroyFramebuffer(context.device, framebuffer, nullptr);
+		}
+
+		for (const auto& imageView : window.swapchainImageViews)
+		{
+			vkDestroyImageView(context.device, imageView, nullptr);
+		}
+
+		vkDestroyRenderPass(context.device, window.renderPass, nullptr);
+	}
+
+	void RecreateSwapchain(const VulkanContext& context, VulkanWindow& window)
+	{
+		VkExtent2D previousExtent = window.swapchainExtent;
+		VkSwapchainKHR oldSwapchain = window.swapchain;
+		try
+		{
+			std::tie(window.swapchain, window.swapchainFormat, window.swapchainExtent) = CreateSwapchain(context.physicalDevice, window.surface, context.device, window.window, { context.graphicsFamilyIndex }, oldSwapchain);
+		}
+		catch ( ... ) // catch all exceptions 
+		{
+			window.swapchain = oldSwapchain;
+			throw;
+		}
+
+		// Destroy the old swapchains resources (images, imageview, framebuffers)
+		TearDownSwapchain(context, window);
+
+		// Destroy the old swapchain
+		vkDestroySwapchainKHR(context.device, oldSwapchain, nullptr);
+
+		// Re-create new swapchain: images, imageviews, framebuffers, renderpass
+		window.swapchainImages = GetSwapchainImages(context.device, window.swapchain);
+		window.swapchainImageViews = CreateSwapchainImageViews(context.device, VK_FORMAT_B8G8R8A8_SRGB, window.swapchainImages);
+	
+		window.renderPass = CreateSwapchainRenderPass(context.device, VK_FORMAT_B8G8R8A8_SRGB);
+		window.swapchainFramebuffers = CreateSwapchainFramebuffers(context.device, window.swapchainImageViews, window.renderPass, window.swapchainExtent);
+	}
 }
 
 namespace
@@ -187,7 +247,7 @@ namespace
 		swapchainInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 		swapchainInfo.presentMode = presentMode;
 		swapchainInfo.clipped = VK_TRUE;
-		swapchainInfo.oldSwapchain = VK_NULL_HANDLE;
+		swapchainInfo.oldSwapchain = OldSwapchain;
 
 		if (aQueueFamilyIndices.size() <= 1)
 		{

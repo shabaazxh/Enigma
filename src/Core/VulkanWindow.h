@@ -8,11 +8,13 @@
 
 namespace Enigma
 {
-	class VulkanWindow final : public VulkanContext
+	class VulkanWindow final
 	{
 		public:
-			VulkanWindow(VulkanContext& vulkanContext);
+			VulkanWindow(const VulkanContext& vulkanContext);
 			~VulkanWindow();
+
+			bool isSwapchainOutdated(VkResult result);
 
 		public:
 			GLFWwindow* window = nullptr;
@@ -29,10 +31,13 @@ namespace Enigma
 
 			VkFormat swapchainFormat;
 			VkExtent2D swapchainExtent;
+			bool hasResized = false;
 
 		private:
-			VulkanContext context;
+			const VulkanContext& context;
 	};
 
 	VulkanWindow MakeVulkanWindow(VulkanContext& context);
+	void RecreateSwapchain(const VulkanContext& context, VulkanWindow& window);
+	void TearDownSwapchain(const VulkanContext& context, VulkanWindow& window);
 }
