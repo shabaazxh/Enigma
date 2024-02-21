@@ -14,7 +14,7 @@ namespace Enigma
 	class Renderer
 	{
 		public:
-			explicit Renderer(const VulkanContext& context, const VulkanWindow& window);
+			explicit Renderer(const VulkanContext& context, VulkanWindow& window);
 			~Renderer();
 			void DrawScene();
 
@@ -22,10 +22,7 @@ namespace Enigma
 			void CreateRendererResources();
 		private:
 			const VulkanContext& context;
-			const VulkanWindow& window;
-
-
-			// need fences and semaphores for sync
+			VulkanWindow& window;
 
 			std::vector<Fence> m_fences;
 			std::vector<Semaphore> m_imagAvailableSemaphores;
@@ -33,6 +30,5 @@ namespace Enigma
 
 			std::vector<CommandPool> m_renderCommandPools;
 			std::vector<VkCommandBuffer> m_renderCommandBuffers;
-
 	};
 }
