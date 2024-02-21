@@ -272,7 +272,7 @@ namespace Enigma
 			VkPhysicalDeviceProperties props;
 			vkGetPhysicalDeviceProperties(context.physicalDevice, &props);
 
-			std::fprintf(stderr, "Selected device: %s", props.deviceName);
+			std::fprintf(stderr, "Selected device: %s\n", props.deviceName);
 		}
 
 		// With the physical device, we can now create the logical device

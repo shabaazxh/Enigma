@@ -51,7 +51,7 @@ namespace Enigma
 		VulkanWindow windowContext(context);
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		windowContext.window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
+		windowContext.window = glfwCreateWindow(1200, 720, "Vulkan window", nullptr, nullptr);
 
 		if (!windowContext.window)
 			throw std::runtime_error("Failed to create GLFW window");
