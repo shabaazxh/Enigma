@@ -33,6 +33,11 @@ namespace Enigma
 	using CommandPool = VulkanObjectHandle<VkCommandPool, VkDevice, vkDestroyCommandPool>;
 	using Fence = VulkanObjectHandle<VkFence, VkDevice, vkDestroyFence>;
 	using Semaphore = VulkanObjectHandle<VkSemaphore, VkDevice, vkDestroySemaphore>;
+
+	using Pipeline = VulkanObjectHandle<VkPipeline, VkDevice, vkDestroyPipeline>;
+	using PipelineLayout = VulkanObjectHandle<VkPipelineLayout, VkDevice, vkDestroyPipelineLayout>;
+	using ShaderModule = VulkanObjectHandle<VkShaderModule, VkDevice, vkDestroyShaderModule>;
+
 }
 
 namespace Enigma

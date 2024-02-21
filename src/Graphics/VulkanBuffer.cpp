@@ -1,0 +1,42 @@
+#include "VulkanBuffer.h"
+#include <cassert>
+
+namespace Enigma
+{
+
+	Buffer::Buffer() noexcept = default;
+
+	Buffer::~Buffer()
+	{
+		if (buffer != VK_NULL_HANDLE)
+		{
+			assert(m_Allocator != VK_NULL_HANDLE);
+			assert(allocation  != VK_NULL_HANDLE);
+			vmaDestroyBuffer(m_Allocator, buffer, allocation);
+		}
+	}
+
+	Buffer::Buffer(VmaAllocator allocator, VkBuffer buffer, VmaAllocation allocation) noexcept
+		: buffer{ buffer }, allocation{ allocation }, m_Allocator{ allocator }
+	{}
+
+
+	Buffer CreateBuffer(const Allocator& allocator, VkDeviceSize size, VkBufferUsageFlags usage, VmaAllocationCreateFlags memoryFlag, VmaMemoryUsage memoryUsage)
+	{
+		VkBufferCreateInfo bufferInfo{};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.size = size;
+		bufferInfo.usage = usage;
+
+		VmaAllocationCreateInfo allocInfo{};
+		allocInfo.flags = memoryFlag;
+		allocInfo.usage = memoryUsage;
+
+		VkBuffer buffer = VK_NULL_HANDLE;
+		VmaAllocation allocation = VK_NULL_HANDLE;
+
+		VK_CHECK(vmaCreateBuffer(allocator.allocator, &bufferInfo, &allocInfo, &buffer, &allocation, nullptr));
+
+		return Buffer(allocator.allocator, buffer, allocation);
+	}
+}
