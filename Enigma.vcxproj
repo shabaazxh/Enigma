@@ -137,8 +137,11 @@
   <ItemGroup>
     <ClCompile Include="src\Core\Engine.cpp" />
     <ClCompile Include="src\Core\VulkanWindow.cpp" />
-    <ClCompile Include="src\Graphics\Image.cpp" />
+    <ClCompile Include="src\Graphics\Allocator.cpp" />
+    <ClCompile Include="src\Graphics\VulkanImage.cpp" />
+    <ClCompile Include="src\Graphics\Model.cpp" />
     <ClCompile Include="src\Graphics\Renderer.cpp" />
+    <ClCompile Include="src\Graphics\VulkanBuffer.cpp" />
     <ClCompile Include="src\Graphics\VulkanContext.cpp" />
     <ClCompile Include="src\Graphics\VulkanObjects.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -146,8 +149,11 @@
   <ItemGroup>
     <ClInclude Include="src\Core\Engine.h" />
     <ClInclude Include="src\Core\VulkanWindow.h" />
-    <ClInclude Include="src\Graphics\Image.h" />
+    <ClInclude Include="src\Graphics\Allocator.h" />
+    <ClInclude Include="src\Graphics\VulkanImage.h" />
+    <ClInclude Include="src\Graphics\Model.h" />
     <ClInclude Include="src\Graphics\Renderer.h" />
+    <ClInclude Include="src\Graphics\VulkanBuffer.h" />
     <ClInclude Include="src\Graphics\VulkanContext.h" />
     <ClInclude Include="src\Graphics\VulkanObjects.h" />
   </ItemGroup>

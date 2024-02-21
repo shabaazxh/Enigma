@@ -1,4 +1,5 @@
-#include "Image.h"
+#include "VulkanImage.h"
+#include <cassert>
 
 namespace Enigma
 {
@@ -6,8 +7,9 @@ namespace Enigma
 	{
 		if (image != VK_NULL_HANDLE)
 		{
-			vkDestroyImage(context.device, image, nullptr);
-			vkFreeMemory(context.device, memory, nullptr);
+			assert(m_Allocator != VK_NULL_HANDLE);
+			assert(allocation != VK_NULL_HANDLE);
+			vmaDestroyImage(m_Allocator, image, allocation);
 		}
 	}
 
