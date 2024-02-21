@@ -22,7 +22,7 @@ namespace Enigma
 		VulkanObjectHandle& operator = (const VulkanObjectHandle&) = delete;
 
 		VulkanObjectHandle(VulkanObjectHandle&&) noexcept;
-		VulkanObjectHandle& operator = (VulkanObjectHandle&&) noexcept;
+		VulkanObjectHandle& operator=(VulkanObjectHandle&&) noexcept;
 	public:
 		tHandle handle = VK_NULL_HANDLE;
 
@@ -61,5 +61,14 @@ namespace Enigma
 		: handle(std::exchange(other.handle, VK_NULL_HANDLE)),
 		m_Parent(std::exchange(other.m_Parent, VK_NULL_HANDLE)) {}
 
+
+	template<typename tHandle, typename tParent, DestroyFn<tParent, tHandle>& tDestroyFn>
+	inline 
+	VulkanObjectHandle<tHandle, tParent, tDestroyFn>& VulkanObjectHandle<tHandle, tParent, tDestroyFn>::operator=(VulkanObjectHandle&& other) noexcept
+	{
+		std::swap(handle, other.handle);
+		std::swap(m_Parent, other.m_Parent);
+		return *this;
+	}
 
 }

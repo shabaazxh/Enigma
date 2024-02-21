@@ -13,6 +13,7 @@
 #include "Core/VulkanWindow.h"
 #include "Graphics/VulkanContext.h"
 #include "Graphics/Renderer.h"
+#include "Graphics/Model.h"
 
 int main() {
 
