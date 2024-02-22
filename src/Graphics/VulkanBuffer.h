@@ -12,6 +12,12 @@ namespace Enigma
 
 			explicit Buffer(VmaAllocator allocator, VkBuffer = VK_NULL_HANDLE, VmaAllocation = VK_NULL_HANDLE) noexcept;
 
+			Buffer(const Buffer&) = delete;
+			Buffer& operator=(const Buffer&) = delete;
+
+			Buffer(Buffer&&) noexcept;
+			Buffer& operator=(Buffer&&) noexcept;
+
 		public:
 			VkBuffer buffer = VK_NULL_HANDLE;
 			VmaAllocation allocation = VK_NULL_HANDLE;

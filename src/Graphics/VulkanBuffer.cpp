@@ -20,6 +20,19 @@ namespace Enigma
 		: buffer{ buffer }, allocation{ allocation }, m_Allocator{ allocator }
 	{}
 
+	Buffer::Buffer(Buffer&& aOther) noexcept :
+		buffer(std::exchange(aOther.buffer, VK_NULL_HANDLE)),
+		allocation(std::exchange(aOther.allocation, VK_NULL_HANDLE)),
+		m_Allocator(std::exchange(aOther.m_Allocator, VK_NULL_HANDLE)) {}
+
+	Buffer& Buffer::operator=(Buffer&& aOther) noexcept
+	{
+		std::swap(buffer, aOther.buffer);
+		std::swap(allocation, aOther.allocation);
+		std::swap(m_Allocator, aOther.m_Allocator);
+
+		return *this;
+	}
 
 	Buffer CreateBuffer(const Allocator& allocator, VkDeviceSize size, VkBufferUsageFlags usage, VmaAllocationCreateFlags memoryFlag, VmaMemoryUsage memoryUsage)
 	{

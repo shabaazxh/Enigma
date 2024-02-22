@@ -16,7 +16,8 @@ namespace Enigma
 				std::cout << "Vulkan error: " << err << std::endl; \
 				abort();                                      \
 			}                                                 \
-		} while(0)   
+		} while(0)  
+
 	class VulkanContext
 	{
 		public:
