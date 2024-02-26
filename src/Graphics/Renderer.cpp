@@ -21,7 +21,7 @@ namespace Enigma
 		CreateRendererResources();
 		CreateGraphicsPipeline();
 
-		m_renderables.push_back(new Model("C:/Users/Shahb/source/repos/Enigma/Enigma/resources/cube.obj", allocator, context));
+		m_renderables.push_back(new Model("C:/Users/Billy/Documents/Enigma/resources/cube.obj", allocator, context));
 	}
 
 	Renderer::~Renderer()
@@ -97,6 +97,8 @@ namespace Enigma
 		//
 		uint32_t index;
 		VkResult getImageIndex = vkAcquireNextImageKHR(context.device, window.swapchain, UINT64_MAX, m_imagAvailableSemaphores[currentFrame].handle, VK_NULL_HANDLE, &index);
+
+		update_scene_uniforms(sceneUniform, window.swapchainExtent.width, window.swapchainExtent.height, state);
 
 		vkResetCommandBuffer(m_renderCommandBuffers[currentFrame], 0);
 
@@ -185,10 +187,11 @@ namespace Enigma
 
 		currentFrame = (currentFrame + 1) % max_frames_in_flight;
 	}
+
 	void Renderer::CreateGraphicsPipeline()
 	{
-		ShaderModule vertexShader   = CreateShaderModule("C:/Users/Shahb/source/repos/Enigma/Enigma/resources/Shaders/vertex.vert.spv", context.device);
-		ShaderModule fragmentShader = CreateShaderModule("C:/Users/Shahb/source/repos/Enigma/Enigma/resources/Shaders/fragment.frag.spv", context.device);
+		ShaderModule vertexShader   = CreateShaderModule("C:/Users/Billy/Documents/Enigma/resources/Shaders/vertex.vert.spv", context.device);
+		ShaderModule fragmentShader = CreateShaderModule("C:/Users/Billy/Documents/Enigma/resources/Shaders/fragment.frag.spv", context.device);
 
 		VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
 		vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -298,6 +301,16 @@ namespace Enigma
 		ENIGMA_VK_ERROR(vkCreateGraphicsPipelines(context.device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Failed to create graphics pipeline.");
 
 		m_pipeline = Pipeline(context.device, pipeline);
+	}
+
+	void Renderer::update_scene_uniforms(glsl::SceneUniform& aSceneUniforms, std::uint32_t aFramebufferWidth, std::uint32_t aFramebufferHeight, UserState const& aState)
+	{
+		float const aspect = aFramebufferWidth / float(aFramebufferHeight);
+		aSceneUniforms.projection = glm::perspectiveRH_ZO((float)((60*M_PI)/180), aspect, 0.1f, 100.f);
+		aSceneUniforms.projection[1][1] *= -1.f; // mirror Y axis
+
+		aSceneUniforms.camera = glm::inverse(aState.camera2world);
+		aSceneUniforms.projCam = aSceneUniforms.projection * aSceneUniforms.camera;
 	}
 }
 
