@@ -104,7 +104,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Shahb\source\repos\Enigma\Enigma\libs\VulkanMemoryAllocator\include;C:\Users\Shahb\source\repos\Enigma\Enigma\libs;C:\Users\Shahb\source\repos\Enigma\Enigma\libs\vulkan\include;C:\Users\Shahb\source\repos\Enigma\Enigma\libs\Volk;$(ProjectDir)\libs\glfw-3.3.4.bin.WIN64\include;C:\Users\Billy\Documents\Enigma\libs;C:\Users\Billy\Documents\Enigma\libs\Volk;C:\Users\Billy\Documents\Enigma\libs\vulkan\include;C:\Users\Billy\Documents\Enigma\libs\VulkanMemoryAllocator\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Shahb\source\repos\Enigma\Enigma\libs\VulkanMemoryAllocator\include;C:\Users\Shahb\source\repos\Enigma\Enigma\libs;C:\Users\Shahb\source\repos\Enigma\Enigma\libs\vulkan\include;C:\Users\Shahb\source\repos\Enigma\Enigma\libs\Volk;$(ProjectDir)\libs\glfw-3.3.4.bin.WIN64\include;C:\Users\Billy\Documents\Enigma\libs;C:\Users\Billy\Documents\Enigma\libs\Volk;C:\Users\Billy\Documents\Enigma\libs\vulkan\include;C:\Users\Billy\Documents\Enigma\libs\VulkanMemoryAllocator\include;C:\Users\Billy\Documents\Enigma\libs\stb\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
@@ -138,11 +138,11 @@
     <ClCompile Include="src\Core\Engine.cpp" />
     <ClCompile Include="src\Core\VulkanWindow.cpp" />
     <ClCompile Include="src\Graphics\Allocator.cpp" />
-    <ClCompile Include="src\Graphics\VulkanImage.cpp" />
     <ClCompile Include="src\Graphics\Model.cpp" />
     <ClCompile Include="src\Graphics\Renderer.cpp" />
     <ClCompile Include="src\Graphics\VulkanBuffer.cpp" />
     <ClCompile Include="src\Graphics\VulkanContext.cpp" />
+    <ClCompile Include="src\Graphics\VulkanImage.cpp" />
     <ClCompile Include="src\Graphics\VulkanObjects.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>

@@ -278,7 +278,6 @@ namespace Enigma
 		// With the physical device, we can now create the logical device
 		// to do this, we need the graphics family index since we will be doing graphics operations
 
-
 		const auto index = FindGraphicsQueueFamily(context.physicalDevice);
 
 		if (index.has_value())

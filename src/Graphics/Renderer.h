@@ -8,10 +8,6 @@
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
-
-#include "Allocator.h"
-#include "VulkanObjects.h"
-#include "VulkanContext.h"
 #include "Model.h"
 #include "../Core/VulkanWindow.h"
 

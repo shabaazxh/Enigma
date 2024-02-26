@@ -9,6 +9,7 @@ namespace
 	VkDescriptorSet alloc_desc_set(const Enigma::VulkanContext& aContext, VkDescriptorPool aPool, VkDescriptorSetLayout aSetLayout);
 	Enigma::DescriptorPool create_descriptor_pool(const Enigma::VulkanContext& aContext, std::uint32_t aMaxDescriptors = 2048, std::uint32_t aMaxSets = 1024);
 	Enigma::DescriptorSetLayout create_scene_descriptor_layout(Enigma::VulkanContext const& aWindow);
+	void update_descriptor_sets(Enigma::VulkanContext const& aWindow, VkBuffer sceneUBO, VkDescriptorSet sceneDescriptors);
 }
 
 namespace Enigma
@@ -29,10 +30,11 @@ namespace Enigma
 		sceneUBO = CreateBuffer(allocator, sizeof(glsl::SceneUniform), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
 		dpool = create_descriptor_pool(context);
 		sceneDescriptors = alloc_desc_set(context, dpool.handle, sceneLayout.handle);
+		update_descriptor_sets(context, sceneUBO.buffer, sceneDescriptors);
 
 		update_scene_uniforms(sceneUniform, window.swapchainExtent.width, window.swapchainExtent.height, state);
 
-		m_renderables.push_back(new Model("C:/Users/Billy/Documents/Enigma/resources/cube.obj", allocator, context));
+		m_renderables.push_back(new Model("C:/Users/Billy/Documents/Enigma/resources/cube.obj", "C:/Users/Billy/Documents/Enigma/resources/bricks.png", allocator, context, dpool.handle));
 	}
 
 	Renderer::~Renderer()
@@ -439,5 +441,21 @@ namespace
 		}
 
 		return Enigma::DescriptorSetLayout(aWindow.device, layout);
+	}
+
+	void update_descriptor_sets(Enigma::VulkanContext const& aWindow, VkBuffer sceneUBO, VkDescriptorSet sceneDescriptors) {
+		VkWriteDescriptorSet desc[1]{};
+		VkDescriptorBufferInfo sceneUboInfo{};
+		sceneUboInfo.buffer = sceneUBO;
+		sceneUboInfo.range = VK_WHOLE_SIZE;
+		desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		desc[0].dstSet = sceneDescriptors;
+		desc[0].dstBinding = 0;
+		desc[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		desc[0].descriptorCount = 1;
+		desc[0].pBufferInfo = &sceneUboInfo;
+
+		constexpr auto numSets = sizeof(desc) / sizeof(desc[0]);
+		vkUpdateDescriptorSets(aWindow.device, numSets, desc, 0, nullptr);
 	}
 }

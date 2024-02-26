@@ -1,13 +1,25 @@
 #include "Model.h"
-#include "VulkanObjects.h"
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tinyobjloader/tiny_obj_loader.h>
 
 namespace Enigma
 {
-	Model::Model(const std::string& filepath, Allocator& aAllocator, const VulkanContext& context) : m_filePath{filepath}, allocator{ aAllocator }, context{context}
+	Model::Model(const std::string& filepath, const char* texpath, Allocator& aAllocator, const VulkanContext& context, VkDescriptorPool aDpool) : m_filePath{ filepath }, allocator{ aAllocator }, context{ context }
 	{
 		LoadModel();
+		dpool = std::move(aDpool);
+		Enigma::DescriptorSetLayout objectLayout = create_model_descriptor_layout(context);
+		Enigma::Image objectTex;
+		{
+			Enigma::CommandPool loadCmdPool = create_command_pool(context);
+
+			objectTex = Enigma::LoadImageTexture2D(texpath, context, loadCmdPool.handle, allocator);
+		}
+		sampler = create_default_sampler(context);
+		objectView = create_image_view_texture2d(context, objectTex.image, VK_FORMAT_R8G8B8A8_SRGB);
+
+		m_descriptors = alloc_desc_set(context, dpool, objectLayout.handle);
+		update_descriptor_sets(context, m_descriptors);
 	}
 
 	void Model::LoadModel()
@@ -36,7 +48,7 @@ namespace Enigma
 				};
 
 				// give it a pre-defiend color (using white)
-				vertex.color = { 1.0f, 1.0f, 1.0f };
+				vertex.texCoords = { 1.0f, 1.0f };
 
 				m_vertices.push_back(vertex);
 
@@ -140,7 +152,7 @@ namespace Enigma
 	{
 		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &sceneDescriptor, 0, nullptr);
 		//Todo: update with objectsecriptor
-		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &sceneDescriptor, 0, nullptr);
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &m_descriptors, 0, nullptr);
 
 		VkDeviceSize offset[2] = {};
 
@@ -149,5 +161,117 @@ namespace Enigma
 		vkCmdDraw(cmd, static_cast<uint32_t>(m_vertices.size()), 1, 0, 0);
 	}
 
+	VkDescriptorSet Model::alloc_desc_set(const Enigma::VulkanContext& aContext, VkDescriptorPool aPool, VkDescriptorSetLayout aSetLayout) {
+		VkDescriptorSetAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		allocInfo.descriptorPool = aPool;
+		allocInfo.descriptorSetCount = 1;
+		allocInfo.pSetLayouts = &aSetLayout;
+		VkDescriptorSet dset = VK_NULL_HANDLE;
+		if (auto const res = vkAllocateDescriptorSets(aContext.device, &allocInfo, &dset); VK_SUCCESS != res)
+		{
+			throw std::runtime_error("Failed to create descriptor set");
+		}
+
+		return dset;
+	}
+
+	Enigma::DescriptorSetLayout Model::create_model_descriptor_layout(Enigma::VulkanContext const& aWindow) {
+		VkDescriptorSetLayoutBinding bindings[1]{};
+		bindings[0].binding = 0; // number must match the index of the corresponding
+		// binding = N declaration in the shader(s)!
+		bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		bindings[0].descriptorCount = 1;
+		bindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+		VkDescriptorSetLayoutCreateInfo layoutInfo{};
+		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		layoutInfo.bindingCount = sizeof(bindings) / sizeof(bindings[0]);
+		layoutInfo.pBindings = bindings;
+
+		VkDescriptorSetLayout layout = VK_NULL_HANDLE;
+		if (auto const res = vkCreateDescriptorSetLayout(aWindow.device, &layoutInfo, nullptr, &layout); VK_SUCCESS != res)
+		{
+			throw std::runtime_error("Failed to create descriptor set layout\n");
+		}
+
+		return Enigma::DescriptorSetLayout(aWindow.device, layout);
+	}
+
+	void Model::update_descriptor_sets(Enigma::VulkanContext const& aWindow, VkDescriptorSet objectDescriptors) {
+		VkWriteDescriptorSet desc[1]{};
+
+		VkDescriptorImageInfo textureInfo{};
+		textureInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		textureInfo.imageView = objectView.handle;
+		textureInfo.sampler = sampler.handle;
+
+		desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		desc[0].dstSet = objectDescriptors;
+		desc[0].dstBinding = 0;
+		desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		desc[0].descriptorCount = 1;
+		desc[0].pImageInfo = &textureInfo;
+
+		constexpr auto numSets = sizeof(desc) / sizeof(desc[0]);
+		vkUpdateDescriptorSets(aWindow.device, numSets, desc, 0, nullptr);
+	}
+
+	Sampler Model::create_default_sampler(VulkanContext const& aContext)
+	{
+		VkSamplerCreateInfo samplerInfo{};
+		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		samplerInfo.magFilter = VK_FILTER_LINEAR;
+		samplerInfo.minFilter = VK_FILTER_LINEAR;
+		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.minLod = 0.f;
+		samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
+		samplerInfo.mipLodBias = 0.f;
+
+		VkSampler sampler = VK_NULL_HANDLE;
+		if (auto const res = vkCreateSampler(aContext.device, &samplerInfo, nullptr, &sampler); VK_SUCCESS != res)
+		{
+			throw std::runtime_error("Failed to create sampler\n");
+		}
+
+		return Sampler(aContext.device, sampler);
+	}
+
+	CommandPool Model::create_command_pool(VulkanContext const& aContext, VkCommandPoolCreateFlags aFlags)
+	{
+		VkCommandPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolInfo.queueFamilyIndex = aContext.graphicsFamilyIndex;
+		poolInfo.flags = aFlags;
+
+		VkCommandPool cpool = VK_NULL_HANDLE;
+		if (auto const res = vkCreateCommandPool(aContext.device, &poolInfo, nullptr, &cpool); VK_SUCCESS != res)
+		{
+			throw std::runtime_error("Failed to create command pool\n");
+		}
+
+		return CommandPool(aContext.device, cpool);
+	}
+
+	ImageView Model::create_image_view_texture2d(VulkanContext const& aContext, VkImage aImage, VkFormat aFormat)
+	{
+		VkImageViewCreateInfo viewInfo{};
+		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		viewInfo.image = aImage;
+		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		viewInfo.format = aFormat;
+		viewInfo.components = VkComponentMapping{}; // == identity
+		viewInfo.subresourceRange = VkImageSubresourceRange{ VK_IMAGE_ASPECT_COLOR_BIT, 0, VK_REMAINING_MIP_LEVELS, 0, 1 };
+
+		VkImageView view = VK_NULL_HANDLE;
+		if (auto const res = vkCreateImageView(aContext.device, &viewInfo, nullptr, &view); VK_SUCCESS != res)
+		{
+			throw std::runtime_error("Failed to create image view\n");
+		}
+
+		return ImageView(aContext.device, view);
+	}
 }
 

@@ -40,6 +40,9 @@ namespace Enigma
 
 	using DescriptorPool = VulkanObjectHandle<VkDescriptorPool, VkDevice, vkDestroyDescriptorPool>;
 	using DescriptorSetLayout = VulkanObjectHandle< VkDescriptorSetLayout, VkDevice, vkDestroyDescriptorSetLayout >;
+
+	using ImageView = VulkanObjectHandle< VkImageView, VkDevice, vkDestroyImageView >;
+	using Sampler = VulkanObjectHandle< VkSampler, VkDevice, vkDestroySampler >;
 }
 
 namespace Enigma
