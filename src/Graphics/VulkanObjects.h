@@ -38,6 +38,8 @@ namespace Enigma
 	using PipelineLayout = VulkanObjectHandle<VkPipelineLayout, VkDevice, vkDestroyPipelineLayout>;
 	using ShaderModule = VulkanObjectHandle<VkShaderModule, VkDevice, vkDestroyShaderModule>;
 
+	using DescriptorPool = VulkanObjectHandle<VkDescriptorPool, VkDevice, vkDestroyDescriptorPool>;
+	using DescriptorSetLayout = VulkanObjectHandle< VkDescriptorSetLayout, VkDevice, vkDestroyDescriptorSetLayout >;
 }
 
 namespace Enigma

@@ -136,12 +136,14 @@ namespace Enigma
  	}
 
 	// Call to draw the model
-	void Model::Draw(VkCommandBuffer cmd)
+	void Model::Draw(VkCommandBuffer cmd, VkDescriptorSet sceneDescriptor, VkPipelineLayout pipelineLayout)
 	{
-		// bind pipeline, descriptor sets
-		// vkcmddraw issues here 
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &sceneDescriptor, 0, nullptr);
+		//Todo: update with objectsecriptor
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 1, 1, &sceneDescriptor, 0, nullptr);
 
-		VkDeviceSize offset[] = {0};
+		VkDeviceSize offset[2] = {};
+
 		vkCmdBindVertexBuffers(cmd, 0, 1, &m_vertexBuffer.buffer, offset);
 
 		vkCmdDraw(cmd, static_cast<uint32_t>(m_vertices.size()), 1, 0, 0);

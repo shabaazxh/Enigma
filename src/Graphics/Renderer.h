@@ -57,7 +57,12 @@ namespace Enigma
 			void CreateGraphicsPipeline();
 
 			UserState state;
+			Enigma::Buffer sceneUBO;
 			glsl::SceneUniform sceneUniform{};
+			VkDescriptorSet sceneDescriptors;
+			Enigma::DescriptorSetLayout sceneLayout;
+			Enigma::DescriptorPool dpool;
+
 			Allocator allocator;
 		private:
 			void CreateRendererResources();

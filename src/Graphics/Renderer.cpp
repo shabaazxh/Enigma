@@ -6,6 +6,9 @@ namespace
 	Enigma::Semaphore CreateSemaphore(VkDevice device);
 	Enigma::CommandPool CreateCommandPool(VkDevice device, VkCommandPoolCreateFlagBits flags, uint32_t queueFamilyIndex);
 	Enigma::ShaderModule CreateShaderModule(const std::string& filename, VkDevice device);
+	VkDescriptorSet alloc_desc_set(const Enigma::VulkanContext& aContext, VkDescriptorPool aPool, VkDescriptorSetLayout aSetLayout);
+	Enigma::DescriptorPool create_descriptor_pool(const Enigma::VulkanContext& aContext, std::uint32_t aMaxDescriptors = 2048, std::uint32_t aMaxSets = 1024);
+	Enigma::DescriptorSetLayout create_scene_descriptor_layout(Enigma::VulkanContext const& aWindow);
 }
 
 namespace Enigma
@@ -20,6 +23,14 @@ namespace Enigma
 		allocator = Enigma::MakeAllocator(context);
 		CreateRendererResources();
 		CreateGraphicsPipeline();
+
+		sceneLayout = create_scene_descriptor_layout(context);
+
+		sceneUBO = CreateBuffer(allocator, sizeof(glsl::SceneUniform), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
+		dpool = create_descriptor_pool(context);
+		sceneDescriptors = alloc_desc_set(context, dpool.handle, sceneLayout.handle);
+
+		update_scene_uniforms(sceneUniform, window.swapchainExtent.width, window.swapchainExtent.height, state);
 
 		m_renderables.push_back(new Model("C:/Users/Billy/Documents/Enigma/resources/cube.obj", allocator, context));
 	}
@@ -138,13 +149,15 @@ namespace Enigma
 			scissor.extent = window.swapchainExtent;
 			vkCmdSetScissor(m_renderCommandBuffers[currentFrame], 0, 1, &scissor);
 
+			vkCmdUpdateBuffer(m_renderCommandBuffers[currentFrame], sceneUBO.buffer, 0, sizeof(glsl::SceneUniform), &sceneUniform);
+
 			vkCmdBeginRenderPass(m_renderCommandBuffers[currentFrame], &renderpassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 			vkCmdBindPipeline(m_renderCommandBuffers[currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
 
 			for (const auto& model : m_renderables)
 			{
-				model->Draw(m_renderCommandBuffers[currentFrame]);
+				model->Draw(m_renderCommandBuffers[currentFrame], sceneDescriptors, m_pipelineLayout.handle);
 			}
 			
 			vkCmdEndRenderPass(m_renderCommandBuffers[currentFrame]);
@@ -368,5 +381,63 @@ namespace
 		}
 
 		return Enigma::ShaderModule(device, shaderModule);
+	}
+
+	VkDescriptorSet alloc_desc_set(const Enigma::VulkanContext& aContext, VkDescriptorPool aPool, VkDescriptorSetLayout aSetLayout) {
+		VkDescriptorSetAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		allocInfo.descriptorPool = aPool;
+		allocInfo.descriptorSetCount = 1;
+		allocInfo.pSetLayouts = &aSetLayout;
+		VkDescriptorSet dset = VK_NULL_HANDLE;
+		if (auto const res = vkAllocateDescriptorSets(aContext.device, &allocInfo, &dset); VK_SUCCESS != res)
+		{
+			throw std::runtime_error("Failed to create descriptor set");
+		}
+
+		return dset;
+	}
+
+	Enigma::DescriptorPool create_descriptor_pool(const Enigma::VulkanContext& aContext, std::uint32_t aMaxDescriptors, std::uint32_t aMaxSets) {
+		VkDescriptorPoolSize const pools[] = {
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, aMaxDescriptors },
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, aMaxDescriptors }
+		};
+
+		VkDescriptorPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		poolInfo.maxSets = aMaxSets;
+		poolInfo.poolSizeCount = sizeof(pools) / sizeof(pools[0]);
+		poolInfo.pPoolSizes = pools;
+
+		VkDescriptorPool pool = VK_NULL_HANDLE;
+		if (auto const res = vkCreateDescriptorPool(aContext.device, &poolInfo, nullptr, &pool); VK_SUCCESS != res)
+		{
+			throw std::runtime_error("Failed to create descriptor pool");
+		}
+
+		return Enigma::DescriptorPool(aContext.device, pool);
+	}
+
+	Enigma::DescriptorSetLayout create_scene_descriptor_layout(Enigma::VulkanContext const& aWindow) {
+		VkDescriptorSetLayoutBinding bindings[1]{};
+		bindings[0].binding = 0; // number must match the index of the corresponding
+		// binding = N declaration in the shader(s)!
+		bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		bindings[0].descriptorCount = 1;
+		bindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+		VkDescriptorSetLayoutCreateInfo layoutInfo{};
+		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		layoutInfo.bindingCount = sizeof(bindings) / sizeof(bindings[0]);
+		layoutInfo.pBindings = bindings;
+
+		VkDescriptorSetLayout layout = VK_NULL_HANDLE;
+		if (auto const res = vkCreateDescriptorSetLayout(aWindow.device, &layoutInfo, nullptr, &layout); VK_SUCCESS != res)
+		{
+			throw std::runtime_error("Failed to create descriptor set layout");
+		}
+
+		return Enigma::DescriptorSetLayout(aWindow.device, layout);
 	}
 }

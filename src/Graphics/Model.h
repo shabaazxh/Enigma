@@ -63,7 +63,7 @@ namespace Enigma
 
 		public:
 			Model(const std::string& filepath, Allocator& aAllocator, const VulkanContext& context);
-			void Draw(VkCommandBuffer cmd);
+			void Draw(VkCommandBuffer cmd, VkDescriptorSet sceneDescriptor, VkPipelineLayout pipelineLayout);
 
 			Allocator& allocator;
 		private:
