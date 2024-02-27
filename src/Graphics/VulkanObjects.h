@@ -37,7 +37,7 @@ namespace Enigma
 	using Pipeline = VulkanObjectHandle<VkPipeline, VkDevice, vkDestroyPipeline>;
 	using PipelineLayout = VulkanObjectHandle<VkPipelineLayout, VkDevice, vkDestroyPipelineLayout>;
 	using ShaderModule = VulkanObjectHandle<VkShaderModule, VkDevice, vkDestroyShaderModule>;
-
+	using Sampler = VulkanObjectHandle<VkSampler, VkDevice, vkDestroySampler>;
 }
 
 namespace Enigma

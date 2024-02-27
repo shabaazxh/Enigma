@@ -4,28 +4,29 @@
 #include "VulkanObjects.h"
 #include "VulkanContext.h"
 #include "Model.h"
+#include "Common.h"
 #include "../Core/VulkanWindow.h"
-
+#include <memory.h>
 #include <vector>
+#include "../Core/Error.h"
 
 namespace Enigma
 {
-	inline uint32_t currentFrame = 0;
-	inline uint32_t max_frames_in_flight = 3;
-
 	class Renderer
 	{
 		public:
-			explicit Renderer(const VulkanContext& context, VulkanWindow& window);
+			explicit Renderer(const VulkanContext& context, VulkanWindow& window, Camera* camera, Allocator& allocator);
 			~Renderer();
 			void DrawScene();
 
 			void CreateGraphicsPipeline();
 
-			Allocator allocator;
+			Allocator& allocator;
 		private:
 			void CreateRendererResources();
 		private:
+			World m_World;
+			Camera* camera;
 			const VulkanContext& context;
 			VulkanWindow& window;
 
@@ -38,6 +39,13 @@ namespace Enigma
 
 			Pipeline m_pipeline;
 			PipelineLayout m_pipelineLayout;
-			std::vector<Model*> m_renderables;
+
+			std::vector<VkDescriptorSet> m_sceneDescriptorSets;
+
+			VkDescriptorSetLayout descriptorLayout = VK_NULL_HANDLE;
+			VkDescriptorSetLayout descriptorLayout_s = VK_NULL_HANDLE;
+			VkDescriptorPool pool = VK_NULL_HANDLE;
+
+			std::vector<Buffer> m_sceneUBO;
 	};
 }

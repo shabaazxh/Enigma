@@ -2,6 +2,7 @@
 #include <cassert>
 #include <algorithm>
 #include <unordered_set>
+#include "../Graphics/Common.h"
 
 namespace
 {
@@ -18,7 +19,7 @@ namespace
 
 	std::vector<VkImage> GetSwapchainImages(VkDevice device, VkSwapchainKHR swapchain);
 	std::vector<VkImageView> CreateSwapchainImageViews(VkDevice device, VkFormat format, const std::vector<VkImage>& images);
-	std::vector<VkFramebuffer> CreateSwapchainFramebuffers(VkDevice device, std::vector<VkImageView>& swapchainImageViews, VkRenderPass renderPass, VkExtent2D extent);
+	std::vector<VkFramebuffer> CreateSwapchainFramebuffers(VkDevice device, std::vector<VkImageView>& swapchainImageViews, Enigma::Image& depth, VkRenderPass renderPass, VkExtent2D extent);
 	VkRenderPass CreateSwapchainRenderPass(VkDevice device, VkFormat format);
 
 	std::optional<uint32_t> FindQueueFamilyIndex(VkPhysicalDevice pDevice, VkSurfaceKHR surface, VkQueueFlagBits flags);
@@ -60,12 +61,16 @@ namespace Enigma
 		return false;
 	}
 
-	VulkanWindow MakeVulkanWindow(VulkanContext& context)
+	VulkanWindow MakeVulkanWindow(uint32_t width, uint32_t height, VulkanContext& context, Camera* camera, Allocator& allocator)
 	{
 		VulkanWindow windowContext(context);
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		windowContext.window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
+		windowContext.window = glfwCreateWindow(width, height, "Vulkan window", nullptr, nullptr);
+
+		//glfwSetKeyCallback(windowContext.window, &windowContext.glfw_callback_key_press);
+
+		windowContext.camera = camera;
 
 		if (!windowContext.window)
 			throw std::runtime_error("Failed to create GLFW window");
@@ -80,14 +85,19 @@ namespace Enigma
 
 		std::tie(windowContext.swapchain, windowContext.swapchainFormat, windowContext.swapchainExtent) = CreateSwapchain(context.physicalDevice, windowContext.surface, context.device, windowContext.window,{context.graphicsFamilyIndex}, VK_NULL_HANDLE);
 		
+		Enigma::depth = Enigma::CreateImageTexture2D(context, windowContext.swapchainExtent.width, windowContext.swapchainExtent.height, VK_FORMAT_D32_SFLOAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT, allocator);
+
 		windowContext.swapchainImages = GetSwapchainImages(context.device, windowContext.swapchain);
 		windowContext.swapchainImageViews = CreateSwapchainImageViews(context.device, windowContext.swapchainFormat, windowContext.swapchainImages);
 		
 		// Make swapchain render pass
 		windowContext.renderPass = CreateSwapchainRenderPass(context.device, windowContext.swapchainFormat);
 
-		windowContext.swapchainFramebuffers = CreateSwapchainFramebuffers(context.device, windowContext.swapchainImageViews, windowContext.renderPass, windowContext.swapchainExtent);
+		windowContext.swapchainFramebuffers = CreateSwapchainFramebuffers(context.device, windowContext.swapchainImageViews, Enigma::depth, windowContext.renderPass, windowContext.swapchainExtent);
 		
+		windowContext.m_lastMousePosX = windowContext.swapchainExtent.width  / 2.0f;
+		windowContext.m_lastMousePosY = windowContext.swapchainExtent.height / 2.0f;
+
 		return windowContext;
 	}
 
@@ -133,9 +143,11 @@ namespace Enigma
 		// Re-create new swapchain: images, imageviews, framebuffers, renderpass
 		window.swapchainImages = GetSwapchainImages(context.device, window.swapchain);
 		window.swapchainImageViews = CreateSwapchainImageViews(context.device, VK_FORMAT_B8G8R8A8_SRGB, window.swapchainImages);
-	
+		
+		//Enigma::depth = Enigma::CreateImageTexture2D(context, windowContext.swapchainExtent.width, windowContext.swapchainExtent.height, VK_FORMAT_D32_SFLOAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT, allocator)
+
 		window.renderPass = CreateSwapchainRenderPass(context.device, VK_FORMAT_B8G8R8A8_SRGB);
-		window.swapchainFramebuffers = CreateSwapchainFramebuffers(context.device, window.swapchainImageViews, window.renderPass, window.swapchainExtent);
+		window.swapchainFramebuffers = CreateSwapchainFramebuffers(context.device, window.swapchainImageViews, Enigma::depth, window.renderPass, window.swapchainExtent);
 	}
 }
 
@@ -310,18 +322,17 @@ namespace
 
 	}
 
-	std::vector<VkFramebuffer> CreateSwapchainFramebuffers(VkDevice device, std::vector<VkImageView>& swapchainImageViews, VkRenderPass renderPass, VkExtent2D extent)
+	std::vector<VkFramebuffer> CreateSwapchainFramebuffers(VkDevice device, std::vector<VkImageView>& swapchainImageViews, Enigma::Image& depth, VkRenderPass renderPass, VkExtent2D extent)
 	{
 		std::vector<VkFramebuffer> framebuffers;
 		for (const auto& imageView : swapchainImageViews)
 		{
-
-			VkImageView attachments[1]{ imageView };
+			VkImageView attachments[2]{ imageView, depth.imageView };
 
 			VkFramebufferCreateInfo fb_info{};
 			fb_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 			fb_info.renderPass = renderPass;
-			fb_info.attachmentCount = static_cast<uint32_t>(1);
+			fb_info.attachmentCount = static_cast<uint32_t>(2);
 			fb_info.pAttachments = attachments;
 			fb_info.width = extent.width;
 			fb_info.height = extent.height;
@@ -348,38 +359,54 @@ namespace
 		attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; // layout of the resource as it enters render pass
 		attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; // layout of resource at the end of the render pass
 
-		// we need depth attachment, leaving it for now 
+		// we need depth attachment, leaving it for now
+		VkAttachmentDescription depthAttachment{};
+		depthAttachment.format = VK_FORMAT_D32_SFLOAT;
+		depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-		VkAttachmentDescription attachments[1] = { attachment };
+		VkAttachmentDescription attachments[2] = { attachment, depthAttachment };
 
 		VkAttachmentReference colorReference = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
-		
+		VkAttachmentReference depthRefernece = { 1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+
 		VkSubpassDescription subpass{};
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &colorReference;
+		subpass.pDepthStencilAttachment = &depthRefernece;
 		
-		VkSubpassDependency dependency{};
+		VkSubpassDependency dependency[2]{};
 		// Wait for EXTERNAL render pass to finish outputting
-		dependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		dependency.srcAccessMask = 0;
-		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+		dependency[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependency[0].srcAccessMask = 0;
+		dependency[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
 		// Destination needs to wait for EXTERNAL to finishing outputting before writing 
-		dependency.dstSubpass = 0;
-		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency[0].dstSubpass = 0;
+		dependency[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependency[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		
+		dependency[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+		dependency[1].srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependency[1].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		dependency[1].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+		dependency[1].dstSubpass = 0;
+		dependency[1].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+		dependency[1].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 
 		VkRenderPassCreateInfo rp_info{};
 		rp_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-		rp_info.attachmentCount = 1;
+		rp_info.attachmentCount = 2;
 		rp_info.pAttachments = attachments;
 		rp_info.subpassCount = 1;
 		rp_info.pSubpasses = &subpass;
-		rp_info.dependencyCount = 1;
-		rp_info.pDependencies = &dependency;
+		rp_info.dependencyCount = 2;
+		rp_info.pDependencies = dependency;
 
 		VkRenderPass renderPass = VK_NULL_HANDLE;
 

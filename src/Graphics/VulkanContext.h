@@ -24,6 +24,12 @@ namespace Enigma
 			VulkanContext();
 			~VulkanContext();
 
+			VulkanContext(const VulkanContext&) = delete;
+			VulkanContext& operator=(const VulkanContext&) = delete;
+
+			VulkanContext(VulkanContext&&) noexcept;
+			VulkanContext& operator=(VulkanContext&&) noexcept;
+
 			VkFormat GetSupportedDepthFormat();
 
 		public:
@@ -37,12 +43,9 @@ namespace Enigma
 	};
 
 	VulkanContext MakeVulkanContext();
-
 	VkInstance CreateVulkanInstance(const std::vector<const char*>& enabledLayers, const std::vector<const char*>& enabledExtensions, bool enabledDebugUtils);
 	float ScoreDevice(VkPhysicalDevice pDevice);
 	VkPhysicalDevice SelectDevice(VkInstance instance);
 	std::optional<uint32_t> FindGraphicsQueueFamily(VkPhysicalDevice pDevice);
 	VkDevice CreateDevice(VkPhysicalDevice pDevice, uint32_t graphicsFamilyIndex);
-	
-
 }

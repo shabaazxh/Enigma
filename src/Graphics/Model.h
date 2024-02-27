@@ -4,29 +4,20 @@
 #include <glm/glm.hpp>
 #include "VulkanContext.h"
 #include "VulkanBuffer.h"
+#include "../Core/Error.h"
 #include "Allocator.h"
 #include <string>
 #include <array>
 #include <vector>
 #include <iostream>
-
-
-
-#define ENIGMA_VK_ERROR(call, message) \
-do { \
-    VkResult result = call; \
-    if (result != VK_SUCCESS) { \
-        std::cout << "[ENIGMA ERROR]: " << message << " VkResult: " << result << std::endl; \
-    } \
-} while (0)
-
-#define ENIGMA_ERROR(message) std::cout << "[ENIGMA ERROR]: " << message << std::endl; \
+#include "../Graphics/VulkanImage.h"
 
 namespace Enigma
 {
 	struct Vertex
 	{
 		glm::vec3 pos;
+		glm::vec2 tex;
 		glm::vec3 color;
 
 		static VkVertexInputBindingDescription GetBindingDescription()
@@ -39,9 +30,9 @@ namespace Enigma
 			return bindingDescrip;
 		}
 
-		static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions()
+		static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions()
 		{
-			std::array<VkVertexInputAttributeDescription, 2> attributes{};
+			std::array<VkVertexInputAttributeDescription, 3> attributes{};
 
 			attributes[0].binding = 0;
 			attributes[0].location = 0;
@@ -50,30 +41,65 @@ namespace Enigma
 
 			attributes[1].binding = 0;
 			attributes[1].location = 1;
-			attributes[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributes[1].offset = offsetof(Vertex, color);
+			attributes[1].format = VK_FORMAT_R32G32_SFLOAT;
+			attributes[1].offset = offsetof(Vertex, tex);
+
+			attributes[2].binding = 0;
+			attributes[2].location = 2;
+			attributes[2].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributes[2].offset = offsetof(Vertex, color);
 			
 			return attributes;
 		}
 
 	};
 
+	struct Material
+	{
+		std::string materialName;
+		glm::vec3 diffuseColour;
+		std::string diffuseTexturePath;
+	};
+	
+	struct Mesh
+	{
+		std::string meshName;
+		size_t materialIndex;
+		bool textured : 1;
+		size_t vertexStartIndex;
+		size_t vertexCount;
+		
+		std::vector<Vertex> vertices;
+		std::vector<uint32_t> indices;
+		std::vector<glm::vec2> texcoords;
+		Buffer vertexBuffer;
+		Buffer indexBuffer;
+	};
+
+	struct ModelPushConstant
+	{
+		glm::mat4 model;
+		int textureIndex;
+	};
+
 	class Model
 	{
-
 		public:
 			Model(const std::string& filepath, Allocator& aAllocator, const VulkanContext& context);
-			void Draw(VkCommandBuffer cmd);
+			void Draw(VkCommandBuffer cmd, VkPipelineLayout layout);
 
 			Allocator& allocator;
+			std::vector<Material> materials;
+			std::vector<Mesh> meshes;
+			std::vector<Image> loadedTextures;
 		private:
+			void LoadModel(const std::string& filepath);
 			void LoadModel();
+			void CreateBuffers();
 		private:
+			
+			std::vector<VkDescriptorSet> m_descriptorSet;
 			const VulkanContext& context;
-			std::vector<Vertex> m_vertices;
-			std::vector<uint32_t> m_indices;
-			Buffer m_vertexBuffer;
-			Buffer m_indexBuffer;
 			std::string m_filePath;
 	};
 }

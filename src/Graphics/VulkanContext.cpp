@@ -21,9 +21,37 @@ namespace
 
 }
 
+//VkInstance instance = VK_NULL_HANDLE;
+//VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+//VkDevice device = VK_NULL_HANDLE;
+//
+//uint32_t graphicsFamilyIndex = 0;
+//VkQueue graphicsQueue = VK_NULL_HANDLE;
+//VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
 namespace Enigma
 {
 	VulkanContext::VulkanContext() = default;
+
+	VulkanContext::VulkanContext(VulkanContext&& other) noexcept :
+		instance(std::exchange(other.instance, VK_NULL_HANDLE)),
+		physicalDevice(std::exchange(other.physicalDevice, VK_NULL_HANDLE)),
+		device(std::exchange(other.device, VK_NULL_HANDLE)),
+		graphicsFamilyIndex(std::exchange(other.graphicsFamilyIndex, 0)),
+		graphicsQueue(std::exchange(other.graphicsQueue, VK_NULL_HANDLE)),
+		debugMessenger(std::exchange(other.debugMessenger, VK_NULL_HANDLE))
+		 {}
+
+	VulkanContext& VulkanContext::operator=(VulkanContext&& other) noexcept
+	{
+		std::swap(instance, other.instance);
+		std::swap(physicalDevice, other.physicalDevice);
+		std::swap(device, other.device);
+		std::swap(graphicsFamilyIndex, other.graphicsFamilyIndex);
+		std::swap(graphicsQueue, other.graphicsQueue);
+		std::swap(debugMessenger, other.debugMessenger);
+
+		return *this;
+	}
 
 	VulkanContext::~VulkanContext()
 	{
@@ -109,8 +137,14 @@ namespace Enigma
 		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
 		vkEnumerateDeviceExtensionProperties(pDevice, nullptr, &extensionCount, availableExtensions.data());
 
+		VkPhysicalDeviceFeatures2 features{};
+		features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+		
+		vkGetPhysicalDeviceFeatures2(pDevice, &features);
+
+
 		// prefer to select and use a discrete GPU over an integrated one 
-		if (props.deviceType = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+		if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && features.features.samplerAnisotropy)
 		{
 			score += 500.0f;
 		}
@@ -145,6 +179,14 @@ namespace Enigma
 				pDevice = device;
 			}
 		}
+
+
+		VkPhysicalDeviceFeatures2 features{};
+		features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+
+		vkGetPhysicalDeviceFeatures2(pDevice, &features);
+
+		std::printf("Anisotropic support: %s\n", &features.features.samplerAnisotropy ? "TRUE" : "FALSE");
 
 		return pDevice;
 	}
@@ -181,16 +223,16 @@ namespace Enigma
 		queueInfo.pQueuePriorities = queuePriorities;
 		queueInfo.queueCount = 1;
 
-		VkPhysicalDeviceFeatures deviceFeatures{};
-		// we have no extra features we would need at the moment
-		
+		VkPhysicalDeviceFeatures selectecdFeatures{};
+		selectecdFeatures.samplerAnisotropy = VK_TRUE;
+
 		std::vector<const char*> extensions{ VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
 		VkDeviceCreateInfo deviceInfo{};
 		deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		deviceInfo.queueCreateInfoCount = 1;
 		deviceInfo.pQueueCreateInfos = &queueInfo;
-		deviceInfo.pEnabledFeatures = &deviceFeatures;
+		deviceInfo.pEnabledFeatures = &selectecdFeatures;
 		deviceInfo.enabledExtensionCount = uint32_t(extensions.size());
 		deviceInfo.ppEnabledExtensionNames = extensions.data();
 
@@ -272,7 +314,7 @@ namespace Enigma
 			VkPhysicalDeviceProperties props;
 			vkGetPhysicalDeviceProperties(context.physicalDevice, &props);
 
-			std::fprintf(stderr, "Selected device: %s", props.deviceName);
+			std::fprintf(stderr, "Selected device: %s\n", props.deviceName);
 		}
 
 		// With the physical device, we can now create the logical device
