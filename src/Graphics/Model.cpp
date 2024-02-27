@@ -8,7 +8,7 @@ namespace Enigma
 	{
 		LoadModel();
 		dpool = std::move(aDpool);
-		Enigma::DescriptorSetLayout objectLayout = create_model_descriptor_layout(context);
+		objectLayout = create_model_descriptor_layout(context);
 		Enigma::Image objectTex;
 		{
 			Enigma::CommandPool loadCmdPool = create_command_pool(context);
@@ -178,11 +178,10 @@ namespace Enigma
 
 	Enigma::DescriptorSetLayout Model::create_model_descriptor_layout(Enigma::VulkanContext const& aWindow) {
 		VkDescriptorSetLayoutBinding bindings[1]{};
-		bindings[0].binding = 0; // number must match the index of the corresponding
-		// binding = N declaration in the shader(s)!
-		bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		bindings[0].binding = 0; // this must match the shaders
+		bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		bindings[0].descriptorCount = 1;
-		bindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+		bindings[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
 		VkDescriptorSetLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -192,7 +191,7 @@ namespace Enigma
 		VkDescriptorSetLayout layout = VK_NULL_HANDLE;
 		if (auto const res = vkCreateDescriptorSetLayout(aWindow.device, &layoutInfo, nullptr, &layout); VK_SUCCESS != res)
 		{
-			throw std::runtime_error("Failed to create descriptor set layout\n");
+			throw std::runtime_error("Failed to create descriptor set layout");
 		}
 
 		return Enigma::DescriptorSetLayout(aWindow.device, layout);
@@ -201,17 +200,17 @@ namespace Enigma
 	void Model::update_descriptor_sets(Enigma::VulkanContext const& aWindow, VkDescriptorSet objectDescriptors) {
 		VkWriteDescriptorSet desc[1]{};
 
-		VkDescriptorImageInfo textureInfo{};
-		textureInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		textureInfo.imageView = objectView.handle;
-		textureInfo.sampler = sampler.handle;
+		//VkDescriptorImageInfo textureInfo{};
+		//textureInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		//textureInfo.imageView = objectView.handle;
+		//textureInfo.sampler = sampler.handle;
 
 		desc[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		desc[0].dstSet = objectDescriptors;
 		desc[0].dstBinding = 0;
 		desc[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		desc[0].descriptorCount = 1;
-		desc[0].pImageInfo = &textureInfo;
+		//desc[0].pImageInfo = &textureInfo;
 
 		constexpr auto numSets = sizeof(desc) / sizeof(desc[0]);
 		vkUpdateDescriptorSets(aWindow.device, numSets, desc, 0, nullptr);

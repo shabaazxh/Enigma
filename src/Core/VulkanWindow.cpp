@@ -297,7 +297,7 @@ namespace
 			};
 
 			viewInfo.subresourceRange = VkImageSubresourceRange{
-				VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1
+				VK_IMAGE_ASPECT_COLOR_BIT, 0, VK_REMAINING_MIP_LEVELS, 0, 1
 			};
 
 			VkImageView imageView = VK_NULL_HANDLE;

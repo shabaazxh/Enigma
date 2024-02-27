@@ -65,6 +65,7 @@ namespace Enigma
 			void Draw(VkCommandBuffer cmd, VkDescriptorSet sceneDescriptor, VkPipelineLayout pipelineLayout);
 
 			Allocator& allocator;
+			Enigma::DescriptorSetLayout objectLayout;
 		private:
 			void LoadModel();
 			VkDescriptorSet alloc_desc_set(const Enigma::VulkanContext& aContext, VkDescriptorPool aPool, VkDescriptorSetLayout aSetLayout);

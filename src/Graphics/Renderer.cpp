@@ -22,11 +22,7 @@ namespace Enigma
 		// Command pool and command buffers;
 
 		allocator = Enigma::MakeAllocator(context);
-		CreateRendererResources();
-		CreateGraphicsPipeline();
-
 		sceneLayout = create_scene_descriptor_layout(context);
-
 		sceneUBO = CreateBuffer(allocator, sizeof(glsl::SceneUniform), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
 		dpool = create_descriptor_pool(context);
 		sceneDescriptors = alloc_desc_set(context, dpool.handle, sceneLayout.handle);
@@ -35,6 +31,14 @@ namespace Enigma
 		update_scene_uniforms(sceneUniform, window.swapchainExtent.width, window.swapchainExtent.height, state);
 
 		m_renderables.push_back(new Model("C:/Users/Billy/Documents/Enigma/resources/cube.obj", "C:/Users/Billy/Documents/Enigma/resources/bricks.png", allocator, context, dpool.handle));
+
+		layouts.push_back(sceneLayout.handle);
+		layouts.push_back(m_renderables.at(0)->objectLayout.handle);
+
+		CreateRendererResources();
+		CreateGraphicsPipeline();
+
+		
 	}
 
 	Renderer::~Renderer()
@@ -283,8 +287,8 @@ namespace Enigma
 
 		VkPipelineLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		layoutInfo.setLayoutCount = 0;
-		layoutInfo.pSetLayouts = nullptr;
+		layoutInfo.setLayoutCount = sizeof(layouts)/sizeof(layouts[0]);
+		layoutInfo.pSetLayouts = layouts.data();
 		layoutInfo.pushConstantRangeCount = 0;
 		layoutInfo.pPushConstantRanges = nullptr;
 

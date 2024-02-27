@@ -58,6 +58,7 @@ namespace Enigma
 			VkDescriptorSet sceneDescriptors;
 			Enigma::DescriptorSetLayout sceneLayout;
 			Enigma::DescriptorPool dpool;
+			std::vector<VkDescriptorSetLayout> layouts;
 
 			Allocator allocator;
 		private:
