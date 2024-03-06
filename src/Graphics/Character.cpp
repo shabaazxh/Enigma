@@ -1,13 +1,14 @@
 #include "Character.h"
-#include "VulkanObjects.h"
-#define TINYOBJLOADER_IMPLEMENTATION
-#include <tinyobjloader/tiny_obj_loader.h>
-#include <rapidobj.hpp>
-#include <unordered_set>
-#include "../Graphics/Common.h"
 
 namespace Enigma
 {
+	Character::Character(const std::string& filepath, Allocator& aAllocator, const VulkanContext& aContext) : Model(filepath, aAllocator, aContext)
+	{
+		health = 100.f;
+		LoadModel(filepath);
+		GetBoundingBox();
+	}
+
 	void Character::ManageAnimation() {
 		//	ToDo
 	}

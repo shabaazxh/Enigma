@@ -53,7 +53,7 @@ namespace Enigma
 	struct World
 	{
 		std::vector<Light> Lights;
-		std::vector<Model*> Meshes;
+		std::vector<Model*> Meshes; 
 	};
 
 	struct Scene

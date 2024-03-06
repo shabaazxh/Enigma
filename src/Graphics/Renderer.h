@@ -4,6 +4,8 @@
 #include "VulkanObjects.h"
 #include "VulkanContext.h"
 #include "Model.h"
+#include "Character.h"
+#include "Player.h"
 #include "Common.h"
 #include "../Core/VulkanWindow.h"
 #include <memory.h>

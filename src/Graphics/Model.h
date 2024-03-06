@@ -101,12 +101,11 @@ namespace Enigma
 			float rotationY = 0.f;
 			float rotationZ = 0.f;
 			glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
-		private:
+		protected:
 			void LoadModel(const std::string& filepath);
 			void CreateBuffers();
 			void GetBoundingBox();
-		private:
-			
+		protected:
 			std::vector<VkDescriptorSet> m_descriptorSet;
 			const VulkanContext& context;
 			std::string m_filePath;
