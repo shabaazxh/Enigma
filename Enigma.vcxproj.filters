@@ -93,4 +93,8 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\Shaders\vertex.vert" />
+    <None Include="resources\Shaders\fragment.frag" />
+  </ItemGroup>
 </Project>

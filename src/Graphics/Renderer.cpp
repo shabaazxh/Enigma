@@ -20,7 +20,13 @@ namespace Enigma
 		CreateRendererResources();
 		CreateGraphicsPipeline();
 
-		m_World.Meshes.push_back(new Model("C:/Users/Shahb/source/repos/Enigma/Enigma/resources/sponza_with_ship.obj", allocator, context));
+		m_World.Meshes.push_back(new Model("C:/Users/Billy/Documents/Enigma/resources/cube.obj", allocator, context));
+		m_World.Meshes.push_back(new Model("C:/Users/Billy/Documents/Enigma/resources/cube.obj", allocator, context));
+		m_World.Meshes.push_back(new Model("C:/Users/Billy/Documents/Enigma/resources/sponza_with_ship.obj", allocator, context));
+		m_World.Meshes.at(0)->translation = glm::vec3(5.f, 0.f, 5.f);
+		m_World.Meshes.at(1)->scale = glm::vec3(1000.f, 0.01f, 1000.f);
+		m_World.Meshes.at(2)->translation = glm::vec3(-100.f, 0.f, -100.f);
+		m_World.Meshes.at(2)->rotationX = 90.f;
 	}
 
 	Renderer::~Renderer()
@@ -239,8 +245,8 @@ namespace Enigma
 	}
 	void Renderer::CreateGraphicsPipeline()
 	{
-		ShaderModule vertexShader   = CreateShaderModule("C:/Users/Shahb/source/repos/Enigma/Enigma/resources/Shaders/vertex.vert.spv", context.device);
-		ShaderModule fragmentShader = CreateShaderModule("C:/Users/Shahb/source/repos/Enigma/Enigma/resources/Shaders/fragment.frag.spv", context.device);
+		ShaderModule vertexShader   = CreateShaderModule("C:/Users/Billy/Documents/Enigma/resources/Shaders/vertex.vert.spv", context.device);
+		ShaderModule fragmentShader = CreateShaderModule("C:/Users/Billy/Documents/Enigma/resources/Shaders/fragment.frag.spv", context.device);
 
 		VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
 		vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;

@@ -2,6 +2,7 @@
 
 #include <Volk/volk.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include "VulkanContext.h"
 #include "VulkanBuffer.h"
 #include "../Core/Error.h"
@@ -72,6 +73,7 @@ namespace Enigma
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
 		std::vector<glm::vec2> texcoords;
+		std::vector<glm::vec3> bounding_box;
 		Buffer vertexBuffer;
 		Buffer indexBuffer;
 	};
@@ -92,10 +94,17 @@ namespace Enigma
 			std::vector<Material> materials;
 			std::vector<Mesh> meshes;
 			std::vector<Image> loadedTextures;
+
+			//transformations
+			glm::vec3 translation = glm::vec3(0.f, 0.f, 0.f);
+			float rotationX = 0.f;
+			float rotationY = 0.f;
+			float rotationZ = 0.f;
+			glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
 		private:
 			void LoadModel(const std::string& filepath);
-			void LoadModel();
 			void CreateBuffers();
+			void GetBoundingBox();
 		private:
 			
 			std::vector<VkDescriptorSet> m_descriptorSet;

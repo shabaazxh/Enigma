@@ -23,7 +23,7 @@ int main() {
     
     Enigma::VulkanContext context = Enigma::MakeVulkanContext();
     Enigma::Allocator allocator = Enigma::MakeAllocator(context);
-    Enigma::VulkanWindow window = Enigma::MakeVulkanWindow(800, 600, context, &FPSCamera, allocator);
+    Enigma::VulkanWindow window = Enigma::MakeVulkanWindow(1920, 1080, context, &FPSCamera, allocator);
 
     glfwSetInputMode(window.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     glfwSetWindowUserPointer(window.window, &window);
