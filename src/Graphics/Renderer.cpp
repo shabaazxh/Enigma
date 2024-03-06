@@ -20,12 +20,11 @@ namespace Enigma
 		CreateRendererResources();
 		CreateGraphicsPipeline();
 
-		m_World.Meshes.push_back(new Model("C:/Users/Billy/Documents/Enigma/resources/cube.obj", allocator, context));
-		m_World.Meshes.push_back(new Model("C:/Users/Billy/Documents/Enigma/resources/cube.obj", allocator, context));
-		Player* temp = new Player("C:/Users/Billy/Documents/Enigma/resources/sponza_with_ship.obj", allocator, context);
-		m_World.Meshes.push_back(temp);
 		m_World.Meshes.push_back(new Model("C:/Users/Billy/Documents/Enigma/resources/sponza_with_ship.obj", allocator, context));
-		m_World.Meshes.at(0)->translation = glm::vec3(5.f, 0.f, 5.f);
+		m_World.Meshes.push_back(new Model("C:/Users/Billy/Documents/Enigma/resources/cube.obj", allocator, context));
+		m_World.Meshes.push_back(new Model("C:/Users/Billy/Documents/Enigma/resources/sponza_with_ship.obj", allocator, context));
+		m_World.Meshes.push_back(new Player("C:/Users/Billy/Documents/Enigma/resources/sponza_with_ship.obj", allocator, context));
+		m_World.Meshes.at(0)->translation = glm::vec3(100.f, 0.f, 100.f);
 		m_World.Meshes.at(1)->scale = glm::vec3(1000.f, 0.01f, 1000.f);
 		m_World.Meshes.at(2)->translation = glm::vec3(-100.f, 0.f, -100.f);
 		m_World.Meshes.at(2)->rotationX = 90.f;

@@ -138,7 +138,7 @@ namespace Enigma
 		// need to store it at mesh index not material index when pushing into loaded exxtures
 		// C:/Users/Shahb/source/repos/Enigma/Enigma/resources/textures/jpeg/lion.jpg
 
-		const std::string defaultTexture = "C:/Users/Billy/Documents/Enigma/resources/textures/jpeg/lion.jpg";
+		const std::string defaultTexture = "C:/Users/Billy/Documents/Enigma/resources/textures/jpeg/sponza_floor_a_diff.jpg";
 		Image defaultTex = Enigma::CreateTexture(context, defaultTexture, allocator);
 
 		loadedTextures.resize(materials.size());
