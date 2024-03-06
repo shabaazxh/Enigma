@@ -120,7 +120,7 @@ namespace Enigma
 		vkDestroyRenderPass(context.device, window.renderPass, nullptr);
 	}
 
-	void RecreateSwapchain(const VulkanContext& context, VulkanWindow& window)
+	void RecreateSwapchain(const VulkanContext& context, VulkanWindow& window, Allocator& allocator)
 	{
 		VkExtent2D previousExtent = window.swapchainExtent;
 		VkSwapchainKHR oldSwapchain = window.swapchain;
@@ -144,7 +144,7 @@ namespace Enigma
 		window.swapchainImages = GetSwapchainImages(context.device, window.swapchain);
 		window.swapchainImageViews = CreateSwapchainImageViews(context.device, VK_FORMAT_B8G8R8A8_SRGB, window.swapchainImages);
 		
-		//Enigma::depth = Enigma::CreateImageTexture2D(context, windowContext.swapchainExtent.width, windowContext.swapchainExtent.height, VK_FORMAT_D32_SFLOAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT, allocator)
+		Enigma::depth = Enigma::CreateImageTexture2D(context, window.swapchainExtent.width, window.swapchainExtent.height, VK_FORMAT_D32_SFLOAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT, allocator);
 
 		window.renderPass = CreateSwapchainRenderPass(context.device, VK_FORMAT_B8G8R8A8_SRGB);
 		window.swapchainFramebuffers = CreateSwapchainFramebuffers(context.device, window.swapchainImageViews, Enigma::depth, window.renderPass, window.swapchainExtent);

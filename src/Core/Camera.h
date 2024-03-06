@@ -85,7 +85,7 @@ namespace Enigma
 			glm::vec3 m_position;
 			glm::vec3 m_direction;
 			glm::vec3 m_up;
-			float m_cameraSpeed = 200.0f;
+			float m_cameraSpeed = 60.0f;
 			glm::vec3 m_velocity = glm::vec3(0);
 	};
 }

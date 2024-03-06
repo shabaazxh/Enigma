@@ -237,13 +237,14 @@ namespace Enigma
 		if (window.isSwapchainOutdated(res))
 		{
 			vkDeviceWaitIdle(context.device);
-			Enigma::RecreateSwapchain(context, window); 
+			Enigma::RecreateSwapchain(context, window, allocator); 
 			CreateGraphicsPipeline();
 			window.hasResized = true;
 		}
 
 		Enigma::currentFrame = (Enigma::currentFrame + 1) % Enigma::MAX_FRAMES_IN_FLIGHT;
 	}
+
 	void Renderer::CreateGraphicsPipeline()
 	{
 		ShaderModule vertexShader   = CreateShaderModule("C:/Users/Billy/Documents/Enigma/resources/Shaders/vertex.vert.spv", context.device);

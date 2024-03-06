@@ -51,7 +51,7 @@ namespace Enigma
 					windowClass->camera->Up();
 				}
 
-				if (glfwGetKey(windowClass->window, GLFW_KEY_R) == GLFW_PRESS)
+				if (glfwGetKey(windowClass->window, GLFW_KEY_E)== GLFW_PRESS)
 				{
 					windowClass->camera->Down();
 				}
@@ -112,6 +112,6 @@ namespace Enigma
 	};
 
 	VulkanWindow MakeVulkanWindow(uint32_t width, uint32_t height, VulkanContext& context, Camera* camera, Allocator& allocator);
-	void RecreateSwapchain(const VulkanContext& context, VulkanWindow& window);
+	void RecreateSwapchain(const VulkanContext& context, VulkanWindow& window, Allocator& allocator);
 	void TearDownSwapchain(const VulkanContext& context, VulkanWindow& window);
 }
