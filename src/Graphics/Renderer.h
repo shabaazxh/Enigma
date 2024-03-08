@@ -38,12 +38,7 @@ namespace Enigma
 			std::vector<VkCommandBuffer> m_renderCommandBuffers;
 
 			Pipeline m_pipeline;
-			Pipeline m_overdrawPipeline;
-			Pipeline m_overshadePipeline;
-			Pipeline m_mipshadingPipeline;
-			Pipeline m_meshDensityPipeline;
-			Pipeline m_computePipeline;
-
+	
 			PipelineLayout m_pipelinePipelineLayout;
 			std::vector<VkDescriptorSet> m_sceneDescriptorSets;
 
