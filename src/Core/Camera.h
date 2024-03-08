@@ -14,6 +14,8 @@ namespace Enigma
 			Camera() = default;
 			Camera(const glm::vec3 position, glm::vec3 direction, glm::vec3 up, Time& time, float aspect) : m_position{ position }, m_direction{ direction }, m_up{ up }, time{ time } {}
 
+			void SetSpeed(float speed) { m_cameraSpeed = speed; }
+
 			void SetPosition(glm::vec3 newpos) { m_position = newpos; }
 			void SetDirection(glm::vec3 newdir) { m_direction = newdir; }
 			void SetFoV(float fov) { m_transform.fov = fov; }
@@ -75,6 +77,11 @@ namespace Enigma
 				m_transform.projection[1][1] *= -1;
 			}
 
+			void LogPosition()
+			{
+				std::cout << "Position: " << m_position.x << ", " << m_position.y << ", " << m_position.z << " Speed: " << m_cameraSpeed << std::endl;
+			}
+
 			glm::vec3 GetPosition() const { return m_position; }
 			glm::vec3 GetDirection() const { return m_direction; }
 			glm::vec3 GetUp() const { return m_up; }
@@ -85,7 +92,7 @@ namespace Enigma
 			glm::vec3 m_position;
 			glm::vec3 m_direction;
 			glm::vec3 m_up;
-			float m_cameraSpeed = 200.0f;
+			float m_cameraSpeed = 50.0f;
 			glm::vec3 m_velocity = glm::vec3(0);
 	};
 }

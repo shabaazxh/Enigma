@@ -3,7 +3,7 @@
 #include <iostream>
 
 
-#define ENIGMA_VK_ERROR(call, message) \
+#define ENIGMA_VK_CHECK(call, message) \
 do { \
     VkResult result = call; \
     if (result != VK_SUCCESS) { \

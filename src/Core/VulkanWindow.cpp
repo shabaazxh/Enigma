@@ -31,6 +31,11 @@ namespace Enigma
 
 	VulkanWindow::~VulkanWindow()
 	{
+		vkDestroyImageView(context.device, Enigma::depth.imageView, nullptr);
+		vmaDestroyImage(context.allocator.allocator, Enigma::depth.image, Enigma::depth.allocation);
+
+		Enigma::depth.image = VK_NULL_HANDLE;
+
 		for (const auto& framebuffer : swapchainFramebuffers)
 			vkDestroyFramebuffer(context.device, framebuffer, nullptr);
 
@@ -61,31 +66,32 @@ namespace Enigma
 		return false;
 	}
 
-	VulkanWindow MakeVulkanWindow(uint32_t width, uint32_t height, VulkanContext& context, Camera* camera, Allocator& allocator)
+	VulkanWindow PrepareWindow(uint32_t width, uint32_t height, VulkanContext& context)
 	{
 		VulkanWindow windowContext(context);
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		windowContext.window = glfwCreateWindow(width, height, "Vulkan window", nullptr, nullptr);
-
-		//glfwSetKeyCallback(windowContext.window, &windowContext.glfw_callback_key_press);
-
-		windowContext.camera = camera;
-
+	
 		if (!windowContext.window)
 			throw std::runtime_error("Failed to create GLFW window");
 
 		if (glfwCreateWindowSurface(context.instance, windowContext.window, nullptr, &windowContext.surface) != VK_SUCCESS)
 		{
 			std::fprintf(stderr, "Failed to create window surface");
-			std::runtime_error("Failed to create window surface");
 		}
 
-		const auto index = FindQueueFamilyIndex(context.physicalDevice, windowContext.surface, VK_QUEUE_GRAPHICS_BIT);
+		return windowContext;
+	}
 
-		std::tie(windowContext.swapchain, windowContext.swapchainFormat, windowContext.swapchainExtent) = CreateSwapchain(context.physicalDevice, windowContext.surface, context.device, windowContext.window,{context.graphicsFamilyIndex}, VK_NULL_HANDLE);
+	void MakeVulkanWindow(VulkanWindow& windowContext, VulkanContext& context, Camera* camera)
+	{
+		windowContext.camera = camera;
+
+		std::tie(windowContext.swapchain, windowContext.swapchainFormat, windowContext.swapchainExtent) = CreateSwapchain(context.physicalDevice, windowContext.surface, context.device, windowContext.window,{context.presentFamilyIndex}, VK_NULL_HANDLE);
 		
-		Enigma::depth = Enigma::CreateImageTexture2D(context, windowContext.swapchainExtent.width, windowContext.swapchainExtent.height, VK_FORMAT_D32_SFLOAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT, allocator);
+		uint32_t mipLevels = Enigma::CalculateMipLevels(windowContext.swapchainExtent.width, windowContext.swapchainExtent.height);
+		Enigma::depth = Enigma::CreateImageTexture2D(context, windowContext.swapchainExtent.width, windowContext.swapchainExtent.height, VK_FORMAT_D32_SFLOAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT);
 
 		windowContext.swapchainImages = GetSwapchainImages(context.device, windowContext.swapchain);
 		windowContext.swapchainImageViews = CreateSwapchainImageViews(context.device, windowContext.swapchainFormat, windowContext.swapchainImages);
@@ -97,8 +103,6 @@ namespace Enigma
 		
 		windowContext.m_lastMousePosX = windowContext.swapchainExtent.width  / 2.0f;
 		windowContext.m_lastMousePosY = windowContext.swapchainExtent.height / 2.0f;
-
-		return windowContext;
 	}
 
 	void TearDownSwapchain(const VulkanContext& context, VulkanWindow& window)
@@ -144,8 +148,13 @@ namespace Enigma
 		window.swapchainImages = GetSwapchainImages(context.device, window.swapchain);
 		window.swapchainImageViews = CreateSwapchainImageViews(context.device, VK_FORMAT_B8G8R8A8_SRGB, window.swapchainImages);
 		
-		//Enigma::depth = Enigma::CreateImageTexture2D(context, windowContext.swapchainExtent.width, windowContext.swapchainExtent.height, VK_FORMAT_D32_SFLOAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT, allocator)
+		vkDestroyImageView(context.device, Enigma::depth.imageView, nullptr);
+		vmaDestroyImage(context.allocator.allocator, Enigma::depth.image, Enigma::depth.allocation);
+		Enigma::depth.image = VK_NULL_HANDLE;
+		Enigma::depth.imageView = VK_NULL_HANDLE;
+		Enigma::depth.allocation = VK_NULL_HANDLE;
 
+		Enigma::depth = Enigma::CreateImageTexture2D(context, window.swapchainExtent.width, window.swapchainExtent.height, VK_FORMAT_D32_SFLOAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 		window.renderPass = CreateSwapchainRenderPass(context.device, VK_FORMAT_B8G8R8A8_SRGB);
 		window.swapchainFramebuffers = CreateSwapchainFramebuffers(context.device, window.swapchainImageViews, Enigma::depth, window.renderPass, window.swapchainExtent);
 	}
@@ -153,14 +162,14 @@ namespace Enigma
 
 namespace
 {
-
+	// Query the format of the present images based on our gpu and surface
 	std::vector<VkSurfaceFormatKHR> GetSurfaceFormats(VkPhysicalDevice pDevice, VkSurfaceKHR surface)
 	{
 		uint32_t numFormat = 0;
 		vkGetPhysicalDeviceSurfaceFormatsKHR(pDevice, surface, &numFormat, nullptr);
 
 		std::vector<VkSurfaceFormatKHR> formats(numFormat);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(pDevice, surface, &numFormat, nullptr);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(pDevice, surface, &numFormat, formats.data());
 
 		// Ensure there are formats for us to check by checking it's not empty
 		assert(!formats.empty());
@@ -168,10 +177,10 @@ namespace
 		return formats;
 	}
 
+	// Query all the supported present modes given our surface and gpu 
 	std::unordered_set<VkPresentModeKHR> GetPresentModes(VkPhysicalDevice pDevice, VkSurfaceKHR surface)
 	{
-
-		uint32_t numModes;
+		uint32_t numModes = 0;
 		vkGetPhysicalDeviceSurfacePresentModesKHR(pDevice, surface, &numModes, nullptr);
 
 		std::vector<VkPresentModeKHR> presentModes(numModes);
@@ -250,7 +259,7 @@ namespace
 		swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 		swapchainInfo.surface = surface;
 		swapchainInfo.minImageCount = imageCount;
-		swapchainInfo.imageFormat = VK_FORMAT_B8G8R8A8_SRGB;
+		swapchainInfo.imageFormat = swapFormat.format;
 		swapchainInfo.imageColorSpace = swapFormat.colorSpace;
 		swapchainInfo.imageExtent = extent;
 		swapchainInfo.imageArrayLayers = 1;
@@ -260,6 +269,9 @@ namespace
 		swapchainInfo.presentMode = presentMode;
 		swapchainInfo.clipped = VK_TRUE;
 		swapchainInfo.oldSwapchain = OldSwapchain;
+
+		// Set the max frames in flight using the image count we found
+		Enigma::MAX_FRAMES_IN_FLIGHT = imageCount;
 
 		if (aQueueFamilyIndices.size() <= 1)
 		{
@@ -276,7 +288,7 @@ namespace
 
 		vkCreateSwapchainKHR(device, &swapchainInfo, nullptr, &swapc);
 
-		return { swapc, VK_FORMAT_B8G8R8A8_SRGB, extent };
+		return { swapc, swapFormat.format, extent };
 	}
 
 	std::vector<VkImage> GetSwapchainImages(VkDevice device, VkSwapchainKHR swapchain)
@@ -313,7 +325,7 @@ namespace
 			};
 
 			VkImageView imageView = VK_NULL_HANDLE;
-			VK_CHECK(vkCreateImageView(device, &viewInfo, nullptr, &imageView));
+			ENIGMA_VK_CHECK(vkCreateImageView(device, &viewInfo, nullptr, &imageView), "Failed to create swapchain image views");
 
 			swapchainImageViews.emplace_back(imageView);
 		}
@@ -339,7 +351,7 @@ namespace
 			fb_info.layers = 1;
 
 			VkFramebuffer framebuffer = VK_NULL_HANDLE;
-			VK_CHECK(vkCreateFramebuffer(device, &fb_info, nullptr, &framebuffer));
+			ENIGMA_VK_CHECK(vkCreateFramebuffer(device, &fb_info, nullptr, &framebuffer), "Failed to create swapchain framebuffers.");
 
 			framebuffers.push_back(framebuffer);
 		}
@@ -410,32 +422,9 @@ namespace
 
 		VkRenderPass renderPass = VK_NULL_HANDLE;
 
-		VK_CHECK(vkCreateRenderPass(device, &rp_info, nullptr, &renderPass));
+		ENIGMA_VK_CHECK(vkCreateRenderPass(device, &rp_info, nullptr, &renderPass), "Failed to create swapchain Render Pass.");
 
 		return renderPass;
 	}
 
-	std::optional<uint32_t> FindQueueFamilyIndex(VkPhysicalDevice pDevice, VkSurfaceKHR surface, VkQueueFlagBits flags)
-	{
-		uint32_t numQueues = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(pDevice, &numQueues, nullptr);
-
-		std::vector<VkQueueFamilyProperties> families(numQueues);
-		vkGetPhysicalDeviceQueueFamilyProperties(pDevice, &numQueues, families.data());
-
-		for (uint32_t i = 0; i < numQueues; i++)
-		{
-			const auto& family = families[i];
-			VkBool32 supportPresent;
-			vkGetPhysicalDeviceSurfaceSupportKHR(pDevice, i, surface, &supportPresent);
-			
-			if ((families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) && supportPresent)
-			{
-				return i;
-			}
-		}
-
-		return {};
-
-	}
 }

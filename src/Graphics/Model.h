@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Volk/volk.h>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
 #include <glm/glm.hpp>
 #include "VulkanContext.h"
 #include "VulkanBuffer.h"
@@ -11,6 +13,10 @@
 #include <vector>
 #include <iostream>
 #include "../Graphics/VulkanImage.h"
+#include <functional>
+#include <algorithm>
+#include <unordered_map>
+#include <iostream>
 
 namespace Enigma
 {
@@ -52,7 +58,13 @@ namespace Enigma
 			return attributes;
 		}
 
+		bool operator==(const Vertex& other) const
+		{
+			return pos == other.pos && tex == other.tex;
+		}
+
 	};
+	
 
 	struct Material
 	{
@@ -64,8 +76,8 @@ namespace Enigma
 	struct Mesh
 	{
 		std::string meshName;
-		size_t materialIndex;
-		bool textured : 1;
+		int materialIndex;
+		bool textured = false;
 		size_t vertexStartIndex;
 		size_t vertexCount;
 		
@@ -74,32 +86,46 @@ namespace Enigma
 		std::vector<glm::vec2> texcoords;
 		Buffer vertexBuffer;
 		Buffer indexBuffer;
+		glm::vec3 color;
 	};
 
 	struct ModelPushConstant
 	{
 		glm::mat4 model;
 		int textureIndex;
+		bool isTextured;
 	};
 
 	class Model
 	{
 		public:
-			Model(const std::string& filepath, Allocator& aAllocator, const VulkanContext& context);
+			Model(const std::string& filepath, const VulkanContext& context);
 			void Draw(VkCommandBuffer cmd, VkPipelineLayout layout);
 
-			Allocator& allocator;
 			std::vector<Material> materials;
 			std::vector<Mesh> meshes;
-			std::vector<Image> loadedTextures;
+			
 		private:
 			void LoadModel(const std::string& filepath);
-			void LoadModel();
 			void CreateBuffers();
+			void makebuffers();
 		private:
-			
+			std::vector<Image> loadedTextures;
 			std::vector<VkDescriptorSet> m_descriptorSet;
 			const VulkanContext& context;
 			std::string m_filePath;
 	};
 }
+
+template<>
+struct std::hash<Enigma::Vertex>
+{
+	std::size_t operator()(const Enigma::Vertex& v) const noexcept
+	{
+
+		auto h1 = std::hash<glm::vec3>()(v.pos);
+		auto h2 = std::hash<glm::vec2>()(v.tex);
+		auto h3 = std::hash<glm::vec3>()(v.color);
+		return ((h1 ^ (h2 << 1)) >> 1) ^ (h3 << 1);
+	}
+};

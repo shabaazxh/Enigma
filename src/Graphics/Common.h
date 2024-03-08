@@ -8,13 +8,14 @@
 #include "../Graphics/Light.h"
 #include <fstream>
 #include "../Core/Error.h"
+#include "../Core/Engine.h"
 #include "VulkanImage.h"
 
 class Model;
 
 namespace Enigma
 {
-	inline constexpr int MAX_FRAMES_IN_FLIGHT = 3;
+	inline int MAX_FRAMES_IN_FLIGHT = 0;
 	inline int currentFrame = 0;
 
 	class Time
@@ -61,14 +62,18 @@ namespace Enigma
 		
 	};
 
-
 	inline VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-	inline VkDescriptorSetLayout descriptorLayout = VK_NULL_HANDLE;
+	inline VkDescriptorSetLayout sceneDescriptorLayout = VK_NULL_HANDLE;
 	inline VkDescriptorSetLayout descriptorLayoutModel = VK_NULL_HANDLE;
 
 	inline Sampler sampler;
-
 	inline Image depth;
+
+	inline VkImage depthimg;
+	inline VkImageView depthimageview;
+	inline VmaAllocation depthimageallocation;
+
+	inline VkSampler defaultSampler;
 }
 
 namespace Enigma
@@ -82,7 +87,7 @@ namespace Enigma
 
 		VkDescriptorSetLayout layout = VK_NULL_HANDLE;
 		
-		ENIGMA_VK_ERROR(vkCreateDescriptorSetLayout(context.device, &info, nullptr, &layout), "Failed to crate descriptor set layout");
+		ENIGMA_VK_CHECK(vkCreateDescriptorSetLayout(context.device, &info, nullptr, &layout), "Failed to crate descriptor set layout");
 
 		return layout;
 	}
@@ -98,7 +103,7 @@ namespace Enigma
 
 		descriptorSet.resize(Enigma::MAX_FRAMES_IN_FLIGHT);
 
-		ENIGMA_VK_ERROR(vkAllocateDescriptorSets(context.device, &allocInfo, descriptorSet.data()), "Failed to allocate descriptor sets");
+		ENIGMA_VK_CHECK(vkAllocateDescriptorSets(context.device, &allocInfo, descriptorSet.data()), "Failed to allocate descriptor sets");
 	}
 
 	// Define a descriptor set layout binding 
@@ -152,7 +157,7 @@ namespace Enigma
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		
 		VkCommandBuffer cmd = VK_NULL_HANDLE;
-		ENIGMA_VK_ERROR(vkAllocateCommandBuffers(context.device, &allocInfo, &cmd), "Failed to allocate command buffer");
+		ENIGMA_VK_CHECK(vkAllocateCommandBuffers(context.device, &allocInfo, &cmd), "Failed to allocate command buffer");
 
 		return cmd;
 	}
@@ -163,7 +168,7 @@ namespace Enigma
 		begin.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		begin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-		ENIGMA_VK_ERROR(vkBeginCommandBuffer(cmd, &begin), "Failed to begin recording command buffer");
+		ENIGMA_VK_CHECK(vkBeginCommandBuffer(cmd, &begin), "Failed to begin recording command buffer");
 	}
 
 	inline Fence CreateFence(VkDevice device)
@@ -173,7 +178,7 @@ namespace Enigma
 		info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
 		VkFence fence = VK_NULL_HANDLE;
-		ENIGMA_VK_ERROR(vkCreateFence(device, &info, nullptr, &fence), "Failed to create fence");
+		ENIGMA_VK_CHECK(vkCreateFence(device, &info, nullptr, &fence), "Failed to create fence");
 
 		return Fence(device, fence);
 	}
@@ -190,7 +195,7 @@ namespace Enigma
 		submit.commandBufferCount = 1;
 		submit.pCommandBuffers = &cmd;
 
-		ENIGMA_VK_ERROR(vkQueueSubmit(context.graphicsQueue, 1, &submit, complete.handle), "Failed to submit command buffer");
+		ENIGMA_VK_CHECK(vkQueueSubmit(context.graphicsQueue, 1, &submit, complete.handle), "Failed to submit command buffer");
 	
 		vkWaitForFences(context.device, 1, &complete.handle, VK_TRUE, UINT64_MAX);
 	}
@@ -201,7 +206,7 @@ namespace Enigma
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
 		VkSemaphore semaphore = VK_NULL_HANDLE;
-		VK_CHECK(vkCreateSemaphore(device, &semaphoreInfo, nullptr, &semaphore));
+		ENIGMA_VK_CHECK(vkCreateSemaphore(device, &semaphoreInfo, nullptr, &semaphore), "Failed to create Semaphore");
 
 		return Semaphore{ device, semaphore };
 	}
@@ -214,7 +219,7 @@ namespace Enigma
 		cmdPool.queueFamilyIndex = queueFamilyIndex;
 
 		VkCommandPool commandPool = VK_NULL_HANDLE;
-		VK_CHECK(vkCreateCommandPool(device, &cmdPool, nullptr, &commandPool));
+		ENIGMA_VK_CHECK(vkCreateCommandPool(device, &cmdPool, nullptr, &commandPool), "Failed to create command pool");
 
 		return CommandPool{ device, commandPool };
 	}
@@ -248,7 +253,7 @@ namespace Enigma
 		return Enigma::ShaderModule(device, shaderModule);
 	}
 
-	inline Sampler CreateSampler(const VulkanContext& context)
+	inline VkSampler CreateSampler(const VulkanContext& context)
 	{
 		VkSamplerCreateInfo samplerInfo{};
 		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -260,10 +265,11 @@ namespace Enigma
 		samplerInfo.minLod = 0.0f;
 		samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
 		samplerInfo.mipLodBias = 0.f;
+		samplerInfo.maxAnisotropy = 16.0f;
 		
 		VkSampler sampler = VK_NULL_HANDLE;
-		ENIGMA_VK_ERROR(vkCreateSampler(context.device, &samplerInfo, nullptr, &sampler), "Failed to create sampler");
+		ENIGMA_VK_CHECK(vkCreateSampler(context.device, &samplerInfo, nullptr, &sampler), "Failed to create sampler");
 		
-		return Sampler(context.device, sampler);
+		return sampler;
 	}
 }

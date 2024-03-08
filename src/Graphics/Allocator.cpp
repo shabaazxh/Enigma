@@ -2,7 +2,7 @@
 #include "Allocator.h"
 #define VMA_IMPLEMENTATION
 #include <vk_mem_alloc.h>
-
+#include "../Core/Error.h"
 
 namespace Enigma
 {
@@ -10,10 +10,10 @@ namespace Enigma
 
 	Allocator::~Allocator()
 	{
-		if (allocator != VK_NULL_HANDLE)
-		{
-			vmaDestroyAllocator(allocator);
-		}
+		//if (allocator != VK_NULL_HANDLE)
+		//{
+		//	vmaDestroyAllocator(allocator);
+		//}
 	}
 
 	Allocator::Allocator(VmaAllocator aAllocator) noexcept : allocator{ aAllocator } {}
@@ -26,10 +26,10 @@ namespace Enigma
 		return *this;
 	}
 
-	Allocator MakeAllocator(const VulkanContext& context)
+	Allocator MakeAllocator(VkInstance instance, VkPhysicalDevice pDevice, VkDevice device)
 	{
 		VkPhysicalDeviceProperties props{};
-		vkGetPhysicalDeviceProperties(context.physicalDevice, &props);
+		vkGetPhysicalDeviceProperties(pDevice, &props);
 
 		VmaVulkanFunctions functions{};
 		functions.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
@@ -37,14 +37,14 @@ namespace Enigma
 
 		VmaAllocatorCreateInfo allocInfo{};
 		allocInfo.vulkanApiVersion = props.apiVersion;
-		allocInfo.physicalDevice = context.physicalDevice;
-		allocInfo.device = context.device;
-		allocInfo.instance = context.instance;
+		allocInfo.physicalDevice = pDevice;
+		allocInfo.device = device;
+		allocInfo.instance = instance;
 		allocInfo.pVulkanFunctions = &functions;
 
 		VmaAllocator allocator = VK_NULL_HANDLE;
 
-		VK_CHECK(vmaCreateAllocator(&allocInfo, &allocator));
+		ENIGMA_VK_CHECK(vmaCreateAllocator(&allocInfo, &allocator), "Failed to create allocator");
 
 		return Allocator(allocator);
 	}

@@ -5,7 +5,8 @@
 #include "Camera.h"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-
+#include "../Core/Engine.h"
+#include "../Core/Error.h"
 
 namespace Enigma
 {
@@ -24,6 +25,14 @@ namespace Enigma
 				if (GLFW_KEY_ESCAPE == key && action == GLFW_PRESS)
 				{
 					glfwSetWindowShouldClose(window, GLFW_TRUE);
+				}
+
+				if (glfwGetKey(windowClass->window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+				{
+					windowClass->camera->SetSpeed(100.0f);
+				}
+				else {
+					windowClass->camera->SetSpeed(50.0f);
 				}
 
 				if (glfwGetKey(windowClass->window, GLFW_KEY_W) == GLFW_PRESS)
@@ -56,6 +65,55 @@ namespace Enigma
 					windowClass->camera->Down();
 				}
 
+				if (glfwGetKey(windowClass->window, GLFW_KEY_C) == GLFW_PRESS)
+				{
+					if (Enigma::Settings::MIP_VISUAL() == true)
+					{
+						Enigma::Settings::MIP_VISUAL_OFF();
+					}
+					else
+					{
+						Enigma::Settings::MIP_VISUAL_ON();
+					}
+				}
+
+				if (glfwGetKey(windowClass->window, GLFW_KEY_V) == GLFW_PRESS)
+				{
+					if (Enigma::Settings::OVERDRAW_VISUAL() == true)
+					{
+						Enigma::Settings::OVERDRAW_VISUAL_OFF();
+					}
+					else
+					{
+						Enigma::Settings::OVERDRAW_VISUAL_ON();
+					}
+				}
+
+				if (glfwGetKey(windowClass->window, GLFW_KEY_B) == GLFW_PRESS)
+				{
+					if (Enigma::Settings::OVERSHADE_VISUAL() == true)
+					{
+						Enigma::Settings::OVERSHADING_VISUAL_OFF();
+					}
+					else
+					{
+						Enigma::Settings::OVERSHADIING_VISUAL_ON();
+					}
+				}
+
+				if (glfwGetKey(windowClass->window, GLFW_KEY_N) == GLFW_PRESS)
+				{
+					if (Enigma::Settings::MESH_DENSITY_VISUAL())
+					{
+						Enigma::Settings::MESH_DENSITY_VISUAL_OFF();
+					}
+					else
+					{
+						Enigma::Settings::MESH_DENSITY_VISUAL_ON();
+					}
+				}
+				
+				
 			}
 
 			static void glfw_callback_mouse(GLFWwindow* window, double x, double y)
@@ -69,7 +127,7 @@ namespace Enigma
 				windowClass->m_lastMousePosX = x;
 				windowClass->m_lastMousePosY = y;
 
-				const float mouseSensitivity = 0.1f;
+				const float mouseSensitivity = 0.01f;
 				x_offset *= mouseSensitivity;
 				y_offset *= mouseSensitivity;
 
@@ -111,7 +169,8 @@ namespace Enigma
 			const VulkanContext& context;
 	};
 
-	VulkanWindow MakeVulkanWindow(uint32_t width, uint32_t height, VulkanContext& context, Camera* camera, Allocator& allocator);
+	VulkanWindow PrepareWindow(uint32_t width, uint32_t height, VulkanContext& context);
+	void MakeVulkanWindow(VulkanWindow& windowContext, VulkanContext& context, Camera* camera);
 	void RecreateSwapchain(const VulkanContext& context, VulkanWindow& window);
 	void TearDownSwapchain(const VulkanContext& context, VulkanWindow& window);
 }

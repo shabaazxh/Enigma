@@ -1,5 +1,7 @@
 #include "VulkanBuffer.h"
 #include <cassert>
+#include "../Core/Error.h"
+#include "../Core/Engine.h"
 
 namespace Enigma
 {
@@ -48,7 +50,7 @@ namespace Enigma
 		VkBuffer buffer = VK_NULL_HANDLE;
 		VmaAllocation allocation = VK_NULL_HANDLE;
 
-		VK_CHECK(vmaCreateBuffer(allocator.allocator, &bufferInfo, &allocInfo, &buffer, &allocation, nullptr));
+		ENIGMA_VK_CHECK(vmaCreateBuffer(allocator.allocator, &bufferInfo, &allocInfo, &buffer, &allocation, nullptr), "Failed to create buffer");
 
 		return Buffer(allocator.allocator, buffer, allocation);
 	}

@@ -1,14 +1,13 @@
 #include "Model.h"
 #include "VulkanObjects.h"
-#define TINYOBJLOADER_IMPLEMENTATION
-#include <tinyobjloader/tiny_obj_loader.h>
 #include <rapidobj.hpp>
 #include <unordered_set>
 #include "../Graphics/Common.h"
+#include "../Core/Engine.h"
 
 namespace Enigma
 {
-	Model::Model(const std::string& filepath, Allocator& aAllocator, const VulkanContext& context) : m_filePath{filepath}, allocator{ aAllocator }, context{context}
+	Model::Model(const std::string& filepath, const VulkanContext& context) : m_filePath{filepath}, context{context}
 	{
 		LoadModel(filepath);
 	}
@@ -25,7 +24,6 @@ namespace Enigma
 		// obj can have non triangle faces. Triangulate will triangulate
 		// non triangle faces
 		rapidobj::Triangulate(result);
-
 
 		// store the prefix to the obj file
 		const char* pathBegin = filepath.c_str();
@@ -70,14 +68,11 @@ namespace Enigma
 			for (const auto matID : activeMaterials)
 			{
 				Vertex vertex{};
-				auto* pos = &vertex.pos;
-				auto* tex = &vertex.tex;
-
 				const bool textured = !materials[matID].diffuseTexturePath.empty();
 				
 				if (!textured)
 				{
-					tex = nullptr;
+					vertex.color = materials[matID].diffuseColour;
 				}
 
 				std::string meshName;
@@ -91,8 +86,8 @@ namespace Enigma
 				// const auto firstVertex = pos->size();
 				// assert(!textured || firstVertex == tex->size());
 
-
 				Mesh mesh{};
+				std::unordered_map<Vertex, uint32_t> uniqueVertices;
 				for (size_t i = 0; i < shape.mesh.indices.size(); i++)
 				{
 					const auto faceID = i / 3;
@@ -117,15 +112,22 @@ namespace Enigma
 						));
 					}
 
-					vertex.color = glm::vec3(0.4f, 0.3f, 1.0f);
+					// vertex.color = glm::vec3(0.4f, 0.3f, 1.0f);
 
-					mesh.vertices.emplace_back(vertex);
+					if (uniqueVertices.count(vertex) == 0)
+					{
+						uniqueVertices[vertex] = static_cast<uint32_t>(mesh.vertices.size());
+						mesh.vertices.push_back(vertex);
+					}
+
+					mesh.indices.push_back(uniqueVertices[vertex]);
+					//mesh.vertices.emplace_back(vertex);
 				}
 
 				// const auto vertexCount = pos->size() - firstVertex;
 				// assert(!textured || vertexCount == tex->size() - firstVertex);
 
-				mesh.materialIndex = matID;
+				mesh.materialIndex = (int)matID;
 				mesh.meshName = std::move(meshName);
 				mesh.textured = textured;
 				meshes.emplace_back(std::move(mesh));
@@ -138,19 +140,17 @@ namespace Enigma
 		// C:/Users/Shahb/source/repos/Enigma/Enigma/resources/textures/jpeg/lion.jpg
 
 		const std::string defaultTexture = "C:/Users/Shahb/source/repos/Enigma/Enigma/resources/textures/jpeg/lion.jpg";
-		Image defaultTex = Enigma::CreateTexture(context, defaultTexture, allocator);
-
 		loadedTextures.resize(materials.size());
 		for (int i = 0; i < materials.size(); i++)
 		{
 			if (materials[i].diffuseTexturePath != "")
 			{
-				Image texture = Enigma::CreateTexture(context, materials[i].diffuseTexturePath, allocator);
+				Image texture = Enigma::CreateTexture(context, materials[i].diffuseTexturePath);
 				loadedTextures[i] = std::move(texture);
 			}
 			else
 			{
-				Image defaultTex = Enigma::CreateTexture(context, defaultTexture, allocator);
+				Image defaultTex = Enigma::CreateTexture(context, defaultTexture);
 				loadedTextures[i] = std::move(defaultTex);
 			}
 		}
@@ -158,13 +158,13 @@ namespace Enigma
 		Enigma::AllocateDescriptorSets(context, Enigma::descriptorPool, Enigma::descriptorLayoutModel, 1, m_descriptorSet);
 
 		std::vector<VkDescriptorImageInfo> imageinfos;
-
+		
 		for (size_t i = 0; i < loadedTextures.size(); i++)
 		{
 			VkDescriptorImageInfo imageInfo{};
 			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			imageInfo.imageView = loadedTextures[i].imageView;
-			imageInfo.sampler = Enigma::sampler.handle;
+			imageInfo.sampler = Enigma::defaultSampler;
 					
 			imageinfos.emplace_back(std::move(imageInfo));
 			
@@ -182,150 +182,34 @@ namespace Enigma
 		vkUpdateDescriptorSets(context.device, 1, &descriptorWrite, 0, nullptr);
 	}
 
-	void Model::LoadModel()
+	void Model::makebuffers()
 	{
-		//tinyobj::attrib_t attrib;
-		//std::vector<tinyobj::shape_t> shapes;
-		//std::vector<tinyobj::material_t> materials;
-		//std::string warn, err;
+		for (auto& mesh : meshes)
+		{
+			VkDeviceSize vertexSize = sizeof(mesh.vertices[0]) * mesh.vertices.size();
 
-		//if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, m_filePath.c_str()))
-		//{
-		//	ENIGMA_ERROR("Failed to load model.");
-		//}
+			mesh.vertexBuffer = CreateBuffer(context.allocator, vertexSize, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
 
-		//for (const auto& shape : shapes)
-		//{
-		//	for (const auto& index : shape.mesh.indices)
-		//	{
-		//		Vertex vertex{};
-
-		//		// Get the triangle 
-		//		vertex.pos = {
-		//			attrib.vertices[3 * index.vertex_index + 0],
-		//			attrib.vertices[3 * index.vertex_index + 1],
-		//			attrib.vertices[3 * index.vertex_index + 2]
-		//		};
-
-		//		// give it a pre-defiend color (using white)
-		//		vertex.color = { 1.0f, 1.0f, 1.0f };
-
-		//		m_vertices.push_back(vertex);
-
-		//		// We should be using index rendering, but this required a little more work
-		//		// so I have left it for now so we just use all vertices of the model
-		//		// While I am not using indices, im still adding values to it because I create a index buffer
-		//		// which requires data to show how it could work.
-		//		m_indices.push_back(3);
-		//	}
-		//}
-
-		//// Define the size of the buffers. Buffer will store size of the first element in bytes * amount
-		//VkDeviceSize vertexSize = sizeof(m_vertices[0]) * m_vertices.size();
-		//VkDeviceSize indexSize = sizeof(m_indices[0] * m_indices.size());
-
-		//m_vertexBuffer = CreateBuffer(allocator, vertexSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
-		//m_indexBuffer  = CreateBuffer(allocator, indexSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
-
-		//// We can't directly add data to GPU memory
-		//// need to add data to CPU visible memory first and then copy into GPU memory
-		//Buffer stagingBuffer = CreateBuffer(allocator, vertexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		//	VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT, VMA_MEMORY_USAGE_AUTO);
-
-		//void* data = nullptr;		
-		//ENIGMA_VK_ERROR(vmaMapMemory(allocator.allocator, stagingBuffer.allocation, &data), "Failed to map staging buffer memory while loading model.");
-		//std::memcpy(data, m_vertices.data(), vertexSize);
-		//vmaUnmapMemory(allocator.allocator, stagingBuffer.allocation);
-
-		//// Transfering CPU visible data to GPU ( we need a fence to sync ) 
-		//VkFenceCreateInfo fenceInfo{VK_STRUCTURE_TYPE_FENCE_CREATE_INFO};
-		//fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-		//VkFence fence = VK_NULL_HANDLE;
-		//VkResult res = vkCreateFence(context.device, &fenceInfo, nullptr, &fence);
-
-		//Fence uploadComplete = Fence(context.device, fence);
-		//vkResetFences(context.device, 1, &uploadComplete.handle);
-		//
-		//// Need a command pool & command buffer to record and submit 
-		//// to do copy transfer operation
-		//VkCommandPoolCreateInfo cmdPool{};
-		//cmdPool.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-		//cmdPool.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-		//cmdPool.queueFamilyIndex = context.graphicsFamilyIndex;
-
-		//VkCommandPool commandPool = VK_NULL_HANDLE;
-		//ENIGMA_VK_ERROR(vkCreateCommandPool(context.device, &cmdPool, nullptr, &commandPool), "Failed to create command pool for staging buffer in model class");
-
-		//VkCommandBufferAllocateInfo cmdAlloc{};
-		//cmdAlloc.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		//cmdAlloc.commandPool = commandPool;
-		//cmdAlloc.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		//cmdAlloc.commandBufferCount = 1;
-
-		//VkCommandBuffer cmd = VK_NULL_HANDLE;
-		//ENIGMA_VK_ERROR(vkAllocateCommandBuffers(context.device, &cmdAlloc, &cmd), "Failed to allocate command buffers while loading model.");
-
-		//// begin recording command buffers to do the copying from CPU to GPU buffer
-		//VkCommandBufferBeginInfo beginInfo{};
-		//beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		//beginInfo.flags = 0;
-		//beginInfo.pInheritanceInfo = nullptr;
-
-		//ENIGMA_VK_ERROR(vkBeginCommandBuffer(cmd, &beginInfo), "Failed to start command buffer for copying operation while loading model.");
-
-		//// Specify the copy position
-		//VkBufferCopy copy{};
-		//copy.size = vertexSize;
-
-		//vkCmdCopyBuffer(cmd, stagingBuffer.buffer, m_vertexBuffer.buffer, 1, &copy);
-
-		//VkBufferMemoryBarrier bufferBarrier{VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER};
-		//bufferBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		//bufferBarrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-		//bufferBarrier.buffer = m_vertexBuffer.buffer;
-		//bufferBarrier.size = VK_WHOLE_SIZE;
-		//bufferBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		//bufferBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-
-		//vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 0, nullptr, 1, &bufferBarrier, 0, nullptr);
-
-		//ENIGMA_VK_ERROR(vkEndCommandBuffer(cmd), "Failed to end command buffer during staging to GPU buffer opertion");
-
-		//// once the copy has finished, begin submitting
-		//VkSubmitInfo submitInfo{};
-		//submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		//submitInfo.commandBufferCount = 1;
-		//submitInfo.pCommandBuffers = &cmd;
-
-		//ENIGMA_VK_ERROR(vkQueueSubmit(context.graphicsQueue, 1, &submitInfo, uploadComplete.handle), "Failed to submit transfer operation for staging to GPU while loading model");
-
-		//// Wait for copy to complete before destroying the temporary resources
-		//// Use fence signal to check if has completed or not 
-		//ENIGMA_VK_ERROR(vkWaitForFences(context.device, 1, &uploadComplete.handle, VK_TRUE, std::numeric_limits<uint64_t>::max()), "Fence failed to wait while loading model.");
-
-		//vkFreeCommandBuffers(context.device, commandPool, 1, &cmd);
-		//vkDestroyCommandPool(context.device, commandPool, nullptr);
- 	}
+		}
+	}
 
 	void Model::CreateBuffers()
 	{
 		for (auto& mesh : meshes)
 		{
 			VkDeviceSize vertexSize = sizeof(mesh.vertices[0]) * mesh.vertices.size();
-			//VkDeviceSize indexSize = sizeof(m_indices[0] * m_indices.size());
 
-			mesh.vertexBuffer = CreateBuffer(allocator, vertexSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
-			//mesh.indexBuffer = CreateBuffer(allocator, indexSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
+			mesh.vertexBuffer = CreateBuffer(context.allocator, vertexSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
 
 			// We can't directly add data to GPU memory
 			// need to add data to CPU visible memory first and then copy into GPU memory
-			Buffer stagingBuffer = CreateBuffer(allocator, vertexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			Buffer stagingBuffer = CreateBuffer(context.allocator, vertexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 				VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT, VMA_MEMORY_USAGE_AUTO);
 
 			void* data = nullptr;
-			ENIGMA_VK_ERROR(vmaMapMemory(allocator.allocator, stagingBuffer.allocation, &data), "Failed to map staging buffer memory while loading model.");
+			ENIGMA_VK_CHECK(vmaMapMemory(context.allocator.allocator, stagingBuffer.allocation, &data), "Failed to map staging buffer memory while loading model.");
 			std::memcpy(data, mesh.vertices.data(), vertexSize);
-			vmaUnmapMemory(allocator.allocator, stagingBuffer.allocation);
+			vmaUnmapMemory(context.allocator.allocator, stagingBuffer.allocation);
 
 			// Transfering CPU visible data to GPU ( we need a fence to sync ) 
 			VkFenceCreateInfo fenceInfo{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
@@ -344,7 +228,7 @@ namespace Enigma
 			cmdPool.queueFamilyIndex = context.graphicsFamilyIndex;
 
 			VkCommandPool commandPool = VK_NULL_HANDLE;
-			ENIGMA_VK_ERROR(vkCreateCommandPool(context.device, &cmdPool, nullptr, &commandPool), "Failed to create command pool for staging buffer in model class");
+			ENIGMA_VK_CHECK(vkCreateCommandPool(context.device, &cmdPool, nullptr, &commandPool), "Failed to create command pool for staging buffer in model class");
 
 			VkCommandBufferAllocateInfo cmdAlloc{};
 			cmdAlloc.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -353,7 +237,7 @@ namespace Enigma
 			cmdAlloc.commandBufferCount = 1;
 
 			VkCommandBuffer cmd = VK_NULL_HANDLE;
-			ENIGMA_VK_ERROR(vkAllocateCommandBuffers(context.device, &cmdAlloc, &cmd), "Failed to allocate command buffers while loading model.");
+			ENIGMA_VK_CHECK(vkAllocateCommandBuffers(context.device, &cmdAlloc, &cmd), "Failed to allocate command buffers while loading model.");
 
 			// begin recording command buffers to do the copying from CPU to GPU buffer
 			VkCommandBufferBeginInfo beginInfo{};
@@ -361,7 +245,7 @@ namespace Enigma
 			beginInfo.flags = 0;
 			beginInfo.pInheritanceInfo = nullptr;
 
-			ENIGMA_VK_ERROR(vkBeginCommandBuffer(cmd, &beginInfo), "Failed to start command buffer for copying operation while loading model.");
+			Enigma::BeginCommandBuffer(cmd);
 
 			// Specify the copy position
 			VkBufferCopy copy{};
@@ -379,19 +263,83 @@ namespace Enigma
 
 			vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 0, nullptr, 1, &bufferBarrier, 0, nullptr);
 
-			ENIGMA_VK_ERROR(vkEndCommandBuffer(cmd), "Failed to end command buffer during staging to GPU buffer opertion");
+			// End the command buffer and submit it
+			Enigma::EndAndSubmitCommandBuffer(context, cmd);
 
-			// once the copy has finished, begin submitting
-			VkSubmitInfo submitInfo{};
-			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-			submitInfo.commandBufferCount = 1;
-			submitInfo.pCommandBuffers = &cmd;
+			vkFreeCommandBuffers(context.device, commandPool, 1, &cmd);
+			vkDestroyCommandPool(context.device, commandPool, nullptr);
+		}
 
-			ENIGMA_VK_ERROR(vkQueueSubmit(context.graphicsQueue, 1, &submitInfo, uploadComplete.handle), "Failed to submit transfer operation for staging to GPU while loading model");
 
-			// Wait for copy to complete before destroying the temporary resources
-			// Use fence signal to check if has completed or not 
-			ENIGMA_VK_ERROR(vkWaitForFences(context.device, 1, &uploadComplete.handle, VK_TRUE, std::numeric_limits<uint64_t>::max()), "Fence failed to wait while loading model.");
+		for (auto& mesh : meshes)
+		{
+			VkDeviceSize indexSize = sizeof(mesh.indices[0]) * mesh.indices.size();
+			mesh.indexBuffer = CreateBuffer(context.allocator, indexSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, 0, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE);
+
+			// We can't directly add data to GPU memory
+			// need to add data to CPU visible memory first and then copy into GPU memory
+			Buffer stagingBuffer = CreateBuffer(context.allocator, indexSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+				VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT, VMA_MEMORY_USAGE_AUTO);
+
+			void* data = nullptr;
+			ENIGMA_VK_CHECK(vmaMapMemory(context.allocator.allocator, stagingBuffer.allocation, &data), "Failed to map staging buffer memory while loading model.");
+			std::memcpy(data, mesh.indices.data(), indexSize);
+			vmaUnmapMemory(context.allocator.allocator, stagingBuffer.allocation);
+
+			// Transfering CPU visible data to GPU ( we need a fence to sync ) 
+			VkFenceCreateInfo fenceInfo{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+			fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+			VkFence fence = VK_NULL_HANDLE;
+			VkResult res = vkCreateFence(context.device, &fenceInfo, nullptr, &fence);
+
+			Fence uploadComplete = Fence(context.device, fence);
+			vkResetFences(context.device, 1, &uploadComplete.handle);
+
+			// Need a command pool & command buffer to record and submit 
+			// to do copy transfer operation
+			VkCommandPoolCreateInfo cmdPool{};
+			cmdPool.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+			cmdPool.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+			cmdPool.queueFamilyIndex = context.graphicsFamilyIndex;
+
+			VkCommandPool commandPool = VK_NULL_HANDLE;
+			ENIGMA_VK_CHECK(vkCreateCommandPool(context.device, &cmdPool, nullptr, &commandPool), "Failed to create command pool for staging buffer in model class");
+
+			VkCommandBufferAllocateInfo cmdAlloc{};
+			cmdAlloc.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+			cmdAlloc.commandPool = commandPool;
+			cmdAlloc.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+			cmdAlloc.commandBufferCount = 1;
+
+			VkCommandBuffer cmd = VK_NULL_HANDLE;
+			ENIGMA_VK_CHECK(vkAllocateCommandBuffers(context.device, &cmdAlloc, &cmd), "Failed to allocate command buffers while loading model.");
+
+			// begin recording command buffers to do the copying from CPU to GPU buffer
+			VkCommandBufferBeginInfo beginInfo{};
+			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+			beginInfo.flags = 0;
+			beginInfo.pInheritanceInfo = nullptr;
+
+			Enigma::BeginCommandBuffer(cmd);
+
+			// Specify the copy position
+			VkBufferCopy copy{};
+			copy.size = indexSize;
+
+			vkCmdCopyBuffer(cmd, stagingBuffer.buffer, mesh.indexBuffer.buffer, 1, &copy);
+
+			VkBufferMemoryBarrier bufferBarrier{ VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER };
+			bufferBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+			bufferBarrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+			bufferBarrier.buffer = mesh.indexBuffer.buffer;
+			bufferBarrier.size = VK_WHOLE_SIZE;
+			bufferBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			bufferBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+
+			vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, 0, nullptr, 1, &bufferBarrier, 0, nullptr);
+
+			// End the command buffer and submit it
+			Enigma::EndAndSubmitCommandBuffer(context, cmd);
 
 			vkFreeCommandBuffers(context.device, commandPool, 1, &cmd);
 			vkDestroyCommandPool(context.device, commandPool, nullptr);
@@ -406,14 +354,16 @@ namespace Enigma
 			ModelPushConstant push = {};
 			push.model = glm::mat4(1.0f);
 			push.textureIndex = mesh.materialIndex;
+			push.isTextured = mesh.textured;
 
 			vkCmdPushConstants(cmd, layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(ModelPushConstant), &push);
 			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 1, 1, &m_descriptorSet[0], 0, nullptr);
 
 			VkDeviceSize offset[] = { 0 };
 			vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.vertexBuffer.buffer, offset);
-
-			vkCmdDraw(cmd, static_cast<uint32_t>(mesh.vertices.size()), 1, 0, 0);
+			vkCmdBindIndexBuffer(cmd, mesh.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+			//vkCmdDraw(cmd, static_cast<uint32_t>(mesh.vertices.size()), 1, 0, 0);
+			vkCmdDrawIndexed(cmd, static_cast<uint32_t>(mesh.indices.size()), 1, 0, 0, 0);
 		}
 	}
 }

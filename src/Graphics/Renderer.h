@@ -15,15 +15,15 @@ namespace Enigma
 	class Renderer
 	{
 		public:
-			explicit Renderer(const VulkanContext& context, VulkanWindow& window, Camera* camera, Allocator& allocator);
+			explicit Renderer(const VulkanContext& context, VulkanWindow& window, Camera* camera);
 			~Renderer();
 			void DrawScene();
-
-			void CreateGraphicsPipeline();
-
-			Allocator& allocator;
+			void Update();
+			Pipeline CreateGraphicsPipeline(const std::string& vertex, const std::string& fragment, VkBool32 enableBlend, VkBool32 enableDepth, VkBool32 enableDepthWrite, const std::vector<VkDescriptorSetLayout>& descriptorLayouts, PipelineLayout& pipelinelayout);
 		private:
 			void CreateRendererResources();
+			void CreateDescriptorSetLayouts();
+			void CreateSceneDescriptorSetLayout();
 		private:
 			World m_World;
 			Camera* camera;
@@ -38,14 +38,17 @@ namespace Enigma
 			std::vector<VkCommandBuffer> m_renderCommandBuffers;
 
 			Pipeline m_pipeline;
-			PipelineLayout m_pipelineLayout;
+			Pipeline m_overdrawPipeline;
+			Pipeline m_overshadePipeline;
+			Pipeline m_mipshadingPipeline;
+			Pipeline m_meshDensityPipeline;
+			Pipeline m_computePipeline;
 
+			PipelineLayout m_pipelinePipelineLayout;
 			std::vector<VkDescriptorSet> m_sceneDescriptorSets;
 
-			VkDescriptorSetLayout descriptorLayout = VK_NULL_HANDLE;
-			VkDescriptorSetLayout descriptorLayout_s = VK_NULL_HANDLE;
-			VkDescriptorPool pool = VK_NULL_HANDLE;
-
 			std::vector<Buffer> m_sceneUBO;
+			Buffer m_SSBO;
+			Image m_render;
 	};
 }

@@ -4,8 +4,6 @@
 #include <vk_mem_alloc.h>
 #include <utility>
 
-#include "VulkanContext.h"
-
 namespace Enigma
 {
 	class Allocator
@@ -13,6 +11,12 @@ namespace Enigma
 		public:
 			Allocator() noexcept;
 			~Allocator();
+
+
+			void destroy()
+			{
+				vmaDestroyAllocator(allocator);
+			}
 
 			explicit Allocator(VmaAllocator alloc) noexcept;
 
@@ -25,5 +29,5 @@ namespace Enigma
 			VmaAllocator allocator = VK_NULL_HANDLE;
 	};
 
-	Allocator MakeAllocator(const VulkanContext& context);
+	Allocator MakeAllocator(VkInstance instance, VkPhysicalDevice pDevice, VkDevice device);
 }
