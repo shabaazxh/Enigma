@@ -2,6 +2,7 @@
 #include <cassert>
 #include <algorithm>
 #include <unordered_set>
+#include "../Graphics/Common.h"
 
 namespace
 {
@@ -18,7 +19,7 @@ namespace
 
 	std::vector<VkImage> GetSwapchainImages(VkDevice device, VkSwapchainKHR swapchain);
 	std::vector<VkImageView> CreateSwapchainImageViews(VkDevice device, VkFormat format, const std::vector<VkImage>& images);
-	std::vector<VkFramebuffer> CreateSwapchainFramebuffers(VkDevice device, std::vector<VkImageView>& swapchainImageViews, VkRenderPass renderPass, VkExtent2D extent);
+	std::vector<VkFramebuffer> CreateSwapchainFramebuffers(VkDevice device, std::vector<VkImageView>& swapchainImageViews, Enigma::Image& depth, VkRenderPass renderPass, VkExtent2D extent);
 	VkRenderPass CreateSwapchainRenderPass(VkDevice device, VkFormat format);
 
 	std::optional<uint32_t> FindQueueFamilyIndex(VkPhysicalDevice pDevice, VkSurfaceKHR surface, VkQueueFlagBits flags);
@@ -30,6 +31,11 @@ namespace Enigma
 
 	VulkanWindow::~VulkanWindow()
 	{
+		vkDestroyImageView(context.device, Enigma::depth.imageView, nullptr);
+		vmaDestroyImage(context.allocator.allocator, Enigma::depth.image, Enigma::depth.allocation);
+
+		Enigma::depth.image = VK_NULL_HANDLE;
+
 		for (const auto& framebuffer : swapchainFramebuffers)
 			vkDestroyFramebuffer(context.device, framebuffer, nullptr);
 
@@ -60,35 +66,43 @@ namespace Enigma
 		return false;
 	}
 
-	VulkanWindow MakeVulkanWindow(VulkanContext& context)
+	VulkanWindow PrepareWindow(uint32_t width, uint32_t height, VulkanContext& context)
 	{
 		VulkanWindow windowContext(context);
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		windowContext.window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
-
+		windowContext.window = glfwCreateWindow(width, height, "Vulkan window", nullptr, nullptr);
+	
 		if (!windowContext.window)
 			throw std::runtime_error("Failed to create GLFW window");
 
 		if (glfwCreateWindowSurface(context.instance, windowContext.window, nullptr, &windowContext.surface) != VK_SUCCESS)
 		{
 			std::fprintf(stderr, "Failed to create window surface");
-			std::runtime_error("Failed to create window surface");
 		}
 
-		const auto index = FindQueueFamilyIndex(context.physicalDevice, windowContext.surface, VK_QUEUE_GRAPHICS_BIT);
+		return windowContext;
+	}
 
-		std::tie(windowContext.swapchain, windowContext.swapchainFormat, windowContext.swapchainExtent) = CreateSwapchain(context.physicalDevice, windowContext.surface, context.device, windowContext.window,{context.graphicsFamilyIndex}, VK_NULL_HANDLE);
+	void MakeVulkanWindow(VulkanWindow& windowContext, VulkanContext& context, Camera* camera)
+	{
+		windowContext.camera = camera;
+
+		std::tie(windowContext.swapchain, windowContext.swapchainFormat, windowContext.swapchainExtent) = CreateSwapchain(context.physicalDevice, windowContext.surface, context.device, windowContext.window,{context.presentFamilyIndex}, VK_NULL_HANDLE);
 		
+		uint32_t mipLevels = Enigma::CalculateMipLevels(windowContext.swapchainExtent.width, windowContext.swapchainExtent.height);
+		Enigma::depth = Enigma::CreateImageTexture2D(context, windowContext.swapchainExtent.width, windowContext.swapchainExtent.height, VK_FORMAT_D32_SFLOAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT);
+
 		windowContext.swapchainImages = GetSwapchainImages(context.device, windowContext.swapchain);
 		windowContext.swapchainImageViews = CreateSwapchainImageViews(context.device, windowContext.swapchainFormat, windowContext.swapchainImages);
 		
 		// Make swapchain render pass
 		windowContext.renderPass = CreateSwapchainRenderPass(context.device, windowContext.swapchainFormat);
 
-		windowContext.swapchainFramebuffers = CreateSwapchainFramebuffers(context.device, windowContext.swapchainImageViews, windowContext.renderPass, windowContext.swapchainExtent);
+		windowContext.swapchainFramebuffers = CreateSwapchainFramebuffers(context.device, windowContext.swapchainImageViews, Enigma::depth, windowContext.renderPass, windowContext.swapchainExtent);
 		
-		return windowContext;
+		windowContext.m_lastMousePosX = windowContext.swapchainExtent.width  / 2.0f;
+		windowContext.m_lastMousePosY = windowContext.swapchainExtent.height / 2.0f;
 	}
 
 	void TearDownSwapchain(const VulkanContext& context, VulkanWindow& window)
@@ -133,22 +147,29 @@ namespace Enigma
 		// Re-create new swapchain: images, imageviews, framebuffers, renderpass
 		window.swapchainImages = GetSwapchainImages(context.device, window.swapchain);
 		window.swapchainImageViews = CreateSwapchainImageViews(context.device, VK_FORMAT_B8G8R8A8_SRGB, window.swapchainImages);
-	
+		
+		vkDestroyImageView(context.device, Enigma::depth.imageView, nullptr);
+		vmaDestroyImage(context.allocator.allocator, Enigma::depth.image, Enigma::depth.allocation);
+		Enigma::depth.image = VK_NULL_HANDLE;
+		Enigma::depth.imageView = VK_NULL_HANDLE;
+		Enigma::depth.allocation = VK_NULL_HANDLE;
+
+		Enigma::depth = Enigma::CreateImageTexture2D(context, window.swapchainExtent.width, window.swapchainExtent.height, VK_FORMAT_D32_SFLOAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
 		window.renderPass = CreateSwapchainRenderPass(context.device, VK_FORMAT_B8G8R8A8_SRGB);
-		window.swapchainFramebuffers = CreateSwapchainFramebuffers(context.device, window.swapchainImageViews, window.renderPass, window.swapchainExtent);
+		window.swapchainFramebuffers = CreateSwapchainFramebuffers(context.device, window.swapchainImageViews, Enigma::depth, window.renderPass, window.swapchainExtent);
 	}
 }
 
 namespace
 {
-
+	// Query the format of the present images based on our gpu and surface
 	std::vector<VkSurfaceFormatKHR> GetSurfaceFormats(VkPhysicalDevice pDevice, VkSurfaceKHR surface)
 	{
 		uint32_t numFormat = 0;
 		vkGetPhysicalDeviceSurfaceFormatsKHR(pDevice, surface, &numFormat, nullptr);
 
 		std::vector<VkSurfaceFormatKHR> formats(numFormat);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(pDevice, surface, &numFormat, nullptr);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(pDevice, surface, &numFormat, formats.data());
 
 		// Ensure there are formats for us to check by checking it's not empty
 		assert(!formats.empty());
@@ -156,10 +177,10 @@ namespace
 		return formats;
 	}
 
+	// Query all the supported present modes given our surface and gpu 
 	std::unordered_set<VkPresentModeKHR> GetPresentModes(VkPhysicalDevice pDevice, VkSurfaceKHR surface)
 	{
-
-		uint32_t numModes;
+		uint32_t numModes = 0;
 		vkGetPhysicalDeviceSurfacePresentModesKHR(pDevice, surface, &numModes, nullptr);
 
 		std::vector<VkPresentModeKHR> presentModes(numModes);
@@ -238,7 +259,7 @@ namespace
 		swapchainInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 		swapchainInfo.surface = surface;
 		swapchainInfo.minImageCount = imageCount;
-		swapchainInfo.imageFormat = VK_FORMAT_B8G8R8A8_SRGB;
+		swapchainInfo.imageFormat = swapFormat.format;
 		swapchainInfo.imageColorSpace = swapFormat.colorSpace;
 		swapchainInfo.imageExtent = extent;
 		swapchainInfo.imageArrayLayers = 1;
@@ -248,6 +269,9 @@ namespace
 		swapchainInfo.presentMode = presentMode;
 		swapchainInfo.clipped = VK_TRUE;
 		swapchainInfo.oldSwapchain = OldSwapchain;
+
+		// Set the max frames in flight using the image count we found
+		Enigma::MAX_FRAMES_IN_FLIGHT = imageCount;
 
 		if (aQueueFamilyIndices.size() <= 1)
 		{
@@ -264,7 +288,7 @@ namespace
 
 		vkCreateSwapchainKHR(device, &swapchainInfo, nullptr, &swapc);
 
-		return { swapc, VK_FORMAT_B8G8R8A8_SRGB, extent };
+		return { swapc, swapFormat.format, extent };
 	}
 
 	std::vector<VkImage> GetSwapchainImages(VkDevice device, VkSwapchainKHR swapchain)
@@ -301,7 +325,7 @@ namespace
 			};
 
 			VkImageView imageView = VK_NULL_HANDLE;
-			VK_CHECK(vkCreateImageView(device, &viewInfo, nullptr, &imageView));
+			ENIGMA_VK_CHECK(vkCreateImageView(device, &viewInfo, nullptr, &imageView), "Failed to create swapchain image views");
 
 			swapchainImageViews.emplace_back(imageView);
 		}
@@ -310,25 +334,24 @@ namespace
 
 	}
 
-	std::vector<VkFramebuffer> CreateSwapchainFramebuffers(VkDevice device, std::vector<VkImageView>& swapchainImageViews, VkRenderPass renderPass, VkExtent2D extent)
+	std::vector<VkFramebuffer> CreateSwapchainFramebuffers(VkDevice device, std::vector<VkImageView>& swapchainImageViews, Enigma::Image& depth, VkRenderPass renderPass, VkExtent2D extent)
 	{
 		std::vector<VkFramebuffer> framebuffers;
 		for (const auto& imageView : swapchainImageViews)
 		{
-
-			VkImageView attachments[1]{ imageView };
+			VkImageView attachments[2]{ imageView, depth.imageView };
 
 			VkFramebufferCreateInfo fb_info{};
 			fb_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 			fb_info.renderPass = renderPass;
-			fb_info.attachmentCount = static_cast<uint32_t>(1);
+			fb_info.attachmentCount = static_cast<uint32_t>(2);
 			fb_info.pAttachments = attachments;
 			fb_info.width = extent.width;
 			fb_info.height = extent.height;
 			fb_info.layers = 1;
 
 			VkFramebuffer framebuffer = VK_NULL_HANDLE;
-			VK_CHECK(vkCreateFramebuffer(device, &fb_info, nullptr, &framebuffer));
+			ENIGMA_VK_CHECK(vkCreateFramebuffer(device, &fb_info, nullptr, &framebuffer), "Failed to create swapchain framebuffers.");
 
 			framebuffers.push_back(framebuffer);
 		}
@@ -348,67 +371,60 @@ namespace
 		attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; // layout of the resource as it enters render pass
 		attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; // layout of resource at the end of the render pass
 
-		// we need depth attachment, leaving it for now 
+		// we need depth attachment, leaving it for now
+		VkAttachmentDescription depthAttachment{};
+		depthAttachment.format = VK_FORMAT_D32_SFLOAT;
+		depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-		VkAttachmentDescription attachments[1] = { attachment };
+		VkAttachmentDescription attachments[2] = { attachment, depthAttachment };
 
 		VkAttachmentReference colorReference = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
-		
+		VkAttachmentReference depthRefernece = { 1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+
 		VkSubpassDescription subpass{};
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &colorReference;
+		subpass.pDepthStencilAttachment = &depthRefernece;
 		
-		VkSubpassDependency dependency{};
+		VkSubpassDependency dependency[2]{};
 		// Wait for EXTERNAL render pass to finish outputting
-		dependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-		dependency.srcAccessMask = 0;
-		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+		dependency[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependency[0].srcAccessMask = 0;
+		dependency[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
 		// Destination needs to wait for EXTERNAL to finishing outputting before writing 
-		dependency.dstSubpass = 0;
-		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		dependency[0].dstSubpass = 0;
+		dependency[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependency[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		
+		dependency[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+		dependency[1].srcSubpass = VK_SUBPASS_EXTERNAL;
+		dependency[1].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		dependency[1].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+		dependency[1].dstSubpass = 0;
+		dependency[1].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+		dependency[1].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 
 		VkRenderPassCreateInfo rp_info{};
 		rp_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-		rp_info.attachmentCount = 1;
+		rp_info.attachmentCount = 2;
 		rp_info.pAttachments = attachments;
 		rp_info.subpassCount = 1;
 		rp_info.pSubpasses = &subpass;
-		rp_info.dependencyCount = 1;
-		rp_info.pDependencies = &dependency;
+		rp_info.dependencyCount = 2;
+		rp_info.pDependencies = dependency;
 
 		VkRenderPass renderPass = VK_NULL_HANDLE;
 
-		VK_CHECK(vkCreateRenderPass(device, &rp_info, nullptr, &renderPass));
+		ENIGMA_VK_CHECK(vkCreateRenderPass(device, &rp_info, nullptr, &renderPass), "Failed to create swapchain Render Pass.");
 
 		return renderPass;
 	}
 
-	std::optional<uint32_t> FindQueueFamilyIndex(VkPhysicalDevice pDevice, VkSurfaceKHR surface, VkQueueFlagBits flags)
-	{
-		uint32_t numQueues = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(pDevice, &numQueues, nullptr);
-
-		std::vector<VkQueueFamilyProperties> families(numQueues);
-		vkGetPhysicalDeviceQueueFamilyProperties(pDevice, &numQueues, families.data());
-
-		for (uint32_t i = 0; i < numQueues; i++)
-		{
-			const auto& family = families[i];
-			VkBool32 supportPresent;
-			vkGetPhysicalDeviceSurfaceSupportKHR(pDevice, i, surface, &supportPresent);
-			
-			if ((families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) && supportPresent)
-			{
-				return i;
-			}
-		}
-
-		return {};
-
-	}
 }

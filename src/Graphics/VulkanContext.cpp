@@ -25,8 +25,35 @@ namespace Enigma
 {
 	VulkanContext::VulkanContext() = default;
 
+	VulkanContext::VulkanContext(VulkanContext&& other) noexcept :
+		instance(std::exchange(other.instance, VK_NULL_HANDLE)),
+		physicalDevice(std::exchange(other.physicalDevice, VK_NULL_HANDLE)),
+		device(std::exchange(other.device, VK_NULL_HANDLE)),
+		graphicsFamilyIndex(std::exchange(other.graphicsFamilyIndex, 0)),
+		presentFamilyIndex(std::exchange(other.presentFamilyIndex, 0)),
+		presentQueue(std::exchange(other.presentQueue, VK_NULL_HANDLE)),
+		graphicsQueue(std::exchange(other.graphicsQueue, VK_NULL_HANDLE)),
+		debugMessenger(std::exchange(other.debugMessenger, VK_NULL_HANDLE))
+		 {}
+
+	VulkanContext& VulkanContext::operator=(VulkanContext&& other) noexcept
+	{
+		std::swap(instance, other.instance);
+		std::swap(physicalDevice, other.physicalDevice);
+		std::swap(device, other.device);
+		std::swap(graphicsFamilyIndex, other.graphicsFamilyIndex);
+		std::swap(presentFamilyIndex, other.presentFamilyIndex);
+		std::swap(graphicsQueue, other.graphicsQueue);
+		std::swap(presentQueue, other.presentQueue);
+		std::swap(debugMessenger, other.debugMessenger);
+
+		return *this;
+	}
+
 	VulkanContext::~VulkanContext()
 	{
+		allocator.destroy();
+
 		if (device != VK_NULL_HANDLE)
 			vkDestroyDevice(device, nullptr);
 		
@@ -82,7 +109,7 @@ namespace Enigma
 		}
 
 		VkInstance instance = VK_NULL_HANDLE;
-		VK_CHECK(vkCreateInstance(&instanceInfo, nullptr, &instance));
+		ENIGMA_VK_CHECK(vkCreateInstance(&instanceInfo, nullptr, &instance), "Failed to create Vulkan instance.");
 
 		return instance;
 	}
@@ -109,8 +136,14 @@ namespace Enigma
 		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
 		vkEnumerateDeviceExtensionProperties(pDevice, nullptr, &extensionCount, availableExtensions.data());
 
+		VkPhysicalDeviceFeatures2 features{};
+		features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+
+		vkGetPhysicalDeviceFeatures2(pDevice, &features);
+
+
 		// prefer to select and use a discrete GPU over an integrated one 
-		if (props.deviceType = VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+		if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && features.features.samplerAnisotropy)
 		{
 			score += 500.0f;
 		}
@@ -146,30 +179,73 @@ namespace Enigma
 			}
 		}
 
+
+		uint32_t deviceExtensions;
+		vkEnumerateDeviceExtensionProperties(pDevice, nullptr, &deviceExtensions, nullptr);
+
+		std::vector<VkExtensionProperties> availableExtensions(deviceExtensions);
+		vkEnumerateDeviceExtensionProperties(pDevice, nullptr, &deviceExtensions, availableExtensions.data());
+
+		//for (const auto& extension : availableExtensions)
+		//{
+		//	if (strcmp(extension.extensionName, "VK_KHR_ray_tracing_pipeline") == 0)
+		//	{
+		//		std::cout << "VK_KHR_ray_tracing_pipeline is supported!" << std::endl;
+		//	}
+		//	break;
+		//}
+
+		VkPhysicalDeviceFeatures2 features{};
+		features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+
+		vkGetPhysicalDeviceFeatures2(pDevice, &features);
+
+		std::printf("Anisotropic support: %s\n", &features.features.samplerAnisotropy ? "TRUE" : "FALSE");
+		std::printf("Fragment atomics support: %s\n", &features.features.fragmentStoresAndAtomics ? "TRUE" : "FALSE");
+
 		return pDevice;
 	}
 
-	std::optional<uint32_t> FindGraphicsQueueFamily(VkPhysicalDevice pDevice)
+	std::pair<std::optional<uint32_t>, std::optional<uint32_t>> FindGraphicsQueueFamily(VkPhysicalDevice pDevice, VkInstance instance, VkSurfaceKHR surface)
 	{
+
+		std::pair<std::optional<uint32_t>, std::optional<uint32_t>> ret = {};
+
 		uint32_t numQueues = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(pDevice, &numQueues, nullptr);
 
 		std::vector<VkQueueFamilyProperties> families(numQueues);
-		vkGetPhysicalDeviceQueueFamilyProperties(pDevice, &numQueues, nullptr);
+		vkGetPhysicalDeviceQueueFamilyProperties(pDevice, &numQueues, families.data());
 
 		for (uint32_t i = 0; i < numQueues; i++)
 		{
 			const auto& family = families[i];
 
 			// check if this queue family is graphics
-			if (family.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+			if ((family.queueFlags & VK_QUEUE_GRAPHICS_BIT) && (family.queueFlags & VK_QUEUE_COMPUTE_BIT))
 			{
-				return i;
+				std::cout << "Graphic and Compute support queue found" << std::endl;	
+				ret.first = i;
+			}
+
+			VkBool32 presentSupport = false;
+			vkGetPhysicalDeviceSurfaceSupportKHR(pDevice, i, surface, &presentSupport);
+
+			if (presentSupport)
+			{
+				ret.second = i;
+			}
+
+			// if we have already found both, end the search
+			if (ret.first.has_value() && ret.second.has_value())
+			{
+				break;
 			}
 		}
 
-		return {};
+		return ret;
 	}
+
 
 	VkDevice CreateDevice(VkPhysicalDevice pDevice, uint32_t graphicsFamilyIndex)
 	{
@@ -181,30 +257,37 @@ namespace Enigma
 		queueInfo.pQueuePriorities = queuePriorities;
 		queueInfo.queueCount = 1;
 
-		VkPhysicalDeviceFeatures deviceFeatures{};
-		// we have no extra features we would need at the moment
-		
+		VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR frag{};
+		frag.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_BARYCENTRIC_FEATURES_KHR;
+		frag.fragmentShaderBarycentric = VK_TRUE;
+
+		VkPhysicalDeviceFeatures selectecdFeatures{};
+		selectecdFeatures.samplerAnisotropy = VK_TRUE;
+		selectecdFeatures.fragmentStoresAndAtomics = VK_TRUE;
+
 		std::vector<const char*> extensions{ VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+		extensions.push_back(VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
 
 		VkDeviceCreateInfo deviceInfo{};
 		deviceInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		deviceInfo.queueCreateInfoCount = 1;
 		deviceInfo.pQueueCreateInfos = &queueInfo;
-		deviceInfo.pEnabledFeatures = &deviceFeatures;
+		deviceInfo.pEnabledFeatures = &selectecdFeatures;
 		deviceInfo.enabledExtensionCount = uint32_t(extensions.size());
 		deviceInfo.ppEnabledExtensionNames = extensions.data();
+		deviceInfo.pNext = &frag;
 
 		VkDevice device = VK_NULL_HANDLE;
 
-		VK_CHECK(vkCreateDevice(pDevice, &deviceInfo, nullptr, &device));
+		ENIGMA_VK_CHECK(vkCreateDevice(pDevice, &deviceInfo, nullptr, &device), "Failed to create logical device.");
 		return device;
 	}
 
-	VulkanContext MakeVulkanContext()
+	VulkanContext PrepareContext()
 	{
 		VulkanContext context;
 
-		VK_CHECK(volkInitialize());
+		ENIGMA_VK_CHECK(volkInitialize(), "Failed to initialize Volk.");
 
 		// get the instance layer and extensions
 		const auto supportedLayers = GetInstanceLayers();
@@ -213,9 +296,8 @@ namespace Enigma
 		std::vector<const char*> enabledLayers;
 		std::vector<const char*> enabledExtensions;
 
-		bool enabledDebugUtils = true;
-
 # if !defined(NDEBUG) // DEBUG BUILD LAYERS AND EXTENSIONS
+		
 		if (supportedLayers.count("VK_LAYER_KHRONOS_validation"))
 		{
 			enabledLayers.emplace_back("VK_LAYER_KHRONOS_validation");
@@ -223,7 +305,7 @@ namespace Enigma
 
 		if (supportedExtensions.count("VK_EXT_debug_utils"))
 		{
-			enabledDebugUtils = true;
+			context.enabledDebugUtils = true;
 			enabledExtensions.emplace_back("VK_EXT_debug_utils");
 		}
 #endif
@@ -252,14 +334,19 @@ namespace Enigma
 
 
 		// init the vulkan instance
-		context.instance = CreateVulkanInstance(enabledLayers, enabledExtensions, enabledDebugUtils);
+		context.instance = CreateVulkanInstance(enabledLayers, enabledExtensions, context.enabledDebugUtils);
 
 		volkLoadInstance(context.instance);
 
 		// debug messenger set up 
-		if (enabledDebugUtils)
+		if (context.enabledDebugUtils)
 			context.debugMessenger = CreateDebugMessenger(context.instance);
 
+		return context;
+	}
+
+	void MakeVulkanContext(VulkanContext& context, VkSurfaceKHR surface)
+	{
 		context.physicalDevice = SelectDevice(context.instance);
 
 		if (context.physicalDevice == VK_NULL_HANDLE)
@@ -272,27 +359,28 @@ namespace Enigma
 			VkPhysicalDeviceProperties props;
 			vkGetPhysicalDeviceProperties(context.physicalDevice, &props);
 
-			std::fprintf(stderr, "Selected device: %s", props.deviceName);
+			std::fprintf(stderr, "Selected device: %s\n", props.deviceName);
 		}
 
 		// With the physical device, we can now create the logical device
 		// to do this, we need the graphics family index since we will be doing graphics operations
+		const auto index_pair = FindGraphicsQueueFamily(context.physicalDevice, context.instance, surface);
 
-
-		const auto index = FindGraphicsQueueFamily(context.physicalDevice);
-
-		if (index.has_value())
-			context.graphicsFamilyIndex = *index;
+		if (index_pair.first.has_value())
+			context.graphicsFamilyIndex = *index_pair.first;
+		if (index_pair.second.has_value())
+			context.presentFamilyIndex = *index_pair.second;
 
 		context.device = CreateDevice(context.physicalDevice, context.graphicsFamilyIndex);
 
-
 		// retrieve the vkqueue 
 		vkGetDeviceQueue(context.device, context.graphicsFamilyIndex, 0, &context.graphicsQueue);
+		vkGetDeviceQueue(context.device, context.presentFamilyIndex, 0, &context.presentQueue);
+
+		context.allocator = Enigma::MakeAllocator(context.instance, context.physicalDevice, context.device);
 
 		assert(context.graphicsQueue != VK_NULL_HANDLE);
-
-		return context;
+		assert(context.presentQueue != VK_NULL_HANDLE);
 	}
 
 }
@@ -341,7 +429,7 @@ namespace
 		debugInfo.pUserData = nullptr;
 
 		VkDebugUtilsMessengerEXT messenger = VK_NULL_HANDLE;
-		VK_CHECK(vkCreateDebugUtilsMessengerEXT(instance, &debugInfo, nullptr, &messenger));
+		ENIGMA_VK_CHECK(vkCreateDebugUtilsMessengerEXT(instance, &debugInfo, nullptr, &messenger), "Failed to create Debug Utils Messenger in VulkanContext.cpp");
 
 		return messenger;
 	}

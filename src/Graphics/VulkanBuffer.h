@@ -25,5 +25,5 @@ namespace Enigma
 			VmaAllocator m_Allocator = VK_NULL_HANDLE;
 	};
 
-	Buffer CreateBuffer(const Allocator& allocator, VkDeviceSize size, VkBufferUsageFlags usage, VmaAllocationCreateFlags memoryFlag, VmaMemoryUsage memoryUsage);
+	Buffer CreateBuffer(const Allocator& allocator, VkDeviceSize size, VkBufferUsageFlags usage, VmaAllocationCreateFlags memoryFlag, VmaMemoryUsage = VMA_MEMORY_USAGE_AUTO);
 }
