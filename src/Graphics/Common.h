@@ -74,6 +74,8 @@ namespace Enigma
 	inline VmaAllocation depthimageallocation;
 
 	inline VkSampler defaultSampler;
+
+	inline VkPipeline draw_line_list;
 }
 
 namespace Enigma

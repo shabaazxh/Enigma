@@ -65,6 +65,11 @@ namespace Enigma
 
 	};
 	
+	struct AABB
+	{
+		glm::vec3 min = glm::vec3(1.0f);
+		glm::vec3 max = glm::vec3(1.0f);
+	};
 
 	struct Material
 	{
@@ -87,6 +92,10 @@ namespace Enigma
 		Buffer vertexBuffer;
 		Buffer indexBuffer;
 		glm::vec3 color;
+		AABB meshAABB;
+		Buffer AABB_buffer;
+		std::vector<Vertex> aabbVertices;
+		Buffer AABB_indexBuffer;
 	};
 
 	struct ModelPushConstant
@@ -100,7 +109,7 @@ namespace Enigma
 	{
 		public:
 			Model(const std::string& filepath, const VulkanContext& context);
-			void Draw(VkCommandBuffer cmd, VkPipelineLayout layout);
+			void Draw(VkCommandBuffer cmd, VkPipelineLayout layout, VkPipeline aabPipeline);
 
 			std::vector<Material> materials;
 			std::vector<Mesh> meshes;
@@ -108,12 +117,12 @@ namespace Enigma
 		private:
 			void LoadModel(const std::string& filepath);
 			void CreateBuffers();
-			void makebuffers();
 		private:
 			std::vector<Image> loadedTextures;
 			std::vector<VkDescriptorSet> m_descriptorSet;
 			const VulkanContext& context;
 			std::string m_filePath;
+			AABB m_AABB;
 	};
 }
 

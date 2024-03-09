@@ -31,6 +31,5 @@ layout(set = 1, binding = 0) uniform sampler2D textures[40];
 void main() {
 
    outColor = vec4(texture(textures[push.textureIndex], uv).xyz, 1.0);
-       
 }
 

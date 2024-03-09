@@ -7,7 +7,7 @@ workspace "Enigma"
 
 
 	startproject "Enigma"
-
+	links{"libs/vulkan/vulkan-1"}	
 dofile( "libs/glslc.lua" )
 
 project "Enigma"

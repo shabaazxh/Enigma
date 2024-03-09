@@ -12,7 +12,9 @@ namespace Enigma
 		
 		CreateRendererResources();
 
-		m_pipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/fragment.frag.spv", VK_FALSE, VK_TRUE,  VK_TRUE, {Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel}, m_pipelinePipelineLayout);
+		m_pipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/fragment.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, {Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel}, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+		m_aabbPipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/line.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
+		
 		m_World.Meshes.push_back(new Model("../resources/sponza_with_ship.obj", context));
 	}
 
@@ -207,7 +209,7 @@ namespace Enigma
 			
 			for (const auto& model : m_World.Meshes)
 			{
-				model->Draw(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle);
+				model->Draw(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle, m_aabbPipeline.handle);
 			}
 			
 			vkCmdEndRenderPass(m_renderCommandBuffers[Enigma::currentFrame]);
@@ -246,14 +248,15 @@ namespace Enigma
 		{
 			vkDeviceWaitIdle(context.device);
 			Enigma::RecreateSwapchain(context, window); 
-			m_pipeline = CreateGraphicsPipeline("resources/Shaders/vertex.vert.spv", "resources/Shaders/fragment.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout);
+			m_pipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/fragment.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+			m_aabbPipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/line.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
 			window.hasResized = true;
 		}
 
 		Enigma::currentFrame = (Enigma::currentFrame + 1) % Enigma::MAX_FRAMES_IN_FLIGHT;
 	}
 
-	Pipeline Renderer::CreateGraphicsPipeline(const std::string& vertex, const std::string& fragment, VkBool32 enableBlend, VkBool32 enableDepth, VkBool32 enableDepthWrite, const std::vector<VkDescriptorSetLayout>& descriptorLayouts, PipelineLayout& pipelinelayout)
+	Pipeline Renderer::CreateGraphicsPipeline(const std::string& vertex, const std::string& fragment, VkBool32 enableBlend, VkBool32 enableDepth, VkBool32 enableDepthWrite, const std::vector<VkDescriptorSetLayout>& descriptorLayouts, PipelineLayout& pipelinelayout, VkPrimitiveTopology topology)
 	{
 		ShaderModule vertexShader   = CreateShaderModule(vertex.c_str(), context.device);
 		ShaderModule fragmentShader = CreateShaderModule(fragment.c_str(), context.device);
@@ -281,10 +284,10 @@ namespace Enigma
 		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
 		vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
 		vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
-
+		//VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		inputAssembly.topology = topology;
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 
 		VkViewport viewport{};
@@ -311,7 +314,7 @@ namespace Enigma
 		rasterInfo.depthClampEnable = VK_FALSE;
 		rasterInfo.rasterizerDiscardEnable = VK_FALSE;
 		rasterInfo.polygonMode = VK_POLYGON_MODE_FILL;
-		rasterInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+		rasterInfo.cullMode = VK_CULL_MODE_NONE;
 		rasterInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		rasterInfo.depthBiasClamp = VK_FALSE;
 		rasterInfo.lineWidth = 1.0f;

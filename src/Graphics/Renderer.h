@@ -19,7 +19,7 @@ namespace Enigma
 			~Renderer();
 			void DrawScene();
 			void Update();
-			Pipeline CreateGraphicsPipeline(const std::string& vertex, const std::string& fragment, VkBool32 enableBlend, VkBool32 enableDepth, VkBool32 enableDepthWrite, const std::vector<VkDescriptorSetLayout>& descriptorLayouts, PipelineLayout& pipelinelayout);
+			Pipeline CreateGraphicsPipeline(const std::string& vertex, const std::string& fragment, VkBool32 enableBlend, VkBool32 enableDepth, VkBool32 enableDepthWrite, const std::vector<VkDescriptorSetLayout>& descriptorLayouts, PipelineLayout& pipelinelayout, VkPrimitiveTopology topology);
 		private:
 			void CreateRendererResources();
 			void CreateDescriptorSetLayouts();
@@ -38,6 +38,7 @@ namespace Enigma
 			std::vector<VkCommandBuffer> m_renderCommandBuffers;
 
 			Pipeline m_pipeline;
+			Pipeline m_aabbPipeline;
 	
 			PipelineLayout m_pipelinePipelineLayout;
 			std::vector<VkDescriptorSet> m_sceneDescriptorSets;
