@@ -268,6 +268,7 @@ namespace Enigma
 		samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
 		samplerInfo.mipLodBias = 0.f;
 		samplerInfo.maxAnisotropy = 16.0f;
+		samplerInfo.anisotropyEnable = VK_TRUE;
 		
 		VkSampler sampler = VK_NULL_HANDLE;
 		ENIGMA_VK_CHECK(vkCreateSampler(context.device, &samplerInfo, nullptr, &sampler), "Failed to create sampler");
