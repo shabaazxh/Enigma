@@ -114,6 +114,12 @@ namespace Enigma
 			std::vector<Material> materials;
 			std::vector<Mesh> meshes;
 			
+			//transformations
+			glm::vec3 translation = glm::vec3(0.f, 0.f, 0.f);
+			float rotationX = 0.f;
+			float rotationY = 0.f;
+			float rotationZ = 0.f;
+			glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
 		private:
 			void LoadModel(const std::string& filepath);
 			void CreateBuffers();

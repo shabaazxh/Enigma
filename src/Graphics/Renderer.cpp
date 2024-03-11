@@ -16,6 +16,14 @@ namespace Enigma
 		m_aabbPipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/line.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
 		
 		m_World.Meshes.push_back(new Model("../resources/sponza_with_ship.obj", context));
+		m_World.Meshes.push_back(new Model("../resources/sponza_with_ship.obj", context));
+		m_World.Meshes.push_back(new Model("../resources/sponza_with_ship.obj", context));
+
+		m_World.Meshes.at(0)->translation = glm::vec3(100.f, 0, 100.f);
+		m_World.Meshes.at(0)->rotationX = 90.f;
+
+		m_World.Meshes.at(2)->translation = glm::vec3(-100.f, 0, -100.f);
+		m_World.Meshes.at(2)->scale = glm::vec3(0.5f, 0.5f, 0.5f);
 	}
 
 	Renderer::~Renderer()
@@ -205,10 +213,10 @@ namespace Enigma
 			vkCmdBeginRenderPass(m_renderCommandBuffers[Enigma::currentFrame], &renderpassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 			vkCmdBindDescriptorSets(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelinePipelineLayout.handle, 0, 1, &m_sceneDescriptorSets[Enigma::currentFrame], 0, nullptr);
-			vkCmdBindPipeline(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
 			
 			for (const auto& model : m_World.Meshes)
 			{
+				vkCmdBindPipeline(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
 				model->Draw(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle, m_aabbPipeline.handle);
 			}
 			

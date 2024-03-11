@@ -574,10 +574,16 @@ namespace Enigma
 		{
 			ModelPushConstant push = {};
 			push.model = glm::mat4(1.0f);
+			push.model = glm::translate(push.model, this->translation);
+			push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
+			push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
+			push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
+			push.model = glm::scale(push.model, this->scale);
 			push.textureIndex = mesh.materialIndex;
 			push.isTextured = mesh.textured;
 
 			vkCmdPushConstants(cmd, layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(ModelPushConstant), &push);
+
 			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 1, 1, &m_descriptorSet[0], 0, nullptr);
 
 			VkDeviceSize offset[] = { 0 };
@@ -591,6 +597,11 @@ namespace Enigma
 
 			ModelPushConstant push = {};
 			push.model = glm::mat4(1.0f);
+			push.model = glm::translate(push.model, this->translation);
+			push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
+			push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
+			push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
+			push.model = glm::scale(push.model, this->scale);
 			push.textureIndex = mesh.materialIndex;
 			push.isTextured = mesh.textured;
 

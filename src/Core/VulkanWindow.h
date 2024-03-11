@@ -60,7 +60,7 @@ namespace Enigma
 					windowClass->camera->Up();
 				}
 
-				if (glfwGetKey(windowClass->window, GLFW_KEY_R) == GLFW_PRESS)
+				if (glfwGetKey(windowClass->window, GLFW_KEY_E) == GLFW_PRESS)
 				{
 					windowClass->camera->Down();
 				}
@@ -127,7 +127,7 @@ namespace Enigma
 				windowClass->m_lastMousePosX = x;
 				windowClass->m_lastMousePosY = y;
 
-				const float mouseSensitivity = 0.01f;
+				const float mouseSensitivity = 0.1f;
 				x_offset *= mouseSensitivity;
 				y_offset *= mouseSensitivity;
 
