@@ -115,6 +115,7 @@ namespace Enigma
 			std::vector<Mesh> meshes;
 			
 			//transformations
+			bool player = false;
 			glm::vec3 translation = glm::vec3(0.f, 0.f, 0.f);
 			float rotationX = 0.f;
 			float rotationY = 0.f;

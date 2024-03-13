@@ -257,6 +257,19 @@ namespace Enigma
 		return Enigma::ShaderModule(device, shaderModule);
 	}
 
+	inline glm::mat4 scaleRot(glm::mat4 m, float scale) {
+		m[0][0] *= scale;
+		m[1][0] *= scale;
+		m[2][0] *= scale;
+		m[0][1] *= scale;
+		m[1][1] *= scale;
+		m[2][1] *= scale;
+		m[0][2] *= scale;
+		m[1][2] *= scale;
+		m[2][2] *= scale;
+		return m;
+	}
+
 	inline VkSampler CreateSampler(const VulkanContext& context)
 	{
 		VkSamplerCreateInfo samplerInfo{};

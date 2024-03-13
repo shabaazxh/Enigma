@@ -229,8 +229,8 @@ namespace Enigma
 				player->translation = camera->GetPosition();
 				glm::vec3 dir = camera->GetDirection();
 				dir = dir * glm::vec3(3.14, 3.14, 3.14);
-				player->rotationX = glm::degrees(-dir.y);
-				player->rotationY = glm::degrees(dir.x);
+				//player->rotationX = glm::degrees(-dir.y);
+				player->rotationY = 180;
 				//printf("%f, %f\n", glm::degrees(dir.x), glm::degrees(dir.z));
 				player->rotMatrix = glm::inverse(camera->GetCameraTransform().view);
 			}
