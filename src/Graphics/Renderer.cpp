@@ -18,12 +18,16 @@ namespace Enigma
 		m_World.Meshes.push_back(new Model("../resources/sponza_with_ship.obj", context));
 		m_World.Meshes.push_back(new Model("../resources/sponza_with_ship.obj", context));
 		m_World.Meshes.push_back(new Model("../resources/sponza_with_ship.obj", context));
+		m_World.Meshes.push_back(new Player("../resources/gun.obj", context));
 
 		m_World.Meshes.at(0)->translation = glm::vec3(100.f, 0, 100.f);
 		m_World.Meshes.at(0)->rotationX = 90.f;
 
 		m_World.Meshes.at(2)->translation = glm::vec3(-100.f, 0, -100.f);
 		m_World.Meshes.at(2)->scale = glm::vec3(0.5f, 0.5f, 0.5f);
+
+		m_World.Meshes.at(3)->translation = glm::vec3(100.f, 0, -100.f);
+		m_World.Meshes.at(3)->scale = glm::vec3(1.5f, 1.5f, 1.5f);
 	}
 
 	Renderer::~Renderer()
