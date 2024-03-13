@@ -18,15 +18,17 @@ namespace Enigma
 			explicit Renderer(const VulkanContext& context, VulkanWindow& window, Camera* camera);
 			~Renderer();
 			void DrawScene();
-			void Update();
+			void Update(Camera* cam);
 			Pipeline CreateGraphicsPipeline(const std::string& vertex, const std::string& fragment, VkBool32 enableBlend, VkBool32 enableDepth, VkBool32 enableDepthWrite, const std::vector<VkDescriptorSetLayout>& descriptorLayouts, PipelineLayout& pipelinelayout, VkPrimitiveTopology topology);
 		private:
 			void CreateRendererResources();
 			void CreateDescriptorSetLayouts();
 			void CreateSceneDescriptorSetLayout();
 		private:
+			bool current_state = false;
 			World m_World;
 			Camera* camera;
+			Player* player;
 			const VulkanContext& context;
 			VulkanWindow& window;
 

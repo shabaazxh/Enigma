@@ -119,6 +119,7 @@ namespace Enigma
 			float rotationX = 0.f;
 			float rotationY = 0.f;
 			float rotationZ = 0.f;
+			glm::mat4 rotMatrix = glm::mat4(1.0f);
 			glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
 		private:
 			void LoadModel(const std::string& filepath);

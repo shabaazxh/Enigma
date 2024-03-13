@@ -169,7 +169,7 @@ namespace Enigma
 		
 		// need to store it at mesh index not material index when pushing into loaded exxtures
 
-		const std::string defaultTexture = "../resources/textures/jpeg/lion.jpg";
+		const std::string defaultTexture = "../resources/textures/jpeg/sponza_floor_a_diff.jpg";
 		loadedTextures.resize(materials.size());
 		for (int i = 0; i < materials.size(); i++)
 		{
@@ -597,10 +597,11 @@ namespace Enigma
 
 			ModelPushConstant push = {};
 			push.model = glm::mat4(1.0f);
+			push.model = rotMatrix;
 			push.model = glm::translate(push.model, this->translation);
-			push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
-			push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
-			push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
+			//push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
+			//push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
+			//push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
 			push.model = glm::scale(push.model, this->scale);
 			push.textureIndex = mesh.materialIndex;
 			push.isTextured = mesh.textured;

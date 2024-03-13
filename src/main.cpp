@@ -25,7 +25,7 @@ int main() {
     // Prepare context initializes Volk and prepares a instance with debug enabled (if in DEBUG mode).
     Enigma::VulkanContext context = Enigma::PrepareContext();
     // Prepare window initializes glfw and creates a VkSurfaceKHR. A valid surface will allow us to query for a present queue
-    Enigma::VulkanWindow  window  = Enigma::PrepareWindow(800, 600, context);
+    Enigma::VulkanWindow  window  = Enigma::PrepareWindow(1920, 1080, context);
 
     // Finialize the context by selecting a gpu, creating device
     Enigma::MakeVulkanContext(context, window.surface);
@@ -44,7 +44,7 @@ int main() {
     while (!glfwWindowShouldClose(window.window)) {
         timer->Update();
         FPSCamera.Update(window.swapchainExtent.width, window.swapchainExtent.height);
-        renderer.Update();
+        renderer.Update(&FPSCamera);
         renderer.DrawScene();
         glfwPollEvents();
     }

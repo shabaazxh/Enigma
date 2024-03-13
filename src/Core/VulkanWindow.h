@@ -35,34 +35,62 @@ namespace Enigma
 					windowClass->camera->SetSpeed(50.0f);
 				}
 
-				if (glfwGetKey(windowClass->window, GLFW_KEY_W) == GLFW_PRESS)
-				{
-					windowClass->camera->Forward();
+				if (!isPlayer) {
+					if (glfwGetKey(windowClass->window, GLFW_KEY_W) == GLFW_PRESS)
+					{
+						windowClass->camera->Forward();
+					}
+
+					if (glfwGetKey(windowClass->window, GLFW_KEY_S) == GLFW_PRESS)
+					{
+						windowClass->camera->Back();
+					}
+
+					if (glfwGetKey(windowClass->window, GLFW_KEY_D) == GLFW_PRESS)
+					{
+						windowClass->camera->Right();
+					}
+
+					if (glfwGetKey(windowClass->window, GLFW_KEY_A) == GLFW_PRESS)
+					{
+						windowClass->camera->Left();
+					}
+
+					if (glfwGetKey(windowClass->window, GLFW_KEY_Q) == GLFW_PRESS)
+					{
+						windowClass->camera->Up();
+					}
+
+					if (glfwGetKey(windowClass->window, GLFW_KEY_E) == GLFW_PRESS)
+					{
+						windowClass->camera->Down();
+					}
+				}
+				else {
+					if (glfwGetKey(windowClass->window, GLFW_KEY_W) == GLFW_PRESS)
+					{
+						windowClass->camera->PlayerForward();
+					}
+
+					if (glfwGetKey(windowClass->window, GLFW_KEY_S) == GLFW_PRESS)
+					{
+						windowClass->camera->PlayerBack();
+					}
+
+					if (glfwGetKey(windowClass->window, GLFW_KEY_D) == GLFW_PRESS)
+					{
+						windowClass->camera->PlayerRight();
+					}
+
+					if (glfwGetKey(windowClass->window, GLFW_KEY_A) == GLFW_PRESS)
+					{
+						windowClass->camera->PlayerLeft();
+					}
 				}
 
-				if (glfwGetKey(windowClass->window, GLFW_KEY_S) == GLFW_PRESS)
+				if (glfwGetKey(windowClass->window, GLFW_KEY_P) == GLFW_PRESS)
 				{
-					windowClass->camera->Back();
-				}
-
-				if (glfwGetKey(windowClass->window, GLFW_KEY_D) == GLFW_PRESS)
-				{
-					windowClass->camera->Right();
-				}
-
-				if (glfwGetKey(windowClass->window, GLFW_KEY_A) == GLFW_PRESS)
-				{
-					windowClass->camera->Left();
-				}
-
-				if (glfwGetKey(windowClass->window, GLFW_KEY_Q) == GLFW_PRESS)
-				{
-					windowClass->camera->Up();
-				}
-
-				if (glfwGetKey(windowClass->window, GLFW_KEY_E) == GLFW_PRESS)
-				{
-					windowClass->camera->Down();
+					isPlayer = !isPlayer;
 				}
 
 				if (glfwGetKey(windowClass->window, GLFW_KEY_C) == GLFW_PRESS)

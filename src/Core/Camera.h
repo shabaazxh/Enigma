@@ -57,6 +57,34 @@ namespace Enigma
 				m_position -= glm::normalize(glm::cross(m_direction, m_up)) * speed;
 			}
 
+			void PlayerForward()
+			{
+				float speed = static_cast<float>(m_cameraSpeed * time.deltaTime);
+				m_position.x += speed * m_direction.x;
+				m_position.z += speed * m_direction.z;
+			}
+
+			void PlayerBack()
+			{
+				float speed = static_cast<float>(m_cameraSpeed * time.deltaTime);
+				m_position.x -= speed * m_direction.x;
+				m_position.z -= speed * m_direction.z;
+			}
+
+			void PlayerRight()
+			{
+				float speed = static_cast<float>(m_cameraSpeed * time.deltaTime);
+				m_position.x += glm::normalize(glm::cross(m_direction, m_up)).x * speed;
+				m_position.z += glm::normalize(glm::cross(m_direction, m_up)).z * speed;
+			}
+
+			void PlayerLeft()
+			{
+				float speed = static_cast<float>(m_cameraSpeed * time.deltaTime);
+				m_position.x -= glm::normalize(glm::cross(m_direction, m_up)).x * speed;
+				m_position.z -= glm::normalize(glm::cross(m_direction, m_up)).z * speed;
+			}
+
 			void Up()
 			{
 				float speed = static_cast<float>(m_cameraSpeed * time.deltaTime);

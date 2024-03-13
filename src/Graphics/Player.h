@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../Graphics/Character.h"
+#include "../Core/Camera.h"
 
 namespace Enigma
 {

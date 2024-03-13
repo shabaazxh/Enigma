@@ -15,6 +15,8 @@ class Model;
 
 namespace Enigma
 {
+	inline bool isPlayer = false;
+
 	inline int MAX_FRAMES_IN_FLIGHT = 0;
 	inline int currentFrame = 0;
 

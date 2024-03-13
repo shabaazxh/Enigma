@@ -18,7 +18,8 @@ namespace Enigma
 		m_World.Meshes.push_back(new Model("../resources/sponza_with_ship.obj", context));
 		m_World.Meshes.push_back(new Model("../resources/sponza_with_ship.obj", context));
 		m_World.Meshes.push_back(new Model("../resources/sponza_with_ship.obj", context));
-		m_World.Meshes.push_back(new Player("../resources/gun.obj", context));
+		player = new Player("../resources/gun.obj", context);
+		m_World.Meshes.push_back(player);
 
 		m_World.Meshes.at(0)->translation = glm::vec3(100.f, 0, 100.f);
 		m_World.Meshes.at(0)->rotationX = 90.f;
@@ -27,7 +28,7 @@ namespace Enigma
 		m_World.Meshes.at(2)->scale = glm::vec3(0.5f, 0.5f, 0.5f);
 
 		m_World.Meshes.at(3)->translation = glm::vec3(100.f, 0, -100.f);
-		m_World.Meshes.at(3)->scale = glm::vec3(1.5f, 1.5f, 1.5f);
+		m_World.Meshes.at(3)->scale = glm::vec3(0.5f, 0.5f, 0.5f);
 	}
 
 	Renderer::~Renderer()
@@ -157,9 +158,15 @@ namespace Enigma
 		}
 	}
 
-	void Renderer::Update()
+	void Renderer::Update(Camera* cam)
 	{
 		void* data = nullptr;
+		if (current_state != isPlayer) {
+			if (isPlayer) {
+				camera->SetPosition(player->translation);
+			}
+			current_state = isPlayer;
+		}
 		vmaMapMemory(context.allocator.allocator, m_sceneUBO[Enigma::currentFrame].allocation, &data);
 		std::memcpy(data, &camera->GetCameraTransform(), sizeof(camera->GetCameraTransform()));
 		vmaUnmapMemory(context.allocator.allocator, m_sceneUBO[Enigma::currentFrame].allocation);
@@ -218,6 +225,16 @@ namespace Enigma
 
 			vkCmdBindDescriptorSets(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelinePipelineLayout.handle, 0, 1, &m_sceneDescriptorSets[Enigma::currentFrame], 0, nullptr);
 			
+			if (current_state) {
+				player->translation = camera->GetPosition();
+				glm::vec3 dir = camera->GetDirection();
+				dir = dir * glm::vec3(3.14, 3.14, 3.14);
+				player->rotationX = glm::degrees(-dir.y);
+				player->rotationY = glm::degrees(dir.x);
+				//printf("%f, %f\n", glm::degrees(dir.x), glm::degrees(dir.z));
+				player->rotMatrix = glm::inverse(camera->GetCameraTransform().view);
+			}
+
 			for (const auto& model : m_World.Meshes)
 			{
 				vkCmdBindPipeline(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
