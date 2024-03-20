@@ -1,0 +1,102 @@
+# Blender 4.0.2 MTL File: 'None'
+# www.blender.org
+
+newmtl Material
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures/gravel_floor_02_diff_4k.jpg
+
+newmtl Material.003
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures/plywood_diff_4k.jpg
+
+newmtl Material.004
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures/plywood_diff_4k.jpg
+
+newmtl wall_diffuse
+Ns 86.326912
+Ka 1.000000 1.000000 1.000000
+Ks 0.091065 0.091065 0.091065
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures/brick_wall_07_diff_4k.jpg
+
+newmtl wall_diffuse.002
+Ns 86.326912
+Ka 1.000000 1.000000 1.000000
+Ks 0.091065 0.091065 0.091065
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures/brick_wall_07_diff_4k.jpg
+
+newmtl wall_diffuse.003
+Ns 86.326912
+Ka 1.000000 1.000000 1.000000
+Ks 0.091065 0.091065 0.091065
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures/brick_wall_07_diff_4k.jpg
+
+newmtl wall_diffuse.004
+Ns 86.326912
+Ka 1.000000 1.000000 1.000000
+Ks 0.091065 0.091065 0.091065
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures/brick_wall_07_diff_4k.jpg
+
+newmtl wall_diffuse.005
+Ns 86.326912
+Ka 1.000000 1.000000 1.000000
+Ks 0.091065 0.091065 0.091065
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures/brick_wall_07_diff_4k.jpg
+
+newmtl wall_diffuse.006
+Ns 86.326912
+Ka 1.000000 1.000000 1.000000
+Ks 0.091065 0.091065 0.091065
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures/brick_wall_07_diff_4k.jpg
+
+newmtl wall_diffuse.007
+Ns 86.326912
+Ka 1.000000 1.000000 1.000000
+Ks 0.091065 0.091065 0.091065
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd textures/brick_wall_07_diff_4k.jpg

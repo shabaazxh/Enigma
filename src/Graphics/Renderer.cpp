@@ -15,20 +15,11 @@ namespace Enigma
 		m_pipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/fragment.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, {Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel}, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 		m_aabbPipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/line.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
 		
-		m_World.Meshes.push_back(new Model("../resources/sponza_with_ship.obj", context));
-		m_World.Meshes.push_back(new Model("../resources/sponza_with_ship.obj", context));
-		m_World.Meshes.push_back(new Model("../resources/sponza_with_ship.obj", context));
+		m_World.Meshes.push_back(new Model("../resources/level.obj", context));
 		player = new Player("../resources/gun.obj", context);
 		m_World.Meshes.push_back(player);
-
-		m_World.Meshes.at(0)->translation = glm::vec3(100.f, 0, 100.f);
-		m_World.Meshes.at(0)->rotationX = 90.f;
-
-		m_World.Meshes.at(2)->translation = glm::vec3(-100.f, 0, -100.f);
-		m_World.Meshes.at(2)->scale = glm::vec3(0.5f, 0.5f, 0.5f);
-
-		m_World.Meshes.at(3)->translation = glm::vec3(100.f, 0, -100.f);
-		m_World.Meshes.at(3)->scale = glm::vec3(0.5f, 0.5f, 0.5f);
+		player->translation = glm::vec3(0.f, 15.f, 0.f);
+		player->scale = glm::vec3(0.1f, 0.1f, 0.1f);
 	}
 
 	Renderer::~Renderer()
@@ -164,6 +155,10 @@ namespace Enigma
 		if (current_state != isPlayer) {
 			if (isPlayer) {
 				camera->SetPosition(player->translation);
+				camera->SetNearPlane(0.05f);
+			}
+			else {
+				camera->SetNearPlane(1.f);
 			}
 			current_state = isPlayer;
 		}
