@@ -59,6 +59,19 @@ namespace Enigma
 		std::vector<Model*> Meshes;
 	};
 
+	struct Edge
+	{
+		glm::vec3 vertex1;
+		glm::vec3 vertex2;
+		float weight;
+	};
+
+	struct Navmesh
+	{
+		std::vector<glm::vec3> vertices;
+		std::vector<std::vector<Edge>> edges;
+	};
+
 	struct Scene
 	{
 		
@@ -78,6 +91,8 @@ namespace Enigma
 	inline VkSampler defaultSampler;
 
 	inline VkPipeline draw_line_list;
+
+	inline Navmesh navmesh;
 }
 
 namespace Enigma

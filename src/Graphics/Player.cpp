@@ -4,7 +4,12 @@ namespace Enigma
 {
 	Player::Player(const std::string& filepath, const VulkanContext& aContext) : Character(filepath, aContext)
 	{
-		player = true;
+		model->player = true;
+	}
+
+	Player::Player(const VulkanContext& aContext) : Character(NO_MODEL, aContext)
+	{
+		noModel = true;
 	}
 
 	void Player::ManageInputs() {

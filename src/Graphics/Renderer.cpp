@@ -15,11 +15,15 @@ namespace Enigma
 		m_pipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/fragment.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, {Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel}, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 		m_aabbPipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/line.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
 		
-		m_World.Meshes.push_back(new Model("../resources/level.obj", context));
-		player = new Player("../resources/gun.obj", context);
-		m_World.Meshes.push_back(player);
-		player->translation = glm::vec3(0.f, 15.f, 0.f);
-		player->scale = glm::vec3(0.1f, 0.1f, 0.1f);
+		m_World.Meshes.push_back(new Model("../resources/level1.obj", context));
+		player = new Player(context);
+		//player = new Player("../resources/gun.obj", context);
+		if (!player->noModel) {
+			m_World.Meshes.push_back(player->model);
+		}
+		player->setTranslation(glm::vec3(0.f, 15.f, 0.f));
+		player->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+		player->setRotationY(180);
 	}
 
 	Renderer::~Renderer()
@@ -221,13 +225,10 @@ namespace Enigma
 			vkCmdBindDescriptorSets(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelinePipelineLayout.handle, 0, 1, &m_sceneDescriptorSets[Enigma::currentFrame], 0, nullptr);
 			
 			if (current_state) {
-				player->translation = camera->GetPosition();
+				player->setTranslation(camera->GetPosition());
 				glm::vec3 dir = camera->GetDirection();
 				dir = dir * glm::vec3(3.14, 3.14, 3.14);
-				//player->rotationX = glm::degrees(-dir.y);
-				player->rotationY = 180;
-				//printf("%f, %f\n", glm::degrees(dir.x), glm::degrees(dir.z));
-				player->rotMatrix = glm::inverse(camera->GetCameraTransform().view);
+				player->setRotationMatrix(glm::inverse(camera->GetCameraTransform().view));
 			}
 
 			for (const auto& model : m_World.Meshes)

@@ -54,6 +54,29 @@ namespace Enigma
 
 		// obj can have non triangle faces. Triangulate will triangulate
 		// non triangle faces
+
+
+		for (const auto& shape : result.shapes) {
+			if (shape.name == "Navmesh") {
+				std::vector<int> vertices;
+				for (int i = 0; i < shape.lines.indices.size(); i++) {
+					bool inVec = false;
+					for (int j = 0; j < vertices.size(); j++) {
+						if (shape.lines.indices[i].position_index == vertices[j]) {
+							inVec = true;
+							break;
+						}
+					}
+					if (inVec == false) {
+						vertices.push_back(shape.lines.indices[i].position_index);
+						glm::vec3 tempvec = glm::vec3(result.attributes.positions[(shape.lines.indices[i].position_index * 3)], result.attributes.positions[(shape.lines.indices[i].position_index * 3) + 1], result.attributes.positions[(shape.lines.indices[i].position_index * 3) + 2]);
+						navmesh.vertices.push_back(tempvec);
+					}
+				}
+				for (int i = 0; i < navmesh.vertices.size(); i++) {
+				}
+			}
+		}
 		rapidobj::Triangulate(result);
 
 		// store the prefix to the obj file

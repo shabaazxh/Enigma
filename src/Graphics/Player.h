@@ -9,6 +9,7 @@ namespace Enigma
 	{
 		public:
 			Player(const std::string& filepath, const VulkanContext& context);
+			Player(const VulkanContext& context);
 
 			void ManageInputs();
 	};
