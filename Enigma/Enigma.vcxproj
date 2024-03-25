@@ -57,7 +57,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>\libs\GLFW\include;..\libs;..\libs\glm;..\libs\include;..\libs\Volk;..\libs\vulkan\include;..\libs\VulkanMemoryAllocator\include;..\libs\rapidobj;..\libs\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>\libs\GLFW\include;..\libs;..\libs\glm;..\libs\include;..\libs\Volk;..\libs\vulkan\include;..\libs\VulkanMemoryAllocator\include;..\libs\rapidobj;..\libs\stb;..\libs\assimp_x64-windows;..\libs\assimp_x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
@@ -71,7 +71,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>\libs\GLFW\include;..\libs;..\libs\glm;..\libs\include;..\libs\Volk;..\libs\vulkan\include;..\libs\VulkanMemoryAllocator\include;..\libs\rapidobj;..\libs\stb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>\libs\GLFW\include;..\libs;..\libs\glm;..\libs\include;..\libs\Volk;..\libs\vulkan\include;..\libs\VulkanMemoryAllocator\include;..\libs\rapidobj;..\libs\stb;..\libs\assimp_x64-windows;..\libs\assimp_x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>

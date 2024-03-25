@@ -8,7 +8,7 @@ namespace Enigma
 	class Player : public Character
 	{
 		public:
-			Player(const std::string& filepath, const VulkanContext& context);
+			Player(const std::string& filepath, const VulkanContext& context, int filetype);
 			Player(const VulkanContext& context);
 
 			void ManageInputs();

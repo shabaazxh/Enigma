@@ -17,6 +17,12 @@
 #include <algorithm>
 #include <unordered_map>
 #include <iostream>
+#include <assimp/Importer.hpp>      
+#include <assimp/scene.h>           
+#include <assimp/postprocess.h>
+
+#define ENIGMA_LOAD_OBJ_FILE 0
+#define ENIGMA_LOAD_FBX_FILE 1
 
 namespace Enigma
 {
@@ -108,7 +114,7 @@ namespace Enigma
 	class Model
 	{
 		public:
-			Model(const std::string& filepath, const VulkanContext& context);
+			Model(const std::string& filepath, const VulkanContext& context, int filetype);
 			void Draw(VkCommandBuffer cmd, VkPipelineLayout layout, VkPipeline aabPipeline);
 
 			std::vector<Material> materials;
@@ -122,8 +128,10 @@ namespace Enigma
 			float rotationZ = 0.f;
 			glm::mat4 rotMatrix = glm::mat4(1.0f);
 			glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
+			aiAnimation** animations;
 		private:
-			void LoadModel(const std::string& filepath);
+			void LoadOBJModel(const std::string& filepath);
+			void LoadFBXModel(const std::string& filepath);
 			void CreateBuffers();
 		private:
 			std::vector<Image> loadedTextures;

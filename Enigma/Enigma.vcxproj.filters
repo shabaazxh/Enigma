@@ -24,6 +24,9 @@
     <ClInclude Include="..\src\Graphics\Allocator.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\Graphics\Character.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\Graphics\Common.h">
       <Filter>Graphics</Filter>
     </ClInclude>
@@ -31,6 +34,9 @@
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Graphics\Model.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\Player.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Graphics\Renderer.h">
@@ -48,12 +54,6 @@
     <ClInclude Include="..\src\Graphics\VulkanObjects.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\Graphics\Character.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Graphics\Player.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\Core\Camera.cpp">
@@ -68,10 +68,16 @@
     <ClCompile Include="..\src\Graphics\Allocator.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\Graphics\Character.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\Graphics\Light.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\Model.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Graphics\Player.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\Renderer.cpp">
@@ -90,11 +96,5 @@
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\Graphics\Character.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\Graphics\Player.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

@@ -2,10 +2,10 @@
 
 namespace Enigma
 {
-	Character::Character(const std::string& filepath, const VulkanContext& aContext)
+	Character::Character(const std::string& filepath, const VulkanContext& aContext, int filetype)
 	{
 		if (filepath != NO_MODEL) {
-			model = new Model(filepath, aContext);
+			model = new Model(filepath, aContext, filetype);
 		}
 		health = 100.f;
 	}

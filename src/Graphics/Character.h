@@ -20,7 +20,7 @@ namespace Enigma
 			glm::mat4 rotMatrix = glm::mat4(1.0f);
 			glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
 
-			Character(const std::string& filepath, const VulkanContext& context);
+			Character(const std::string& filepath, const VulkanContext& context, int filetype);
 
 			void ManageAnimation();
 			void ManageCollisions();

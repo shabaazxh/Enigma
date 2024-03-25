@@ -34,7 +34,9 @@ project "Enigma"
 		"libs/vulkan/include/",
 		"libs/VulkanMemoryAllocator/include/",
 		"libs/rapidobj/",
-		"libs/stb/"
+		"libs/stb/",
+		"libs/assimp_x64-windows/",
+		"libs/assimp_x64-windows/include/"
 	}
 
 	links {

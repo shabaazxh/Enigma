@@ -38,12 +38,15 @@ namespace Enigma
 
 	};
 
-	Model::Model(const std::string& filepath, const VulkanContext& context) : m_filePath{filepath}, context{context}
+	Model::Model(const std::string& filepath, const VulkanContext& context, int filetype) : m_filePath{filepath}, context{context}
 	{
-		LoadModel(filepath);
+		if (filetype == 0)
+			LoadOBJModel(filepath);
+		else if (filetype == 1)
+			LoadFBXModel(filepath);
 	}
 
-	void Model::LoadModel(const std::string& filepath)
+	void Model::LoadOBJModel(const std::string& filepath)
 	{
 		// Load the obj file
 		rapidobj::Result result = rapidobj::ParseFile(filepath.c_str());
@@ -285,6 +288,172 @@ namespace Enigma
 			mesh.aabbVertices[6] = Vertex{ {maxPoint.x, minPoint.y, maxPoint.z}, { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // top left front 
 			mesh.aabbVertices[7] = Vertex{ {minPoint.x, minPoint.y, maxPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom left front
 		
+		}
+
+		CreateBuffers();
+	}
+
+	std::string fixFilePath(std::string str) {
+		for (int i = 0; i < str.size(); i++) {
+			if (i != str.size() - 1) {
+				if (str[i] == '\\') {
+					str[i] = '/';
+				}
+			}
+		}
+		return str;
+	}
+
+	void Model::LoadFBXModel(const std::string& filepath) {
+		Assimp::Importer importer;
+
+		const char* pathBegin = filepath.c_str();
+		const char* pathEnd = std::strrchr(pathBegin, '/');
+
+		const std::string prefix = pathEnd ? std::string(pathBegin, pathEnd + 1) : "";
+
+		const aiScene* scene = importer.ReadFile(filepath, aiProcess_CalcTangentSpace | aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_SortByPType);
+		for (int i = 0; i < scene->mNumMaterials; i++) {
+			Material mi;
+			mi.materialName = scene->mMaterials[i]->GetName().C_Str();
+			aiColor3D color(0.f, 0.f, 0.f);
+			scene->mMaterials[i]->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+			mi.diffuseColour = glm::vec3(color.r, color.g, color.b);
+
+			aiString diffPath;
+			scene->mMaterials[i]->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), diffPath);
+			std::string dPath = fixFilePath(diffPath.C_Str());
+			if (dPath == "") {
+				mi.diffuseTexturePath = "../resources/textures/jpeg/sponza_floor_a_diff.jpg";
+			}
+			else {
+				mi.diffuseTexturePath = prefix + dPath;
+			}
+
+			materials.emplace_back(std::move(mi));
+		}
+
+		//meshes.resize(scene->mNumMeshes);
+		for (int i = 0; i < scene->mNumMeshes; i++) {
+			Mesh mesh;
+			std::unordered_map<Vertex, uint32_t> uniqueVertices;
+			for (int j = 0; j < scene->mMeshes[i]->mNumVertices; j++) {
+				Vertex vert;
+				aiVector3D assimpVert;
+				assimpVert = scene->mMeshes[i]->mVertices[j];
+				vert.pos = glm::vec3(assimpVert.x, assimpVert.y, assimpVert.z);
+
+				if (scene->mMeshes[i]->HasTextureCoords(j)) {
+					aiVector3D assimpTexVert;
+					assimpTexVert = scene->mMeshes[i]->mTextureCoords[0][j];
+					vert.tex = glm::vec2(assimpTexVert.x, assimpTexVert.y);
+				}
+
+				if (scene->mMeshes[i]->HasVertexColors(i)) {
+					aiColor4D assimpColVert;
+					assimpColVert = scene->mMeshes[i]->mColors[0][j];
+					vert.color = glm::vec3(assimpColVert.r, assimpColVert.g, assimpColVert.b);
+				}
+				
+				mesh.vertices.push_back(vert);
+			}
+			for (int j = 0; j < scene->mMeshes[i]->mNumFaces; j++) {
+				for (int k = 0; k < scene->mMeshes[i]->mFaces->mNumIndices; k++) {
+					mesh.indices.push_back(scene->mMeshes[i]->mFaces[j].mIndices[k]);
+				}
+			}
+
+			mesh.materialIndex = scene->mMeshes[i]->mMaterialIndex;
+			mesh.meshName = scene->mMeshes[i]->mName.C_Str();
+			mesh.textured = true;
+			meshes.emplace_back(std::move(mesh));
+		}
+
+		if (scene->HasAnimations()) {
+			animations = scene->mAnimations;
+		}
+
+		const std::string defaultTexture = "../resources/textures/jpeg/sponza_floor_a_diff.jpg";
+		loadedTextures.resize(materials.size());
+		for (int i = 0; i < materials.size(); i++)
+		{
+			if (materials[i].diffuseTexturePath != "")
+			{
+				Image texture = Enigma::CreateTexture(context, materials[i].diffuseTexturePath);
+				loadedTextures[i] = std::move(texture);
+			}
+			else
+			{
+				Image defaultTex = Enigma::CreateTexture(context, defaultTexture);
+				loadedTextures[i] = std::move(defaultTex);
+			}
+		}
+
+		Enigma::AllocateDescriptorSets(context, Enigma::descriptorPool, Enigma::descriptorLayoutModel, 1, m_descriptorSet);
+
+		std::vector<VkDescriptorImageInfo> imageinfos;
+
+		for (size_t i = 0; i < loadedTextures.size(); i++)
+		{
+			VkDescriptorImageInfo imageInfo{};
+			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo.imageView = loadedTextures[i].imageView;
+			imageInfo.sampler = Enigma::defaultSampler;
+
+			imageinfos.emplace_back(std::move(imageInfo));
+
+		}
+		// 12
+		VkWriteDescriptorSet descriptorWrite{};
+		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrite.dstSet = m_descriptorSet[0];
+		descriptorWrite.dstBinding = 0;
+		descriptorWrite.dstArrayElement = 0;
+		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWrite.descriptorCount = static_cast<uint32_t>(imageinfos.size());
+		descriptorWrite.pImageInfo = imageinfos.data();
+
+		vkUpdateDescriptorSets(context.device, 1, &descriptorWrite, 0, nullptr);
+
+		for (auto& mesh : meshes)
+		{
+			std::vector<Vertex> verts;
+			verts.insert(verts.begin(), mesh.vertices.begin(), mesh.vertices.end());
+
+			float minX = std::numeric_limits<float>::max();
+			float minY = std::numeric_limits<float>::max();
+			float minZ = std::numeric_limits<float>::max();
+
+			float maxX = -std::numeric_limits<float>::max();
+			float maxY = -std::numeric_limits<float>::max();
+			float maxZ = -std::numeric_limits<float>::max();
+
+			for (unsigned int i = 0; i < verts.size(); i++)
+			{
+				minX = std::min(minX, verts[i].pos.x);
+				minY = std::min(minY, verts[i].pos.y);
+				minZ = std::min(minZ, verts[i].pos.z);
+
+				maxX = std::max(maxX, verts[i].pos.x);
+				maxY = std::max(maxY, verts[i].pos.y);
+				maxZ = std::max(maxZ, verts[i].pos.z);
+			}
+
+			glm::vec3 minPoint = glm::vec3(minX, minY, minZ);
+			glm::vec3 maxPoint = glm::vec3(maxX, maxY, maxZ);
+
+			mesh.meshAABB = { minPoint, maxPoint };
+			mesh.aabbVertices.resize(8);
+
+			mesh.aabbVertices[0] = Vertex{ {minPoint.x, maxPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right back
+			mesh.aabbVertices[1] = Vertex{ {maxPoint.x, maxPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right back
+			mesh.aabbVertices[2] = Vertex{ {maxPoint.x, minPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right front
+			mesh.aabbVertices[3] = Vertex{ {minPoint.x, minPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right front
+
+			mesh.aabbVertices[4] = Vertex{ {minPoint.x, maxPoint.y, maxPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top left back
+			mesh.aabbVertices[5] = Vertex{ {maxPoint.x, maxPoint.y, maxPoint.z}, { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // bottom left back
+			mesh.aabbVertices[6] = Vertex{ {maxPoint.x, minPoint.y, maxPoint.z}, { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // top left front 
+			mesh.aabbVertices[7] = Vertex{ {minPoint.x, minPoint.y, maxPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom left front
 		}
 
 		CreateBuffers();
