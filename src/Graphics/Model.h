@@ -128,6 +128,7 @@ namespace Enigma
 			float rotationZ = 0.f;
 			glm::mat4 rotMatrix = glm::mat4(1.0f);
 			glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
+			bool hasAnimations = false;
 			aiAnimation** animations;
 		private:
 			void LoadOBJModel(const std::string& filepath);

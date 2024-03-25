@@ -370,6 +370,7 @@ namespace Enigma
 		}
 
 		if (scene->HasAnimations()) {
+			hasAnimations = true;
 			animations = scene->mAnimations;
 		}
 
