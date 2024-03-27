@@ -89,6 +89,7 @@
     <ClInclude Include="..\src\Graphics\Allocator.h" />
     <ClInclude Include="..\src\Graphics\Character.h" />
     <ClInclude Include="..\src\Graphics\Common.h" />
+    <ClInclude Include="..\src\Graphics\Enemy.h" />
     <ClInclude Include="..\src\Graphics\Light.h" />
     <ClInclude Include="..\src\Graphics\Model.h" />
     <ClInclude Include="..\src\Graphics\Player.h" />
@@ -104,6 +105,7 @@
     <ClCompile Include="..\src\Core\VulkanWindow.cpp" />
     <ClCompile Include="..\src\Graphics\Allocator.cpp" />
     <ClCompile Include="..\src\Graphics\Character.cpp" />
+    <ClCompile Include="..\src\Graphics\Enemy.cpp" />
     <ClCompile Include="..\src\Graphics\Light.cpp" />
     <ClCompile Include="..\src\Graphics\Model.cpp" />
     <ClCompile Include="..\src\Graphics\Player.cpp" />

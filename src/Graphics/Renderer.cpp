@@ -16,7 +16,8 @@ namespace Enigma
 		m_aabbPipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/line.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
 		
 		m_World.Meshes.push_back(new Model("../resources/level1.obj", context, ENIGMA_LOAD_OBJ_FILE));
-		m_World.Meshes.push_back(new Model("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE));
+		Enemy* enemy1 = new Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE);
+		m_World.Meshes.push_back(enemy1->model);
 		m_World.Meshes[1]->scale = glm::vec3(0.1f, 0.1f, 0.1f);
 		m_World.Meshes[1]->translation = glm::vec3(60.f, 0.f, 0.f);
 		//player = new Player(context);
@@ -27,21 +28,6 @@ namespace Enigma
 		player->setTranslation(glm::vec3(0.f, 15.f, 0.f));
 		player->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
 		player->setRotationY(180);
-		/*Model model1("../resources/level1.obj", context, ENIGMA_LOAD_OBJ_FILE);
-		Model model2("../resources/level1.fbx", context, ENIGMA_LOAD_FBX_FILE);
-
-		for (int i = 0; i < model1.meshes[0].vertices.size(); i++) {
-			if (i < model2.meshes[0].vertices.size()) {
-				printf("model1 ; %.2f, %.2f   :   model2 ; %.2f, %.2f\n",
-					model1.meshes[0].vertices[i].tex.x, model1.meshes[0].vertices[i].tex.y,
-					model2.meshes[0].vertices[i].tex.x, model2.meshes[0].vertices[i].tex.y);
-			}
-			else {
-				printf("Not same size. model1 : %i, model2 : %i\n", model1.meshes[0].vertices.size(), model2.meshes[0].vertices.size());
-				break;
-			}
-		}
-		printf("model1 : %i, model2 : %i\n", model1.meshes[0].vertices.size(), model2.meshes[0].vertices.size());*/
 	}
 
 	Renderer::~Renderer()

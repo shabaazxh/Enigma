@@ -9,20 +9,6 @@ namespace Enigma
 {
 
 	std::vector<uint32_t> indices = {
-		//0,1,2,
-		//0,3,2,
-		//1,5,6,
-		//1,2,6,
-		//5,4,7,
-		//5,6,7,
-		//4,5,1,
-		//4,0,1,
-		//4,0,3,
-		//4,7,3,
-		//7,6,2,
-		//7,3,2
-
-
 		0,1,
 		1,2,
 		2,3,
@@ -138,11 +124,6 @@ namespace Enigma
 				else
 					meshName = shapeName + "::" + materials[matID].materialName;
 
-				// ==== THIS SEEMS LIKE A POINTLESS CHECK?
-				// Extract material's vertices
-				// const auto firstVertex = pos->size();
-				// assert(!textured || firstVertex == tex->size());
-
 				Mesh mesh{};
 				std::unordered_map<Vertex, uint32_t> uniqueVertices;
 				for (size_t i = 0; i < shape.mesh.indices.size(); i++)
@@ -169,8 +150,6 @@ namespace Enigma
 						));
 					}
 
-					// vertex.color = glm::vec3(0.4f, 0.3f, 1.0f);
-
 					if (uniqueVertices.count(vertex) == 0)
 					{
 						uniqueVertices[vertex] = static_cast<uint32_t>(mesh.vertices.size());
@@ -178,11 +157,7 @@ namespace Enigma
 					}
 
 					mesh.indices.push_back(uniqueVertices[vertex]);
-					//mesh.vertices.emplace_back(vertex);
 				}
-
-				// const auto vertexCount = pos->size() - firstVertex;
-				// assert(!textured || vertexCount == tex->size() - firstVertex);
 
 				mesh.materialIndex = (int)matID;
 				mesh.meshName = std::move(meshName);
@@ -268,16 +243,6 @@ namespace Enigma
 			mesh.meshAABB = { minPoint, maxPoint };
 			mesh.aabbVertices.resize(8);
 
-			//mesh.aabbVertices[0] = Vertex{ {minPoint.x, maxPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right back
-			//mesh.aabbVertices[1] = Vertex{ {maxPoint.x, maxPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right back
-			//mesh.aabbVertices[2] = Vertex{ {maxPoint.x, minPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right front
-			//mesh.aabbVertices[3] = Vertex{ {minPoint.x, minPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right front
-			//
-			//mesh.aabbVertices[4] = Vertex{ {minPoint.x, maxPoint.y, maxPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top left back
-			//mesh.aabbVertices[5] = Vertex{ {maxPoint.x, maxPoint.y, maxPoint.z}, { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // bottom left back
-			//mesh.aabbVertices[6] = Vertex{ {maxPoint.x, minPoint.y, maxPoint.z}, { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // top left front 
-			//mesh.aabbVertices[7] = Vertex{ {minPoint.x, minPoint.y, maxPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom left front
-
 			mesh.aabbVertices[0] = Vertex{ {minPoint.x, maxPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right back
 			mesh.aabbVertices[1] = Vertex{ {maxPoint.x, maxPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right back
 			mesh.aabbVertices[2] = Vertex{ {maxPoint.x, minPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right front
@@ -333,7 +298,6 @@ namespace Enigma
 			materials.emplace_back(std::move(mi));
 		}
 
-		//meshes.resize(scene->mNumMeshes);
 		for (int i = 0; i < scene->mNumMeshes; i++) {
 			Mesh mesh;
 			std::unordered_map<Vertex, uint32_t> uniqueVertices;
