@@ -343,11 +343,9 @@ namespace Enigma
 				assimpVert = scene->mMeshes[i]->mVertices[j];
 				vert.pos = glm::vec3(assimpVert.x, assimpVert.y, assimpVert.z);
 
-				if (scene->mMeshes[i]->HasTextureCoords(j)) {
-					aiVector3D assimpTexVert;
-					assimpTexVert = scene->mMeshes[i]->mTextureCoords[0][j];
-					vert.tex = glm::vec2(assimpTexVert.x, assimpTexVert.y);
-				}
+				aiVector3D assimpTexVert;
+				assimpTexVert = scene->mMeshes[i]->mTextureCoords[0][j];
+				vert.tex = glm::vec2(assimpTexVert.x, assimpTexVert.y);
 
 				if (scene->mMeshes[i]->HasVertexColors(i)) {
 					aiColor4D assimpColVert;
