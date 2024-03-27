@@ -61,8 +61,7 @@ namespace Enigma
 
 	struct Edge
 	{
-		glm::vec3 vertex1;
-		glm::vec3 vertex2;
+		int vertex2;
 		float weight;
 	};
 
@@ -304,5 +303,9 @@ namespace Enigma
 		ENIGMA_VK_CHECK(vkCreateSampler(context.device, &samplerInfo, nullptr, &sampler), "Failed to create sampler");
 		
 		return sampler;
+	}
+
+	inline float vec3Length(glm::vec3 v) {
+		return sqrt(pow(v.x, 2) + pow(v.y, 2) + pow(v.z, 2));
 	}
 }

@@ -62,7 +62,37 @@ namespace Enigma
 						navmesh.vertices.push_back(tempvec);
 					}
 				}
-				for (int i = 0; i < navmesh.vertices.size(); i++) {
+				navmesh.edges.resize(navmesh.vertices.size());
+				for (int i = 0; i < shape.lines.indices.size(); i+=2) {
+					for (int j = 0; j < navmesh.vertices.size(); j++) {
+						if (result.attributes.positions[(shape.lines.indices[i].position_index * 3)] == navmesh.vertices[j].x &&
+							result.attributes.positions[(shape.lines.indices[i].position_index * 3) + 1] == navmesh.vertices[j].y &&
+							result.attributes.positions[(shape.lines.indices[i].position_index * 3) + 2] == navmesh.vertices[j].z) {
+								Edge edge;
+								glm::vec3 thisVert = navmesh.vertices[j];
+								glm::vec3 otherVert = glm::vec3(result.attributes.positions[(shape.lines.indices[i+1].position_index * 3)], result.attributes.positions[(shape.lines.indices[i+1].position_index * 3) + 1], result.attributes.positions[(shape.lines.indices[i+1].position_index * 3) + 2]);
+								glm::vec3 edgeDir = thisVert - otherVert;
+								float weight = vec3Length(edgeDir);
+								int otherVertIndex;
+								for (int k = 0; k < navmesh.vertices.size(); k++) {
+									if (navmesh.vertices[k].x == otherVert.x &&
+										navmesh.vertices[k].y == otherVert.y &&
+										navmesh.vertices[k].z == otherVert.z) {
+											Edge edge2;
+											otherVertIndex = k;
+											edge2.vertex2 = j;
+											edge2.weight = weight;
+											navmesh.edges[k].push_back(edge2);
+											break;
+									}
+								}
+								edge.vertex2 = otherVertIndex;
+								edge.weight = weight;
+
+								navmesh.edges[j].push_back(edge);
+								break;
+						}
+					}
 				}
 			}
 		}
