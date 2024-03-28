@@ -104,6 +104,21 @@ namespace Enigma
 
 			std::vector<Material> materials;
 			std::vector<Mesh> meshes;
+
+			// 获取整个模型的AABB，可能需要根据所有网格的AABB计算得出 get the AABB of the whole model
+			AABB GetModelAABB() const {
+				AABB modelAABB;
+				// 初始化为极大/极小值以便正确计算   initialization
+				modelAABB.min = glm::vec3(std::numeric_limits<float>::max());
+				modelAABB.max = glm::vec3(std::numeric_limits<float>::lowest());
+
+				for (const auto& mesh : meshes) {
+					// 更新模型AABB的min和max   update the max&min of AABB
+					modelAABB.min = glm::min(modelAABB.min, mesh.meshAABB.min);
+					modelAABB.max = glm::max(modelAABB.max, mesh.meshAABB.max);
+				}
+				return modelAABB;
+			}
 			
 		private:
 			void LoadModel(const std::string& filepath);
