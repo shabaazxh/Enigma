@@ -15,6 +15,7 @@
 #include "Graphics/Renderer.h"
 #include "Graphics/Model.h"
 #include "Core/Engine.h"
+#include "Core/World.h"
 
 
 int main() {
@@ -35,13 +36,18 @@ int main() {
     glfwSetInputMode(window.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetWindowUserPointer(window.window, &window);
 
-    Enigma::Renderer renderer = Enigma::Renderer(context, window, &FPSCamera);
+    Enigma::World world;
+
+    Enigma::Renderer renderer = Enigma::Renderer(context, window, &FPSCamera, &world);
 
     glfwSetKeyCallback(window.window, window.glfw_callback_key_press);
     glfwSetCursorPosCallback(window.window, window.glfw_callback_mouse);
 
 
     while (!glfwWindowShouldClose(window.window)) {
+        for (auto enemy : world.Enemies) {
+            enemy->ManageAI(world.player, world.Meshes[0]);
+        }
         timer->Update();
         FPSCamera.Update(window.swapchainExtent.width, window.swapchainExtent.height);
         renderer.Update(&FPSCamera);

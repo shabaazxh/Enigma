@@ -10,13 +10,15 @@
 #include <memory.h>
 #include <vector>
 #include "../Core/Error.h"
+#include "../Core/Engine.h"
+#include "../Core/World.h"
 
 namespace Enigma
 {
 	class Renderer
 	{
 		public:
-			explicit Renderer(const VulkanContext& context, VulkanWindow& window, Camera* camera);
+			explicit Renderer(const VulkanContext& context, VulkanWindow& window, Camera* camera, World* world);
 			~Renderer();
 			void DrawScene();
 			void Update(Camera* cam);
@@ -27,9 +29,8 @@ namespace Enigma
 			void CreateSceneDescriptorSetLayout();
 		private:
 			bool current_state = false;
-			World m_World;
+			World* m_World;
 			Camera* camera;
-			Player* player;
 			const VulkanContext& context;
 			VulkanWindow& window;
 

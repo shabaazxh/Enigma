@@ -116,6 +116,8 @@ namespace Enigma
 		public:
 			Model(const std::string& filepath, const VulkanContext& context, int filetype);
 			void Draw(VkCommandBuffer cmd, VkPipelineLayout layout, VkPipeline aabPipeline);
+			glm::vec3 GetAABBMin() { return m_AABB.min; };
+			glm::vec3 GetAABBMax() { return m_AABB.max; };
 
 			std::vector<Material> materials;
 			std::vector<Mesh> meshes;

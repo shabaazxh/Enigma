@@ -104,4 +104,6 @@ namespace Enigma
 			bool m_enableOvershadingVisual = false;
 			bool m_enableMeshDensityVisual = false;
 	};
+
+
 }

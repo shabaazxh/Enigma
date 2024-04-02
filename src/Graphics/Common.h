@@ -12,6 +12,7 @@
 #include "VulkanImage.h"
 
 class Model;
+class Enemy;
 
 namespace Enigma
 {
@@ -53,12 +54,6 @@ namespace Enigma
 		float farPlane = 1000.0f;
 	};
 
-	struct World
-	{
-		std::vector<Light> Lights;
-		std::vector<Model*> Meshes;
-	};
-
 	struct Edge
 	{
 		int vertex2;
@@ -69,6 +64,12 @@ namespace Enigma
 	{
 		std::vector<glm::vec3> vertices;
 		std::vector<std::vector<Edge>> edges;
+	};
+
+	struct dijkstraData
+	{
+		std::vector<int> edgeFrom;
+		std::vector<float> distance;
 	};
 
 	struct Scene

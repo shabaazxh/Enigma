@@ -57,6 +57,12 @@
     <ClInclude Include="..\src\Graphics\Enemy.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\Core\Collision.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Core\World.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\Core\Camera.cpp">
@@ -101,6 +107,9 @@
     <ClCompile Include="..\src\main.cpp" />
     <ClCompile Include="..\src\Graphics\Enemy.cpp">
       <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Core\Collision.cpp">
+      <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -3,7 +3,7 @@
 
 namespace Enigma
 {
-	Renderer::Renderer(const VulkanContext& context, VulkanWindow& window, Camera* camera) : context{ context }, window{ window }, camera{ camera } {
+	Renderer::Renderer(const VulkanContext& context, VulkanWindow& window, Camera* camera, World* world) : context{ context }, window{ window }, camera{ camera }, m_World{ world } {
 
 		m_sceneUBO.resize(Enigma::MAX_FRAMES_IN_FLIGHT);
 
@@ -15,19 +15,23 @@ namespace Enigma
 		m_pipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/fragment.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, {Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel}, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 		m_aabbPipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/line.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
 		
-		m_World.Meshes.push_back(new Model("../resources/level1.obj", context, ENIGMA_LOAD_OBJ_FILE));
+		m_World = world;
+
+		Model* temp = new Model("../resources/level1.obj", context, ENIGMA_LOAD_OBJ_FILE);
+		m_World->Meshes.push_back(temp);
 		Enemy* enemy1 = new Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE);
-		m_World.Meshes.push_back(enemy1->model);
-		m_World.Meshes[1]->scale = glm::vec3(0.1f, 0.1f, 0.1f);
-		m_World.Meshes[1]->translation = glm::vec3(60.f, 0.f, 0.f);
+		m_World->Meshes.push_back(enemy1->model);
+		enemy1->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+		enemy1->setTranslation(glm::vec3(60.f, 0.f, 0.f));
+		m_World->Enemies.push_back(enemy1);
 		//player = new Player(context);
-		player = new Player("../resources/gun.obj", context, ENIGMA_LOAD_OBJ_FILE);
-		if (!player->noModel) {
-			m_World.Meshes.push_back(player->model);
+		m_World->player = new Player("../resources/gun.obj", context, ENIGMA_LOAD_OBJ_FILE);
+		if (!m_World->player->noModel) {
+			m_World->Meshes.push_back(m_World->player->model);
 		}
-		player->setTranslation(glm::vec3(0.f, 15.f, 0.f));
-		player->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-		player->setRotationY(180);
+		m_World->player->setTranslation(glm::vec3(0.f, 15.f, 0.f));
+		m_World->player->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+		m_World->player->setRotationY(180);
 	}
 
 	Renderer::~Renderer()
@@ -35,7 +39,7 @@ namespace Enigma
 		// Ensure all commands have finished and the GPU is now idle
 		vkDeviceWaitIdle(context.device);
 
-		for (auto& model : m_World.Meshes)
+		for (auto& model : m_World->Meshes)
 		{
 			delete model;
 		}
@@ -162,7 +166,7 @@ namespace Enigma
 		void* data = nullptr;
 		if (current_state != isPlayer) {
 			if (isPlayer) {
-				camera->SetPosition(player->translation);
+				camera->SetPosition(m_World->player->translation);
 				camera->SetNearPlane(0.05f);
 			}
 			else {
@@ -229,13 +233,13 @@ namespace Enigma
 			vkCmdBindDescriptorSets(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelinePipelineLayout.handle, 0, 1, &m_sceneDescriptorSets[Enigma::currentFrame], 0, nullptr);
 			
 			if (current_state) {
-				player->setTranslation(camera->GetPosition());
+				m_World->player->setTranslation(camera->GetPosition());
 				glm::vec3 dir = camera->GetDirection();
 				dir = dir * glm::vec3(3.14, 3.14, 3.14);
-				player->setRotationMatrix(glm::inverse(camera->GetCameraTransform().view));
+				m_World->player->setRotationMatrix(glm::inverse(camera->GetCameraTransform().view));
 			}
 
-			for (const auto& model : m_World.Meshes)
+			for (const auto& model : m_World->Meshes)
 			{
 				vkCmdBindPipeline(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
 				model->Draw(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle, m_aabbPipeline.handle);
