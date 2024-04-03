@@ -11,6 +11,7 @@ namespace Enigma
 		std::vector<Light> Lights;
 		std::vector<Model*> Meshes;
 		std::vector<Enemy*> Enemies;
+		std::vector<Character*> Characters;
 		Player* player;
 	};
 }

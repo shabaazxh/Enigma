@@ -22,14 +22,21 @@ namespace Enigma
 		Enemy* enemy1 = new Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE);
 		m_World->Meshes.push_back(enemy1->model);
 		enemy1->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-		enemy1->setTranslation(glm::vec3(60.f, 0.f, 0.f));
+		enemy1->setTranslation(glm::vec3(60.f, 0.1f, 0.f));
 		m_World->Enemies.push_back(enemy1);
+
+		/*Enemy* enemy2 = new Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE);
+		m_World->Meshes.push_back(enemy2->model);
+		enemy2->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+		enemy2->setTranslation(glm::vec3(60.f, 0.1f, 50.f));
+		m_World->Enemies.push_back(enemy2);*/
+
 		//player = new Player(context);
 		m_World->player = new Player("../resources/gun.obj", context, ENIGMA_LOAD_OBJ_FILE);
 		if (!m_World->player->noModel) {
 			m_World->Meshes.push_back(m_World->player->model);
 		}
-		m_World->player->setTranslation(glm::vec3(0.f, 15.f, 0.f));
+		m_World->player->setTranslation(glm::vec3(-100.f, 0.1f, -40.f));
 		m_World->player->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
 		m_World->player->setRotationY(180);
 	}
@@ -166,7 +173,7 @@ namespace Enigma
 		void* data = nullptr;
 		if (current_state != isPlayer) {
 			if (isPlayer) {
-				camera->SetPosition(m_World->player->translation);
+				camera->SetPosition(m_World->player->translation + glm::vec3(0.f, 13.f, 0.f));
 				camera->SetNearPlane(0.05f);
 			}
 			else {
@@ -233,7 +240,12 @@ namespace Enigma
 			vkCmdBindDescriptorSets(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelinePipelineLayout.handle, 0, 1, &m_sceneDescriptorSets[Enigma::currentFrame], 0, nullptr);
 			
 			if (current_state) {
-				m_World->player->setTranslation(camera->GetPosition());
+				if (camera->GetPosition().x != m_World->player->translation.x ||
+					camera->GetPosition().z != m_World->player->translation.z
+					) {
+					m_World->player->moved = true;
+					m_World->player->setTranslation(glm::vec3(camera->GetPosition().x, 0.1f, camera->GetPosition().z));
+				}
 				glm::vec3 dir = camera->GetDirection();
 				dir = dir * glm::vec3(3.14, 3.14, 3.14);
 				m_World->player->setRotationMatrix(glm::inverse(camera->GetCameraTransform().view));

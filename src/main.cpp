@@ -1,6 +1,8 @@
 
 
 #include <iostream>
+#include <stdlib.h>
+#include <windows.h>
 #define VOLK_IMPLEMENTATION
 #include <Volk/volk.h>
 
@@ -40,14 +42,23 @@ int main() {
 
     Enigma::Renderer renderer = Enigma::Renderer(context, window, &FPSCamera, &world);
 
+    world.Characters.push_back(world.player);
+    for (int i = 0; i < world.Enemies.size(); i++) {
+        world.Characters.push_back(world.Enemies[i]);
+    }
+
+    for (int i = 0; i < world.Characters.size(); i++) {
+        world.Enemies[0]->addToNavmesh(world.Characters[i], world.Meshes[0]);
+    }
+
+    //Sleep(1000);
+
     glfwSetKeyCallback(window.window, window.glfw_callback_key_press);
     glfwSetCursorPosCallback(window.window, window.glfw_callback_mouse);
 
 
     while (!glfwWindowShouldClose(window.window)) {
-        for (auto enemy : world.Enemies) {
-            enemy->ManageAI(world.player, world.Meshes[0]);
-        }
+        world.Enemies[0]->ManageAI(world.Characters, world.Meshes[0], world.player);
         timer->Update();
         FPSCamera.Update(window.swapchainExtent.width, window.swapchainExtent.height);
         renderer.Update(&FPSCamera);

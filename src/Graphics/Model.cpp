@@ -94,6 +94,7 @@ namespace Enigma
 						}
 					}
 				}
+				navmesh.numberOfBaseNodes = navmesh.vertices.size();
 			}
 		}
 		rapidobj::Triangulate(result);
@@ -788,12 +789,13 @@ namespace Enigma
 
 			ModelPushConstant push = {};
 			push.model = glm::mat4(1.0f);
-			push.model = glm::translate(push.model, this->translation);
 			if (player) {
+				push.model = glm::translate(push.model, this->translation + glm::vec3(0.f, 13.f, 0.f));
 				push.model = rotMatrix;
 				push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
 			}
 			else {
+				push.model = glm::translate(push.model, this->translation);
 				push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
 				push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
 				push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));

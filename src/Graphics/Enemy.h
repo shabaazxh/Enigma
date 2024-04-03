@@ -4,6 +4,7 @@
 #include "Player.h"
 #include "../Core/Collision.h"
 #include <queue>
+#include <algorithm>
 
 namespace Enigma
 {
@@ -12,12 +13,17 @@ namespace Enigma
 		public:
 			Enemy(const std::string& filepath, const VulkanContext& context, int filetype);
 
-			void ManageAI(Character* character, Model* obj);
+			void ManageAI(std::vector<Character*> character, Model* obj, Player* player);
+
+			void addToNavmesh(Character* character, Model* obj);
 
 		private:
-			void addToNavmesh(Character* character, Model* obj);
-			glm::vec3 findDirection();
-			void moveInDirection(glm::vec3 dir);
+			int currentNode;
+			std::vector<int> pathToEnemy;
+			std::vector<int> findDirection();
+
+			void updateNavmesh(std::vector<Character*> character);
+			void moveInDirection();
 			bool isMeshFurtherAway(glm::vec3 dir, glm::vec3 origin, AABB meshAABB);
 			bool notVisited(int node, std::vector<int> visited);
 	};

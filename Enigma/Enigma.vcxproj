@@ -64,7 +64,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>..\libs\vulkan\vulkan-1.lib;..\libs\vulkan\vulkan-1.lib;..\libs\vulkan\volk.lib;..\libs\GLFW\lib\glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\libs\vulkan\vulkan-1.lib;..\libs\vulkan\vulkan-1.lib;..\libs\vulkan\volk.lib;..\libs\GLFW\lib\glfw3.lib;..\libs\assimp_x64-windows\lib\assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -78,7 +78,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>..\libs\vulkan\vulkan-1.lib;..\libs\vulkan\vulkan-1.lib;..\libs\vulkan\volk.lib;..\libs\GLFW\lib\glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>..\libs\vulkan\vulkan-1.lib;..\libs\vulkan\vulkan-1.lib;..\libs\vulkan\volk.lib;..\libs\GLFW\lib\glfw3.lib;..\libs\assimp_x64-windows\lib\assimp-vc143-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -12,6 +12,9 @@
     <ClInclude Include="..\src\Core\Camera.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\Core\Collision.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\Core\Engine.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -21,6 +24,9 @@
     <ClInclude Include="..\src\Core\VulkanWindow.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\Core\World.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\Graphics\Allocator.h">
       <Filter>Graphics</Filter>
     </ClInclude>
@@ -28,6 +34,9 @@
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Graphics\Common.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\Enemy.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Graphics\Light.h">
@@ -54,18 +63,12 @@
     <ClInclude Include="..\src\Graphics\VulkanObjects.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\Graphics\Enemy.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Core\Collision.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Core\World.h">
-      <Filter>Core</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\Core\Camera.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Core\Collision.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Core\Engine.cpp">
@@ -78,6 +81,9 @@
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\Character.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Graphics\Enemy.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\Light.cpp">
@@ -105,11 +111,5 @@
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\Graphics\Enemy.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\Core\Collision.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

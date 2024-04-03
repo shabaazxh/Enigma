@@ -66,6 +66,7 @@ namespace Enigma
 						windowClass->camera->Down();
 					}
 				}
+
 				else {
 					if (glfwGetKey(windowClass->window, GLFW_KEY_W) == GLFW_PRESS)
 					{

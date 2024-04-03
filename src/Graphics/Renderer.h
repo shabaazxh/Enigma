@@ -3,9 +3,7 @@
 #include "Allocator.h"
 #include "VulkanObjects.h"
 #include "VulkanContext.h"
-#include "Player.h"
 #include "Common.h"
-#include "Enemy.h"
 #include "../Core/VulkanWindow.h"
 #include <memory.h>
 #include <vector>

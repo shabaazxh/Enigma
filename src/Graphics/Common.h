@@ -62,6 +62,7 @@ namespace Enigma
 
 	struct Navmesh
 	{
+		int numberOfBaseNodes;
 		std::vector<glm::vec3> vertices;
 		std::vector<std::vector<Edge>> edges;
 	};

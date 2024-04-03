@@ -42,7 +42,8 @@ project "Enigma"
 	links {
 		"libs/vulkan/vulkan-1.lib",
 		"libs/vulkan/volk.lib",
-		"libs/GLFW/lib/glfw3.lib"
+		"libs/GLFW/lib/glfw3.lib",
+		"libs/assimp_x64-windows/lib/assimp-vc143-mt.lib"
 	}
 
 	dependson "Enigma-shaders"
