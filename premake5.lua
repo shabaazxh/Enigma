@@ -50,13 +50,13 @@ project "Enigma"
 
 	postbuildcommands { 
 		"{COPY} \"$(SolutionDir)assimp-vc143-mt.dll\" \"$(OutDir)\"",
-		"{COPY} \"$(SolutionDir)assimp-vc143-mtd.dll\" \"$(OutDir)\"",
-		"{COPY} \"$(SolutionDir)draco.dll\" \"$(OutDir)\"",
+
+
 		"{COPY} \"$(SolutionDir)minizip.dll\" \"$(OutDir)\"",
 		"{COPY} \"$(SolutionDir)poly2tri.dll\" \"$(OutDir)\"",
 		"{COPY} \"$(SolutionDir)pugixml.dll\" \"$(OutDir)\"",
 		"{COPY} \"$(SolutionDir)zlib1.dll\" \"$(OutDir)\"",
-		"{COPY} \"$(SolutionDir)zlibd1.dll\" \"$(OutDir)\""
+
 	}
 
 project "Enigma-shaders"

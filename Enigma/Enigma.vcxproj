@@ -68,13 +68,10 @@
     </Link>
     <PostBuildEvent>
       <Command>IF EXIST "$(SolutionDir)assimp-vc143-mt.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)assimp-vc143-mt.dll" "$(OutDir)" &gt; nul) ELSE (xcopy /Q /Y /I "$(SolutionDir)assimp-vc143-mt.dll" "$(OutDir)" &gt; nul)
-IF EXIST "$(SolutionDir)assimp-vc143-mtd.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)assimp-vc143-mtd.dll" "$(OutDir)" &gt; nul) ELSE (xcopy /Q /Y /I "$(SolutionDir)assimp-vc143-mtd.dll" "$(OutDir)" &gt; nul)
-IF EXIST "$(SolutionDir)draco.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)draco.dll" "$(OutDir)" &gt; nul) ELSE (xcopy /Q /Y /I "$(SolutionDir)draco.dll" "$(OutDir)" &gt; nul)
 IF EXIST "$(SolutionDir)minizip.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)minizip.dll" "$(OutDir)" &gt; nul) ELSE (xcopy /Q /Y /I "$(SolutionDir)minizip.dll" "$(OutDir)" &gt; nul)
 IF EXIST "$(SolutionDir)poly2tri.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)poly2tri.dll" "$(OutDir)" &gt; nul) ELSE (xcopy /Q /Y /I "$(SolutionDir)poly2tri.dll" "$(OutDir)" &gt; nul)
 IF EXIST "$(SolutionDir)pugixml.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)pugixml.dll" "$(OutDir)" &gt; nul) ELSE (xcopy /Q /Y /I "$(SolutionDir)pugixml.dll" "$(OutDir)" &gt; nul)
-IF EXIST "$(SolutionDir)zlib1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlib1.dll" "$(OutDir)" &gt; nul) ELSE (xcopy /Q /Y /I "$(SolutionDir)zlib1.dll" "$(OutDir)" &gt; nul)
-IF EXIST "$(SolutionDir)zlibd1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlibd1.dll" "$(OutDir)" &gt; nul) ELSE (xcopy /Q /Y /I "$(SolutionDir)zlibd1.dll" "$(OutDir)" &gt; nul)</Command>
+IF EXIST "$(SolutionDir)zlib1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlib1.dll" "$(OutDir)" &gt; nul) ELSE (xcopy /Q /Y /I "$(SolutionDir)zlib1.dll" "$(OutDir)" &gt; nul)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -92,13 +89,10 @@ IF EXIST "$(SolutionDir)zlibd1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlibd1.dl
     </Link>
     <PostBuildEvent>
       <Command>IF EXIST "$(SolutionDir)assimp-vc143-mt.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)assimp-vc143-mt.dll" "$(OutDir)" &gt; nul) ELSE (xcopy /Q /Y /I "$(SolutionDir)assimp-vc143-mt.dll" "$(OutDir)" &gt; nul)
-IF EXIST "$(SolutionDir)assimp-vc143-mtd.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)assimp-vc143-mtd.dll" "$(OutDir)" &gt; nul) ELSE (xcopy /Q /Y /I "$(SolutionDir)assimp-vc143-mtd.dll" "$(OutDir)" &gt; nul)
-IF EXIST "$(SolutionDir)draco.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)draco.dll" "$(OutDir)" &gt; nul) ELSE (xcopy /Q /Y /I "$(SolutionDir)draco.dll" "$(OutDir)" &gt; nul)
 IF EXIST "$(SolutionDir)minizip.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)minizip.dll" "$(OutDir)" &gt; nul) ELSE (xcopy /Q /Y /I "$(SolutionDir)minizip.dll" "$(OutDir)" &gt; nul)
 IF EXIST "$(SolutionDir)poly2tri.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)poly2tri.dll" "$(OutDir)" &gt; nul) ELSE (xcopy /Q /Y /I "$(SolutionDir)poly2tri.dll" "$(OutDir)" &gt; nul)
 IF EXIST "$(SolutionDir)pugixml.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)pugixml.dll" "$(OutDir)" &gt; nul) ELSE (xcopy /Q /Y /I "$(SolutionDir)pugixml.dll" "$(OutDir)" &gt; nul)
-IF EXIST "$(SolutionDir)zlib1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlib1.dll" "$(OutDir)" &gt; nul) ELSE (xcopy /Q /Y /I "$(SolutionDir)zlib1.dll" "$(OutDir)" &gt; nul)
-IF EXIST "$(SolutionDir)zlibd1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlibd1.dll" "$(OutDir)" &gt; nul) ELSE (xcopy /Q /Y /I "$(SolutionDir)zlibd1.dll" "$(OutDir)" &gt; nul)</Command>
+IF EXIST "$(SolutionDir)zlib1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlib1.dll" "$(OutDir)" &gt; nul) ELSE (xcopy /Q /Y /I "$(SolutionDir)zlib1.dll" "$(OutDir)" &gt; nul)</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
