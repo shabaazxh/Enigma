@@ -173,6 +173,12 @@ namespace Enigma
 						result.attributes.positions[idx.position_index * 3 + 2]
 						});
 
+					vertex.normals = (glm::vec3{
+						result.attributes.normals[idx.position_index * 3 + 0],
+						result.attributes.normals[idx.position_index * 3 + 1],
+						result.attributes.normals[idx.position_index * 3 + 2]
+						});
+
 					if (textured)
 					{
 						vertex.tex = (glm::vec2(
@@ -341,6 +347,10 @@ namespace Enigma
 				aiVector3D assimpTexVert;
 				assimpTexVert = scene->mMeshes[i]->mTextureCoords[0][j];
 				vert.tex = glm::vec2(assimpTexVert.x, assimpTexVert.y);
+
+				aiVector3D assimpNormVert;
+				assimpNormVert = scene->mMeshes[i]->mNormals[j];
+				vert.normals = glm::vec3(assimpNormVert.x, assimpNormVert.y, assimpNormVert.z);
 
 				if (scene->mMeshes[i]->HasVertexColors(i)) {
 					aiColor4D assimpColVert;

@@ -31,6 +31,7 @@ namespace Enigma
 		glm::vec3 pos;
 		glm::vec2 tex;
 		glm::vec3 color;
+		glm::vec3 normals;
 
 		static VkVertexInputBindingDescription GetBindingDescription()
 		{
