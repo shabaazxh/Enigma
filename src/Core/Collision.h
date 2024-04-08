@@ -17,6 +17,11 @@ namespace Enigma {
         }
     };
 
+    struct collisionData {
+        bool intersects;
+        float t;
+    };
+
     class CollisionDetector {
         public:
             // 检测角色与环境之间的碰撞
@@ -25,7 +30,7 @@ namespace Enigma {
             static bool CheckBulletCollision(Model& bullet, Model& character) {
                 return AABBvsAABB(bullet, character);
             };
-            bool RayIntersectsAABB(const Ray& ray, const AABB& aabb);
+            collisionData RayIntersectsAABB(const Ray& ray, const AABB& aabb);
 
         private:
             // 检测两个AABB之间的碰撞

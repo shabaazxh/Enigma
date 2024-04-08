@@ -6,26 +6,19 @@ namespace Enigma {
 		
 	}
 
-	void Enemy::ManageAI(std::vector<Character*> character, Model* obj, Player* player)
+	void Enemy::ManageAI(std::vector<Character*> characters, Model* obj, Player* player)
 	{
-		if (player->moved) {
-			updateNavmesh(character);
-			for (int i = 0; i < character.size(); i++) {
-				addToNavmesh(character[i], obj);
-			}
-			for (int i = 0; i < navmesh.vertices.size(); i++) {
-				for (int j = 0; j < navmesh.edges[i].size(); j++) {
-					printf("%i: %i\n", i, navmesh.edges[i][j].vertex2);
-				}
-			}
-			printf("\n");
-			pathToEnemy = findDirection();
-			player->moved = false;
+		updateNavmesh(characters);
+		for (int i = 0; i < characters.size(); i++) {
+			addToNavmesh(characters[i], obj);
 		}
+		pathToEnemy = findDirection(player);
+		player->moved = false;
 		moveInDirection();
 	}
 
 	void Enemy::addToNavmesh(Character* character, Model* obj) {
+		character->navmeshPosition = navmesh.vertices.size();
 		navmesh.vertices.push_back(character->translation);
 		navmesh.edges.resize(navmesh.vertices.size());
 		CollisionDetector cd;
@@ -37,23 +30,21 @@ namespace Enigma {
 			}
 
 			glm::vec3 direction = character->translation - navmesh.vertices[node];
-			bool intersects = false;
 			float weight = vec3Length(direction);
 			Ray ray = Ray(character->translation, direction);
+			collisionData colData;
+			direction = normalize(direction);
 
 			for (int mesh = 0; mesh < obj->meshes.size(); mesh++) {
 				if (obj->meshes[mesh].meshName != "Floor") {
-					bool furtherAway = isMeshFurtherAway(direction, character->translation, obj->meshes[mesh].meshAABB);
-					if (furtherAway == false) {
-						intersects = cd.RayIntersectsAABB(ray, obj->meshes[mesh].meshAABB);
-					}
-					if (intersects == true) {
+					colData = cd.RayIntersectsAABB(ray, obj->meshes[mesh].meshAABB);
+					if (colData.intersects == true && std::abs(colData.t) < weight) {
 						break;
 					}
 				}
 			}
 
-			if (intersects == false) {
+			if (colData.intersects == false) {
 				Edge edge1;
 				Edge edge2;
 				edge1.vertex2 = node;
@@ -67,18 +58,18 @@ namespace Enigma {
 	}
 
 
-	void Enemy::updateNavmesh(std::vector<Character*> character) {
-		int numberOfAddedNodes = character.size();
+	void Enemy::updateNavmesh(std::vector<Character*> characters) {
+		int numberOfAddedNodes = characters.size();
 		for (int i = 0; i < numberOfAddedNodes; i++) {
-			navmesh.vertices.erase(navmesh.vertices.begin() + navmesh.numberOfBaseNodes + i - 1);
-			navmesh.edges[navmesh.numberOfBaseNodes + i - 1].clear();
+			navmesh.vertices.erase(navmesh.vertices.begin() + navmesh.vertices.size() - 1);
 		}
+		navmesh.edges.resize(navmesh.vertices.size());
 	}
 
-	std::vector<int> Enemy::findDirection() {
+	std::vector<int> Enemy::findDirection(Player* player) {
 		int graphVertices = navmesh.vertices.size();
-		int startVertex = graphVertices - 1;
-		int endVertex = graphVertices - 2;
+		int startVertex = this->navmeshPosition;
+		int endVertex = player->navmeshPosition;
 		std::vector<int> Visited;
 		std::queue<int> toVisit;
 		dijkstraData graph;

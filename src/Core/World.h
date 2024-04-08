@@ -13,5 +13,19 @@ namespace Enigma
 		std::vector<Enemy*> Enemies;
 		std::vector<Character*> Characters;
 		Player* player;
+
+		void ManageAIs(std::vector<Character*> characters, Model* obj, Player* player, std::vector<Enemy*> Enemies) {
+			if (player->moved) {
+				for (int i = 0; i < Enemies.size(); i++) {
+					Enemies[i]->ManageAI(characters, obj, player);
+				}
+				player->moved = false;
+			}
+			for (int i = 0; i < Enemies.size(); i++) {
+				Enemies[i]->moveInDirection();
+			}
+		}
 	};
+
 }
+

@@ -25,11 +25,11 @@ namespace Enigma
 		enemy1->setTranslation(glm::vec3(60.f, 0.1f, 0.f));
 		m_World->Enemies.push_back(enemy1);
 
-		/*Enemy* enemy2 = new Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE);
+		Enemy* enemy2 = new Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE);
 		m_World->Meshes.push_back(enemy2->model);
 		enemy2->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
 		enemy2->setTranslation(glm::vec3(60.f, 0.1f, 50.f));
-		m_World->Enemies.push_back(enemy2);*/
+		m_World->Enemies.push_back(enemy2);
 
 		//player = new Player(context);
 		m_World->player = new Player("../resources/gun.obj", context, ENIGMA_LOAD_OBJ_FILE);
@@ -39,6 +39,10 @@ namespace Enigma
 		m_World->player->setTranslation(glm::vec3(-100.f, 0.1f, -40.f));
 		m_World->player->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
 		m_World->player->setRotationY(180);
+
+		for (int i = 0; i < navmesh.vertices.size(); i++) {
+			printf("%i: %.2f, %.2f, %.2f\n", i, navmesh.vertices[i].x, navmesh.vertices[i].y, navmesh.vertices[i].z);
+		}
 	}
 
 	Renderer::~Renderer()

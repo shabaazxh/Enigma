@@ -17,7 +17,6 @@
 #include "Graphics/Renderer.h"
 #include "Graphics/Model.h"
 #include "Core/Engine.h"
-#include "Core/World.h"
 
 
 int main() {
@@ -48,7 +47,7 @@ int main() {
     }
 
     for (int i = 0; i < world.Characters.size(); i++) {
-        world.Enemies[0]->addToNavmesh(world.Characters[i], world.Meshes[0]);
+       world.Enemies[0]->addToNavmesh(world.Characters[i], world.Meshes[0]);
     }
 
     //Sleep(1000);
@@ -58,7 +57,7 @@ int main() {
 
 
     while (!glfwWindowShouldClose(window.window)) {
-        world.Enemies[0]->ManageAI(world.Characters, world.Meshes[0], world.player);
+        world.ManageAIs(world.Characters, world.Meshes[0], world.player, world.Enemies);
         timer->Update();
         FPSCamera.Update(window.swapchainExtent.width, window.swapchainExtent.height);
         renderer.Update(&FPSCamera);
