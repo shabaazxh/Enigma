@@ -113,10 +113,6 @@ namespace Enigma {
 		}
 		currentNode = 0;
 		std::reverse(path.begin(), path.end());
-		for (int i = 0; i < path.size(); i++) {
-			printf("%i, ", path[i]);
-		}
-		printf("\n");
 
 		return path;
 	}

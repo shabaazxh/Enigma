@@ -16,33 +16,6 @@ namespace Enigma
 		m_aabbPipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/line.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
 		
 		m_World = world;
-
-		Model* temp = new Model("../resources/level1.obj", context, ENIGMA_LOAD_OBJ_FILE);
-		m_World->Meshes.push_back(temp);
-		Enemy* enemy1 = new Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE);
-		m_World->Meshes.push_back(enemy1->model);
-		enemy1->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-		enemy1->setTranslation(glm::vec3(60.f, 0.1f, 0.f));
-		m_World->Enemies.push_back(enemy1);
-
-		Enemy* enemy2 = new Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE);
-		m_World->Meshes.push_back(enemy2->model);
-		enemy2->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-		enemy2->setTranslation(glm::vec3(60.f, 0.1f, 50.f));
-		m_World->Enemies.push_back(enemy2);
-
-		//player = new Player(context);
-		m_World->player = new Player("../resources/gun.obj", context, ENIGMA_LOAD_OBJ_FILE);
-		if (!m_World->player->noModel) {
-			m_World->Meshes.push_back(m_World->player->model);
-		}
-		m_World->player->setTranslation(glm::vec3(-100.f, 0.1f, -40.f));
-		m_World->player->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-		m_World->player->setRotationY(180);
-
-		for (int i = 0; i < navmesh.vertices.size(); i++) {
-			printf("%i: %.2f, %.2f, %.2f\n", i, navmesh.vertices[i].x, navmesh.vertices[i].y, navmesh.vertices[i].z);
-		}
 	}
 
 	Renderer::~Renderer()
