@@ -23,6 +23,10 @@ namespace Enigma
 			}
 			for (int i = 0; i < Enemies.size(); i++) {
 				Enemies[i]->moveInDirection();
+				float distanceFromPlayer = vec3Length(Enemies[i]->translation - player->translation);
+				if (distanceFromPlayer < 2.f) {
+					player->health -= 1.f;
+				}
 			}
 		}
 	};
