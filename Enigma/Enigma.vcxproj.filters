@@ -39,6 +39,9 @@
     <ClInclude Include="..\src\Graphics\Enemy.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\Graphics\GBuffer.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\Graphics\Light.h">
       <Filter>Graphics</Filter>
     </ClInclude>
@@ -84,6 +87,9 @@
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\Enemy.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Graphics\GBuffer.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\Light.cpp">

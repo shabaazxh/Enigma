@@ -51,8 +51,6 @@ int main() {
         world.Enemies[0]->addToNavmesh(world.Characters[i], world.Meshes[0]);
     }
 
-    //Sleep(1000);
-
     glfwSetKeyCallback(window.window, window.glfw_callback_key_press);
     glfwSetCursorPosCallback(window.window, window.glfw_callback_mouse);
 

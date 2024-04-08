@@ -29,6 +29,7 @@ namespace Enigma
 	struct Vertex
 	{
 		glm::vec3 pos;
+		glm::vec3 normal;
 		glm::vec2 tex;
 		glm::vec3 color;
 
@@ -42,9 +43,9 @@ namespace Enigma
 			return bindingDescrip;
 		}
 
-		static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions()
+		static std::array<VkVertexInputAttributeDescription, 4> GetAttributeDescriptions()
 		{
-			std::array<VkVertexInputAttributeDescription, 3> attributes{};
+			std::array<VkVertexInputAttributeDescription, 4> attributes{};
 
 			attributes[0].binding = 0;
 			attributes[0].location = 0;
@@ -53,13 +54,18 @@ namespace Enigma
 
 			attributes[1].binding = 0;
 			attributes[1].location = 1;
-			attributes[1].format = VK_FORMAT_R32G32_SFLOAT;
-			attributes[1].offset = offsetof(Vertex, tex);
+			attributes[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributes[1].offset = offsetof(Vertex, normal);
 
 			attributes[2].binding = 0;
 			attributes[2].location = 2;
-			attributes[2].format = VK_FORMAT_R32G32B32_SFLOAT;
-			attributes[2].offset = offsetof(Vertex, color);
+			attributes[2].format = VK_FORMAT_R32G32_SFLOAT;
+			attributes[2].offset = offsetof(Vertex, tex);
+
+			attributes[3].binding = 0;
+			attributes[3].location = 3;
+			attributes[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+			attributes[3].offset = offsetof(Vertex, color);
 			
 			return attributes;
 		}
@@ -114,8 +120,18 @@ namespace Enigma
 	class Model
 	{
 		public:
+			// @filepath - take in the file path of where the model is e.g. "../Desktop/resources/models/sponza.obj
+			// @context - vulkan context which houses device
+			// @filetype - type of file, fbx or obj
 			Model(const std::string& filepath, const VulkanContext& context, int filetype);
-			void Draw(VkCommandBuffer cmd, VkPipelineLayout layout, VkPipeline aabPipeline);
+			
+			// This will draw the the model without debug properties rendered
+			void Draw(VkCommandBuffer cmd, VkPipelineLayout layout);
+
+			// This will draw the model will debug prperties visibile such as AABB
+			void DrawDebug(VkCommandBuffer cmd, VkPipelineLayout layout, VkPipeline AABBPipeline);
+
+			// Get the AABB min and max 
 			glm::vec3 GetAABBMin() { return m_AABB.min; };
 			glm::vec3 GetAABBMax() { return m_AABB.max; };
 
@@ -123,15 +139,16 @@ namespace Enigma
 			std::vector<Mesh> meshes;
 			
 			//transformations
-			bool player = false;
+			// Note from Ahmad: why are all these transformations public? 
+			bool player = false; // Note from Ahmad: why is this here? 
 			glm::vec3 translation = glm::vec3(0.f, 0.f, 0.f);
 			float rotationX = 0.f;
 			float rotationY = 0.f;
 			float rotationZ = 0.f;
 			glm::mat4 rotMatrix = glm::mat4(1.0f);
 			glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
-			bool hasAnimations = false;
-			aiAnimation** animations;
+			bool hasAnimations = false; 
+			aiAnimation** animations; 
 		private:
 			void LoadOBJModel(const std::string& filepath);
 			void LoadFBXModel(const std::string& filepath);

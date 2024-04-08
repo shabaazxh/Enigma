@@ -11,6 +11,9 @@
 #include "../Core/Engine.h"
 #include "../Core/World.h"
 
+#include <memory>
+#include "GBuffer.h"
+
 namespace Enigma
 {
 	class Renderer
@@ -26,6 +29,9 @@ namespace Enigma
 			void CreateDescriptorSetLayouts();
 			void CreateSceneDescriptorSetLayout();
 		private:
+			
+			GBuffer* m_gBuffer;
+
 			bool current_state = false;
 			World* m_World;
 			Camera* camera;

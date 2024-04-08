@@ -24,6 +24,8 @@ namespace Enigma
 
 	};
 
+	// Note from Ahmad: change filetype to be an ENUM class so it's clearer 
+	// also, doesn't fbx model load all formats and not just fbx since it's using assimp which loads all model types?
 	Model::Model(const std::string& filepath, const VulkanContext& context, int filetype) : m_filePath{filepath}, context{context}
 	{
 		if (filetype == 0)
@@ -173,6 +175,13 @@ namespace Enigma
 						result.attributes.positions[idx.position_index * 3 + 2]
 						});
 
+					vertex.normal = (glm::vec3{
+
+						result.attributes.normals[idx.normal_index * 3 + 0],
+						result.attributes.normals[idx.normal_index * 3 + 1],
+						result.attributes.normals[idx.normal_index * 3 + 2]
+						});
+
 					if (textured)
 					{
 						vertex.tex = (glm::vec2(
@@ -274,15 +283,15 @@ namespace Enigma
 			mesh.meshAABB = { minPoint, maxPoint };
 			mesh.aabbVertices.resize(8);
 
-			mesh.aabbVertices[0] = Vertex{ {minPoint.x, maxPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right back
-			mesh.aabbVertices[1] = Vertex{ {maxPoint.x, maxPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right back
-			mesh.aabbVertices[2] = Vertex{ {maxPoint.x, minPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right front
-			mesh.aabbVertices[3] = Vertex{ {minPoint.x, minPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right front
+			mesh.aabbVertices[0] = Vertex{ {minPoint.x, maxPoint.y, minPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right back
+			mesh.aabbVertices[1] = Vertex{ {maxPoint.x, maxPoint.y, minPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right back
+			mesh.aabbVertices[2] = Vertex{ {maxPoint.x, minPoint.y, minPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right front
+			mesh.aabbVertices[3] = Vertex{ {minPoint.x, minPoint.y, minPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right front
 
-			mesh.aabbVertices[4] = Vertex{ {minPoint.x, maxPoint.y, maxPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top left back
-			mesh.aabbVertices[5] = Vertex{ {maxPoint.x, maxPoint.y, maxPoint.z}, { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // bottom left back
-			mesh.aabbVertices[6] = Vertex{ {maxPoint.x, minPoint.y, maxPoint.z}, { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // top left front 
-			mesh.aabbVertices[7] = Vertex{ {minPoint.x, minPoint.y, maxPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom left front
+			mesh.aabbVertices[4] = Vertex{ {minPoint.x, maxPoint.y, maxPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top left back
+			mesh.aabbVertices[5] = Vertex{ {maxPoint.x, maxPoint.y, maxPoint.z}, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // bottom left back
+			mesh.aabbVertices[6] = Vertex{ {maxPoint.x, minPoint.y, maxPoint.z}, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // top left front 
+			mesh.aabbVertices[7] = Vertex{ {minPoint.x, minPoint.y, maxPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom left front
 		
 		}
 
@@ -439,15 +448,15 @@ namespace Enigma
 			mesh.meshAABB = { minPoint, maxPoint };
 			mesh.aabbVertices.resize(8);
 
-			mesh.aabbVertices[0] = Vertex{ {minPoint.x, maxPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right back
-			mesh.aabbVertices[1] = Vertex{ {maxPoint.x, maxPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right back
-			mesh.aabbVertices[2] = Vertex{ {maxPoint.x, minPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right front
-			mesh.aabbVertices[3] = Vertex{ {minPoint.x, minPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right front
+			mesh.aabbVertices[0] = Vertex{ {minPoint.x, maxPoint.y, minPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right back
+			mesh.aabbVertices[1] = Vertex{ {maxPoint.x, maxPoint.y, minPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right back
+			mesh.aabbVertices[2] = Vertex{ {maxPoint.x, minPoint.y, minPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right front
+			mesh.aabbVertices[3] = Vertex{ {minPoint.x, minPoint.y, minPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right front
 
-			mesh.aabbVertices[4] = Vertex{ {minPoint.x, maxPoint.y, maxPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top left back
-			mesh.aabbVertices[5] = Vertex{ {maxPoint.x, maxPoint.y, maxPoint.z}, { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // bottom left back
-			mesh.aabbVertices[6] = Vertex{ {maxPoint.x, minPoint.y, maxPoint.z}, { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // top left front 
-			mesh.aabbVertices[7] = Vertex{ {minPoint.x, minPoint.y, maxPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom left front
+			mesh.aabbVertices[4] = Vertex{ {minPoint.x, maxPoint.y, maxPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top left back
+			mesh.aabbVertices[5] = Vertex{ {maxPoint.x, maxPoint.y, maxPoint.z}, {0.0f, 0.f, 0.0f},  { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // bottom left back
+			mesh.aabbVertices[6] = Vertex{ {maxPoint.x, minPoint.y, maxPoint.z}, {0.0f, 0.f, 0.0f},  { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // top left front 
+			mesh.aabbVertices[7] = Vertex{ {minPoint.x, minPoint.y, maxPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom left front
 		}
 
 		CreateBuffers();
@@ -754,7 +763,7 @@ namespace Enigma
 	}
 
 	// Call to draw the model
-	void Model::Draw(VkCommandBuffer cmd, VkPipelineLayout layout, VkPipeline aabPipeline)
+	void Model::Draw(VkCommandBuffer cmd, VkPipelineLayout layout)
 	{
 		for (auto& mesh : meshes)
 		{
@@ -785,6 +794,11 @@ namespace Enigma
 			vkCmdDrawIndexed(cmd, static_cast<uint32_t>(mesh.indices.size()), 1, 0, 0, 0);
 		}
 
+	}
+
+
+	void Model::DrawDebug(VkCommandBuffer cmd, VkPipelineLayout layout, VkPipeline AABBPipeline)
+	{
 		for (auto& mesh : meshes) {
 
 			ModelPushConstant push = {};
@@ -806,7 +820,7 @@ namespace Enigma
 
 			vkCmdPushConstants(cmd, layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(ModelPushConstant), &push);
 
-			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, aabPipeline);
+			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, AABBPipeline);
 			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 1, 1, &m_descriptorSet[0], 0, nullptr);
 
 			VkDeviceSize offset[] = { 0 };

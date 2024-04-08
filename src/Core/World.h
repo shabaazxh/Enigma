@@ -14,4 +14,6 @@ namespace Enigma
 		std::vector<Character*> Characters;
 		Player* player;
 	};
+
+	inline World WorldInst;
 }

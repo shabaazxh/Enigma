@@ -15,6 +15,9 @@ namespace Enigma
 		m_pipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/fragment.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, {Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel}, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 		m_aabbPipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/line.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
 		
+
+		m_gBuffer = new GBuffer(context, window);
+
 		m_World = world;
 
 		Model* temp = new Model("../resources/level1.obj", context, ENIGMA_LOAD_OBJ_FILE);
@@ -46,6 +49,8 @@ namespace Enigma
 		// Ensure all commands have finished and the GPU is now idle
 		vkDeviceWaitIdle(context.device);
 
+		delete m_gBuffer;
+
 		for (auto& model : m_World->Meshes)
 		{
 			delete model;
@@ -59,7 +64,7 @@ namespace Enigma
 
 		vkDestroySampler(context.device, Enigma::defaultSampler, nullptr);
 		vkDestroyDescriptorSetLayout(context.device, Enigma::sceneDescriptorLayout, nullptr);
-		vkDestroyDescriptorSetLayout(context.device, Enigma::descriptorLayoutModel, nullptr);
+		vkDestroyDescriptorSetLayout(context.device, Enigma::descriptorLayoutModel, nullptr); // this one is not being destroyed for some reason 
 		vkDestroyDescriptorPool(context.device, Enigma::descriptorPool, nullptr);
 	}
 
@@ -197,7 +202,6 @@ namespace Enigma
 		uint32_t index;
 		VkResult getImageIndex = vkAcquireNextImageKHR(context.device, window.swapchain, UINT64_MAX, m_imagAvailableSemaphores[currentFrame].handle, VK_NULL_HANDLE, &index);
 
-
 		vkResetCommandBuffer(m_renderCommandBuffers[Enigma::currentFrame], 0);
 
 		VkCommandBuffer cmd = m_renderCommandBuffers[Enigma::currentFrame];
@@ -254,10 +258,14 @@ namespace Enigma
 			for (const auto& model : m_World->Meshes)
 			{
 				vkCmdBindPipeline(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
-				model->Draw(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle, m_aabbPipeline.handle);
+				model->Draw(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle);
+				model->DrawDebug(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle, m_aabbPipeline.handle);
+				
 			}
 			
 			vkCmdEndRenderPass(m_renderCommandBuffers[Enigma::currentFrame]);
+
+			m_gBuffer->Execute(m_renderCommandBuffers[Enigma::currentFrame], m_World->Meshes);
 
 			vkEndCommandBuffer(m_renderCommandBuffers[Enigma::currentFrame]);
 		}

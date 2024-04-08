@@ -54,6 +54,12 @@
       <Outputs>resources/Shaders/fragment.frag.spv</Outputs>
       <Message>Compiling GLSL: '%(Filename)%(Extension)'</Message>
     </CustomBuild>
+    <CustomBuild Include="resources\Shaders\gbuffer.frag">
+      <FileType>Document</FileType>
+      <Command>"libs/glslangValidator.exe" -V %(Identity) -o %(Identity).spv</Command>
+      <Outputs>resources/Shaders/gbuffer.frag.spv</Outputs>
+      <Message>Compiling GLSL: '%(Filename)%(Extension)'</Message>
+    </CustomBuild>
     <CustomBuild Include="resources\Shaders\line.frag">
       <FileType>Document</FileType>
       <Command>"libs/glslangValidator.exe" -V %(Identity) -o %(Identity).spv</Command>
