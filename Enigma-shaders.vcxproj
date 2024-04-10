@@ -48,10 +48,28 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
   </ItemDefinitionGroup>
   <ItemGroup>
+    <CustomBuild Include="resources\Shaders\composite.frag">
+      <FileType>Document</FileType>
+      <Command>"libs/glslangValidator.exe" -V %(Identity) -o %(Identity).spv</Command>
+      <Outputs>resources/Shaders/composite.frag.spv</Outputs>
+      <Message>Compiling GLSL: '%(Filename)%(Extension)'</Message>
+    </CustomBuild>
     <CustomBuild Include="resources\Shaders\fragment.frag">
       <FileType>Document</FileType>
       <Command>"libs/glslangValidator.exe" -V %(Identity) -o %(Identity).spv</Command>
       <Outputs>resources/Shaders/fragment.frag.spv</Outputs>
+      <Message>Compiling GLSL: '%(Filename)%(Extension)'</Message>
+    </CustomBuild>
+    <CustomBuild Include="resources\Shaders\fs_quad.frag">
+      <FileType>Document</FileType>
+      <Command>"libs/glslangValidator.exe" -V %(Identity) -o %(Identity).spv</Command>
+      <Outputs>resources/Shaders/fs_quad.frag.spv</Outputs>
+      <Message>Compiling GLSL: '%(Filename)%(Extension)'</Message>
+    </CustomBuild>
+    <CustomBuild Include="resources\Shaders\fs_quad.vert">
+      <FileType>Document</FileType>
+      <Command>"libs/glslangValidator.exe" -V %(Identity) -o %(Identity).spv</Command>
+      <Outputs>resources/Shaders/fs_quad.vert.spv</Outputs>
       <Message>Compiling GLSL: '%(Filename)%(Extension)'</Message>
     </CustomBuild>
     <CustomBuild Include="resources\Shaders\gbuffer.frag">

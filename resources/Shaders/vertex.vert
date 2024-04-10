@@ -26,12 +26,12 @@ layout(location = 3) in vec3 color;
 
 layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec2 uv;
-layout(location = 3) out vec3 WorldNormal;
+layout(location = 2) out vec3 WorldNormal;
 
 void main()
 {
 	gl_Position = ubo.projection * ubo.view * push.model * vec4(position, 1.0f);
-	WorldNormal = normalize((push.model * vec4(normal, 1.0f)).xyz);
+	WorldNormal = normal;
 	fragColor = color;
 	uv = tex;
 }

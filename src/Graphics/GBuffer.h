@@ -10,22 +10,17 @@
 
 namespace Enigma
 {
-	struct GBufferTargets
-	{
-		Image normals;
-		Image depth;
-	};
 	class GBuffer
 	{
 	public:
-		GBuffer(const VulkanContext& context, const VulkanWindow& window);
+		GBuffer(const VulkanContext& context, const VulkanWindow& window, GBufferTargets& targets);
 		~GBuffer();
 
 		void Execute(VkCommandBuffer cmd, const std::vector<Model*>& models);
-		void Update();
+		void Update(Camera* camera);
 		void Resize();
 	private:
-		void CreateFramebuffer(VkDevice device, uint32_t width, uint32_t height);
+		void CreateFramebuffer(VkDevice device, GBufferTargets& targets);
 		void CreateRenderPass(VkDevice device);
 		void CreatePipeline(VkDevice device, VkExtent2D swapchainExtent);
 		void BuildDescriptorSetLayout(const VulkanContext& context);
@@ -41,7 +36,7 @@ namespace Enigma
 		VkDescriptorSetLayout m_descriptorSetLayout;
 		std::vector<Buffer> m_sceneUBO;
 		Buffer m_SSBO;
-		GBufferTargets g_BufferOutputTargets; // TODO: class owns this for now but needs to be accessible outside it 
+		//GBufferTargets g_BufferOutputTargets; // TODO: class owns this for now but needs to be accessible outside it 
 	};
 
 	//inline GBufferTargets g_BufferOutputTargets; // this is not being released

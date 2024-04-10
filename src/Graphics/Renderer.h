@@ -13,13 +13,14 @@
 
 #include <memory>
 #include "GBuffer.h"
+#include "Lighting.h"
 
 namespace Enigma
 {
 	class Renderer
 	{
 		public:
-			explicit Renderer(const VulkanContext& context, VulkanWindow& window, Camera* camera, World* world);
+			explicit Renderer(const VulkanContext& context, VulkanWindow& window, Camera* camera, World& world);
 			~Renderer();
 			void DrawScene();
 			void Update(Camera* cam);
@@ -31,9 +32,10 @@ namespace Enigma
 		private:
 			
 			GBuffer* m_gBuffer;
+			Lighting* m_lighting;
 
 			bool current_state = false;
-			World* m_World;
+			World m_World;
 			Camera* camera;
 			const VulkanContext& context;
 			VulkanWindow& window;
@@ -54,5 +56,6 @@ namespace Enigma
 			std::vector<Buffer> m_sceneUBO;
 			Buffer m_SSBO;
 			Image m_render;
+			GBufferTargets gBufferTargets;
 	};
 }

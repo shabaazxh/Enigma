@@ -33,4 +33,15 @@ namespace Enigma
 
 		return ret;
 	}
+
+	inline Light CreatePointLight(const glm::vec3& pos, const glm::vec3& color, float intensity)
+	{
+		Light ret{};
+
+		ret.m_position = pos;
+		ret.m_color = color;
+		ret.m_type = LightType::POINT;
+		ret.m_intensity = intensity;
+		return ret;
+	}
 }

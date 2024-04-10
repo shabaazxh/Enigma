@@ -108,6 +108,7 @@ IF EXIST "$(SolutionDir)zlib1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlib1.dll"
     <ClInclude Include="..\src\Graphics\Enemy.h" />
     <ClInclude Include="..\src\Graphics\GBuffer.h" />
     <ClInclude Include="..\src\Graphics\Light.h" />
+    <ClInclude Include="..\src\Graphics\Lighting.h" />
     <ClInclude Include="..\src\Graphics\Model.h" />
     <ClInclude Include="..\src\Graphics\Player.h" />
     <ClInclude Include="..\src\Graphics\Renderer.h" />
@@ -126,6 +127,7 @@ IF EXIST "$(SolutionDir)zlib1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlib1.dll"
     <ClCompile Include="..\src\Graphics\Enemy.cpp" />
     <ClCompile Include="..\src\Graphics\GBuffer.cpp" />
     <ClCompile Include="..\src\Graphics\Light.cpp" />
+    <ClCompile Include="..\src\Graphics\Lighting.cpp" />
     <ClCompile Include="..\src\Graphics\Model.cpp" />
     <ClCompile Include="..\src\Graphics\Player.cpp" />
     <ClCompile Include="..\src\Graphics\Renderer.cpp" />

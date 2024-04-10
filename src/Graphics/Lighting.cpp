@@ -1,18 +1,14 @@
-#include "GBuffer.h"
+#include "Lighting.h"
+
 
 namespace Enigma
 {
-	GBuffer::GBuffer(const VulkanContext& context, const VulkanWindow& window, GBufferTargets& targets) : context{context}
+	Lighting::Lighting(const VulkanContext& context, const VulkanWindow& window, GBufferTargets& targets) : context{ context }
 	{
 		m_width = window.swapchainExtent.width;
 		m_height = window.swapchainExtent.height;
 
-		m_sceneUBO.resize(Enigma::MAX_FRAMES_IN_FLIGHT);
-
-		for (auto& buffer : m_sceneUBO)
-			buffer = Enigma::CreateBuffer(context.allocator, sizeof(CameraTransform), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT);
-
-		targets.normals = Enigma::CreateImageTexture2D(
+		renderTarget = Enigma::CreateImageTexture2D(
 			context,
 			m_width,
 			m_height,
@@ -21,41 +17,17 @@ namespace Enigma
 			VK_IMAGE_ASPECT_COLOR_BIT, 1
 		);
 
-		targets.depth = Enigma::CreateImageTexture2D(
-			context,
-			m_width,
-			m_height,
-			VK_FORMAT_D32_SFLOAT,
-			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-			VK_IMAGE_ASPECT_DEPTH_BIT, 1
-		);
-
-		BuildDescriptorSetLayout(context);
 		CreateRenderPass(context.device);
-		CreateFramebuffer(context.device, targets);
+		CreateFramebuffer(context.device);
+		BuildDescriptorSetLayout(context, targets);
 		CreatePipeline(context.device, window.swapchainExtent);
-
 	}
 
-	GBuffer::~GBuffer()
+	Lighting::~Lighting()
 	{
-		if (m_framebuffer != VK_NULL_HANDLE)
-		{
-			vkDestroyFramebuffer(context.device, m_framebuffer, nullptr);
-		}
-
-		if (m_RenderPass != VK_NULL_HANDLE)
-		{
-			vkDestroyRenderPass(context.device, m_RenderPass, nullptr);
-		}
-
-		if (m_descriptorSetLayout != VK_NULL_HANDLE)
-		{
-			vkDestroyDescriptorSetLayout(context.device, m_descriptorSetLayout, nullptr);
-		}
 	}
-	// only should be outputting normals ( can reconstuct position from depth )
-	void GBuffer::Execute(VkCommandBuffer cmd, const std::vector<Model*>& models)
+
+	void Lighting::Execute(VkCommandBuffer cmd)
 	{
 		VkRenderPassBeginInfo rpBegin{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
 		rpBegin.renderPass = m_RenderPass;
@@ -84,28 +56,17 @@ namespace Enigma
 		vkCmdSetScissor(cmd, 0, 1, &scissor);
 
 		vkCmdBeginRenderPass(cmd, &rpBegin, VK_SUBPASS_CONTENTS_INLINE);
-		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout.handle, 0, 1, &m_sceneDescriptorSets[Enigma::currentFrame], 0, nullptr);
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout.handle, 0, 1, &m_descriptorSets[Enigma::currentFrame], 0, nullptr);
 
-		for (const auto& model : models)
-		{
-			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
-			model->Draw(cmd, m_pipelineLayout.handle);
-		}
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
+		vkCmdDraw(cmd, 3, 1, 0, 0);
 
 		vkCmdEndRenderPass(cmd);
 	}
 
-	void GBuffer::Update(Camera* camera)
+	void Lighting::CreateFramebuffer(VkDevice device)
 	{
-		void* data = nullptr;
-		vmaMapMemory(context.allocator.allocator, m_sceneUBO[Enigma::currentFrame].allocation, &data);
-		std::memcpy(data, &camera->GetCameraTransform(), sizeof(camera->GetCameraTransform()));
-		vmaUnmapMemory(context.allocator.allocator, m_sceneUBO[Enigma::currentFrame].allocation);
-	}
-
-	void GBuffer::CreateFramebuffer(VkDevice device, GBufferTargets& targets)
-	{
-		std::vector<VkImageView> attachments = { targets.normals.imageView, targets.depth.imageView};
+		std::vector<VkImageView> attachments = { renderTarget.imageView };
 		VkFramebufferCreateInfo fbInfo{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
 		fbInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 		fbInfo.pAttachments = attachments.data();
@@ -114,10 +75,10 @@ namespace Enigma
 		fbInfo.height = m_height;
 		fbInfo.layers = 1;
 
-		ENIGMA_VK_CHECK(vkCreateFramebuffer(device, &fbInfo, nullptr, &m_framebuffer), "Failed to create G-Buffer framebuffer.");
+		ENIGMA_VK_CHECK(vkCreateFramebuffer(device, &fbInfo, nullptr, &m_framebuffer), "Failed to create lighting pass frame buffer");
 	}
 
-	void GBuffer::CreateRenderPass(VkDevice device)
+	void Lighting::CreateRenderPass(VkDevice device)
 	{
 		VkAttachmentDescription colorAttachment = {};
 		colorAttachment.format = VK_FORMAT_R32G32B32A32_SFLOAT;
@@ -129,62 +90,39 @@ namespace Enigma
 		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-		VkAttachmentDescription depthAttachment = {};
-		depthAttachment.format = VK_FORMAT_D32_SFLOAT;
-		depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-
-		VkAttachmentDescription attachments[2] = { colorAttachment, depthAttachment };
-
 		VkAttachmentReference colorReference = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
-		VkAttachmentReference depthReference = { 1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
 
 		VkSubpassDescription subpass = {};
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &colorReference;
-		subpass.pDepthStencilAttachment = &depthReference;
 
-		VkSubpassDependency dependency[2] = {};
-		// Wait for EXTERNAL render pass to finish outputting
-		dependency[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-		dependency[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-		dependency[0].srcAccessMask = 0;
-		dependency[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		VkSubpassDependency dependency[1] = {};
+		dependency[0].srcSubpass = VK_SUBPASS_EXTERNAL; // this is the render pass before this one
+		dependency[0].dstSubpass = 0; // this is the current lighting render pass 
+		dependency[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; // this says that the lighing pass in the fragment shader relies on the color attachment output stage of the previous pass
+		dependency[0].srcAccessMask = VK_ACCESS_NONE; // dependency[0].srcAccessMask = 0;
+		dependency[0].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT; // // this says that the lighing pass in the fragment shader relies on the color attachment output stage of the previous pass
+		dependency[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-		// This subpass is the destination, wait for EXTERNAL to finish outputting before writing to it 
-		dependency[0].dstSubpass = 0;
-		dependency[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		dependency[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-		// Depth dependency 
-		// Source subpass is current subpass which writes to the depth image at late frag tests
-		dependency[1].srcSubpass = 0;
-		dependency[1].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-		dependency[1].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-
-		// destination subpass is external, uses depth in fragment shader 
-		dependency[1].dstSubpass = VK_SUBPASS_EXTERNAL;
-		dependency[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-		dependency[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		VkAttachmentDescription attachments[1] = { colorAttachment };
 
 		VkRenderPassCreateInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
-		renderPassInfo.attachmentCount = static_cast<uint32_t>(2);
+		renderPassInfo.attachmentCount = static_cast<uint32_t>(1);
 		renderPassInfo.pAttachments = attachments;
 		renderPassInfo.subpassCount = 1;
 		renderPassInfo.pSubpasses = &subpass;
-		renderPassInfo.dependencyCount = 2;
+		renderPassInfo.dependencyCount = 1;
 		renderPassInfo.pDependencies = dependency;
 
-		ENIGMA_VK_CHECK(vkCreateRenderPass(device, &renderPassInfo, nullptr, &m_RenderPass), "Failed to create G-Buffer render pass");
+		ENIGMA_VK_CHECK(vkCreateRenderPass(device, &renderPassInfo, nullptr, &m_RenderPass), "Failed to create lighting pass render pass.");
+
 	}
-	void GBuffer::CreatePipeline(VkDevice device, VkExtent2D swapchainExtent)
+
+	void Lighting::CreatePipeline(VkDevice device, VkExtent2D swapchainExtent)
 	{
-		ShaderModule vertexShader = CreateShaderModule(VERTEX, device);
-		ShaderModule fragmentShader = CreateShaderModule(FRAGMENT, device);
+		ShaderModule vertexShader = CreateShaderModule(LIGHTING_VERTEX, device);
+		ShaderModule fragmentShader = CreateShaderModule(LIGHTING_FRAGMENT, device);
 
 		VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
 		vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -200,16 +138,13 @@ namespace Enigma
 
 		VkPipelineShaderStageCreateInfo shaderStages[] = { vertShaderStageInfo, fragShaderStageInfo };
 
-		auto bindingDescription = Enigma::Vertex::GetBindingDescription();
-		auto attributeDescriptions = Enigma::Vertex::GetAttributeDescriptions();
-
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInputInfo.vertexBindingDescriptionCount = 1;
-		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-		vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-		vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
-		//VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
+		vertexInputInfo.vertexBindingDescriptionCount = 0;
+		vertexInputInfo.vertexAttributeDescriptionCount = 0;
+		vertexInputInfo.pVertexBindingDescriptions = nullptr;
+		vertexInputInfo.pVertexAttributeDescriptions = nullptr;
+
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -239,7 +174,7 @@ namespace Enigma
 		rasterInfo.depthClampEnable = VK_FALSE;
 		rasterInfo.rasterizerDiscardEnable = VK_FALSE;
 		rasterInfo.polygonMode = VK_POLYGON_MODE_FILL;
-		rasterInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+		rasterInfo.cullMode = VK_CULL_MODE_FRONT_BIT;
 		rasterInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		rasterInfo.depthBiasClamp = VK_FALSE;
 		rasterInfo.lineWidth = 1.0f;
@@ -258,23 +193,6 @@ namespace Enigma
 		blendStates[0].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
 		blendStates[0].alphaBlendOp = VK_BLEND_OP_ADD;
 
-		//blendStates[1].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-		//blendStates[1].blendEnable = VK_TRUE;
-		//blendStates[1].srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
-		//blendStates[1].dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
-		//blendStates[1].colorBlendOp = VK_BLEND_OP_ADD;
-		//blendStates[1].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-		//blendStates[1].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-		//blendStates[1].alphaBlendOp = VK_BLEND_OP_ADD;
-
-		//blendStates[2].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-		//blendStates[2].blendEnable = VK_TRUE;
-		//blendStates[2].srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
-		//blendStates[2].dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
-		//blendStates[2].colorBlendOp = VK_BLEND_OP_ADD;
-		//blendStates[2].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-		//blendStates[2].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-		//blendStates[2].alphaBlendOp = VK_BLEND_OP_ADD;
 
 		VkPipelineColorBlendStateCreateInfo blendInfo{ VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
 		blendInfo.logicOpEnable = VK_FALSE;
@@ -283,26 +201,19 @@ namespace Enigma
 
 		VkPipelineDepthStencilStateCreateInfo depthInfo{};
 		depthInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-		depthInfo.depthTestEnable = VK_TRUE;
-		depthInfo.depthWriteEnable = VK_TRUE;
+		depthInfo.depthTestEnable = VK_FALSE;
+		depthInfo.depthWriteEnable = VK_FALSE;
 		depthInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 		depthInfo.minDepthBounds = 0.0f;
 		depthInfo.maxDepthBounds = 1.0f;
 
-		// Push constant
-		VkPushConstantRange pushConstant{};
-		pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-		pushConstant.offset = 0;
-		pushConstant.size = sizeof(Enigma::ModelPushConstant);
+		std::vector<VkDescriptorSetLayout> layouts = { m_descriptorSetLayout };
 
-		std::vector<VkDescriptorSetLayout> layouts = { m_descriptorSetLayout, Enigma::descriptorLayoutModel };
-
+		// no descriptor set layouts currently since it's not needed
 		VkPipelineLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		layoutInfo.setLayoutCount = (uint32_t)layouts.size();
+		layoutInfo.setLayoutCount = 1;
 		layoutInfo.pSetLayouts = layouts.data();
-		layoutInfo.pushConstantRangeCount = 1;
-		layoutInfo.pPushConstantRanges = &pushConstant;
 
 		VkPipelineLayout layout = VK_NULL_HANDLE;
 		VkResult res = vkCreatePipelineLayout(device, &layoutInfo, nullptr, &layout);
@@ -333,40 +244,44 @@ namespace Enigma
 
 		m_pipeline = Pipeline(device, pipeline);
 	}
-	void GBuffer::BuildDescriptorSetLayout(const VulkanContext& context)
+
+	void Lighting::BuildDescriptorSetLayout(const VulkanContext& context, GBufferTargets& gBufferTargets)
 	{
-		m_sceneDescriptorSets.reserve(Enigma::MAX_FRAMES_IN_FLIGHT);
+		m_descriptorSets.reserve(Enigma::MAX_FRAMES_IN_FLIGHT);
 
 		// Scene descriptor set layout 
 		// Set = 0
 		{
 			std::vector<VkDescriptorSetLayoutBinding> bindings = {
-				CreateDescriptorBinding(0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT)
+				CreateDescriptorBinding(0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT),
+				CreateDescriptorBinding(1, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT),
+				CreateDescriptorBinding(2, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
 			};
 
 			m_descriptorSetLayout = CreateDescriptorSetLayout(context, bindings);
 		}
 
-		// Set = 1
-		{
-			std::vector<VkDescriptorSetLayoutBinding> bindings = {
-				CreateDescriptorBinding(0, 40, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-			};
-
-			Enigma::descriptorLayoutModel = CreateDescriptorSetLayout(context, bindings);
-		}
-
-		AllocateDescriptorSets(context, Enigma::descriptorPool, m_descriptorSetLayout, Enigma::MAX_FRAMES_IN_FLIGHT, m_sceneDescriptorSets);
-
-		// Binding 0
+		AllocateDescriptorSets(context, Enigma::descriptorPool, m_descriptorSetLayout, Enigma::MAX_FRAMES_IN_FLIGHT, m_descriptorSets);
+		
 		for (size_t i = 0; i < Enigma::MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			VkDescriptorBufferInfo bufferInfo{};
-			bufferInfo.buffer = m_sceneUBO[i].buffer;
-			bufferInfo.offset = 0;
-			bufferInfo.range = sizeof(CameraTransform);
-			UpdateDescriptorSet(context, 0, bufferInfo, m_sceneDescriptorSets[i], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+			VkDescriptorImageInfo imageInfo = {};
+			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo.imageView = gBufferTargets.normals.imageView;// need the g-buffer normals texture image view
+			imageInfo.sampler = Enigma::defaultSampler;
+
+			UpdateDescriptorSet(context, 1, imageInfo, m_descriptorSets[i], VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+		}
+
+		for (size_t i = 0; i < Enigma::MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			VkDescriptorImageInfo imageInfo = {};
+			imageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+			imageInfo.imageView = gBufferTargets.depth.imageView;
+			imageInfo.sampler = Enigma::defaultSampler;
+
+			UpdateDescriptorSet(context, 2, imageInfo, m_descriptorSets[i], VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 		}
 	}
-}
 
+};

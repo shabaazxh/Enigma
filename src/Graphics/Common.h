@@ -78,6 +78,13 @@ namespace Enigma
 		
 	};
 
+	// output textures from the g-buffer
+	struct GBufferTargets
+	{
+		Image normals;
+		Image depth;
+	};
+
 	inline VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 	inline VkDescriptorSetLayout sceneDescriptorLayout = VK_NULL_HANDLE;
 	inline VkDescriptorSetLayout descriptorLayoutModel = VK_NULL_HANDLE;
@@ -85,13 +92,14 @@ namespace Enigma
 	inline Sampler sampler;
 	inline Image depth;
 
+
+	// depth resources for the depth buffer
 	inline VkImage depthimg;
 	inline VkImageView depthimageview;
 	inline VmaAllocation depthimageallocation;
 
-	inline VkSampler defaultSampler;
-
-	inline VkPipeline draw_line_list;
+	inline VkSampler defaultSampler; // a default sampler for sampling textures 
+	inline VkPipeline draw_line_list; // pipeline to draw meshes as a line
 
 	inline Navmesh navmesh;
 }

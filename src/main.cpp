@@ -40,23 +40,23 @@ int main() {
 
     Enigma::World world;
 
-    Enigma::Renderer renderer = Enigma::Renderer(context, window, &FPSCamera, &world);
+    Enigma::Renderer renderer = Enigma::Renderer(context, window, &FPSCamera, world);
 
     world.Characters.push_back(world.player);
-    for (int i = 0; i < world.Enemies.size(); i++) {
-        world.Characters.push_back(world.Enemies[i]);
-    }
+    //for (int i = 0; i < world.Enemies.size(); i++) {
+    //    world.Characters.push_back(world.Enemies[i]);
+    //}
 
-    for (int i = 0; i < world.Characters.size(); i++) {
-        world.Enemies[0]->addToNavmesh(world.Characters[i], world.Meshes[0]);
-    }
+    //for (int i = 0; i < world.Characters.size(); i++) {
+    //    world.Enemies[0]->addToNavmesh(world.Characters[i], world.Meshes[0]);
+    //}
 
     glfwSetKeyCallback(window.window, window.glfw_callback_key_press);
     glfwSetCursorPosCallback(window.window, window.glfw_callback_mouse);
 
 
     while (!glfwWindowShouldClose(window.window)) {
-        world.Enemies[0]->ManageAI(world.Characters, world.Meshes[0], world.player);
+        //world.Enemies[0]->ManageAI(world.Characters, world.Meshes[0], world.player);
         timer->Update();
         FPSCamera.Update(window.swapchainExtent.width, window.swapchainExtent.height);
         renderer.Update(&FPSCamera);
