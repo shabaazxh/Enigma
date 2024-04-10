@@ -37,10 +37,13 @@ int main() {
     glfwSetInputMode(window.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetWindowUserPointer(window.window, &window);
 
+    //initalize world struct
     Enigma::World world;
 
     Enigma::Renderer renderer = Enigma::Renderer(context, window, &FPSCamera, &world);
 
+    //ToDo: Max this just one function between character class
+    //add enemy to the world class
     Enigma::Model* temp = new Enigma::Model("../resources/level1.obj", context, ENIGMA_LOAD_OBJ_FILE);
     world.Meshes.push_back(temp);
     Enigma::Enemy* enemy1 = new Enigma::Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE);
@@ -49,13 +52,14 @@ int main() {
     enemy1->setTranslation(glm::vec3(60.f, 0.1f, 0.f));
     world.Enemies.push_back(enemy1);
 
+    //add enemy to the world class
     Enigma::Enemy* enemy2 = new Enigma::Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE);
     world.Meshes.push_back(enemy2->model);
     enemy2->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
     enemy2->setTranslation(glm::vec3(60.f, 0.1f, 50.f));
     world.Enemies.push_back(enemy2);
 
-    //player = new Player(context);
+    //add player to world class
     world.player = new Enigma::Player("../resources/gun.obj", context, ENIGMA_LOAD_OBJ_FILE);
     if (!world.player->noModel) {
         world.Meshes.push_back(world.player->model);
@@ -64,6 +68,7 @@ int main() {
     world.player->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
     world.player->setRotationY(180);
 
+    //add the player and enemies to the correct query lists
     world.Characters.push_back(world.player);
     for (int i = 0; i < world.Enemies.size(); i++) {
         world.Characters.push_back(world.Enemies[i]);

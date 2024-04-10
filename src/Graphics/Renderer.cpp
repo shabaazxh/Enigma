@@ -150,7 +150,7 @@ namespace Enigma
 		void* data = nullptr;
 		if (current_state != isPlayer) {
 			if (isPlayer) {
-				camera->SetPosition(m_World->player->translation + glm::vec3(0.f, 13.f, 0.f));
+				camera->SetPosition(m_World->player->getTranslation() + glm::vec3(0.f, 13.f, 0.f));
 				camera->SetNearPlane(0.05f);
 			}
 			else {
@@ -217,8 +217,8 @@ namespace Enigma
 			vkCmdBindDescriptorSets(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelinePipelineLayout.handle, 0, 1, &m_sceneDescriptorSets[Enigma::currentFrame], 0, nullptr);
 			
 			if (current_state) {
-				if (camera->GetPosition().x != m_World->player->translation.x ||
-					camera->GetPosition().z != m_World->player->translation.z
+				if (camera->GetPosition().x != m_World->player->getTranslation().x ||
+					camera->GetPosition().z != m_World->player->getTranslation().z
 					) {
 					m_World->player->moved = true;
 					m_World->player->setTranslation(glm::vec3(camera->GetPosition().x, 0.1f, camera->GetPosition().z));

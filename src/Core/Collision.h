@@ -11,7 +11,7 @@ namespace Enigma {
         glm::vec3 origin;    // 射线的起点
         glm::vec3 direction; // 射线的方向，应当是单位向量
 
-        Ray(glm::vec3& origin, glm::vec3& direction) : origin(origin), direction(glm::normalize(direction)) 
+        Ray(glm::vec3 origin, glm::vec3 direction) : origin(origin), direction(glm::normalize(direction)) 
         {
             //direction = direction * 0.0001f;
         }

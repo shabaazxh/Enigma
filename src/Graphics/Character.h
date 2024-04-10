@@ -13,15 +13,18 @@ namespace Enigma
 			Model* model;
 			bool noModel = false;
 			std::vector<std::string> equipment;
+			bool moved = true;
+			int navmeshPosition;
+
+		private:
 			glm::vec3 translation = glm::vec3(0.f, 0.f, 0.f);
 			float rotationX = 0.f;
 			float rotationY = 0.f;
 			float rotationZ = 0.f;
 			glm::mat4 rotMatrix = glm::mat4(1.0f);
 			glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
-			bool moved = true;
-			int navmeshPosition;
 
+		public:	
 			Character(const std::string& filepath, const VulkanContext& context, int filetype);
 
 			void ManageAnimation();
@@ -32,5 +35,11 @@ namespace Enigma
 			void setRotationY(float angle);
 			void setRotationZ(float angle);
 			void setRotationMatrix(glm::mat4 rotMatrix);
+			glm::vec3 getTranslation() { return translation; }
+			float getXRotation() { return rotationX; }
+			float getYRotation() { return rotationY; }
+			float getZRotation() { return rotationZ; }
+			glm::mat4 getRotationMatrix() { return rotMatrix; }
+			glm::vec3 getScale() { return scale; }
 	};
 }

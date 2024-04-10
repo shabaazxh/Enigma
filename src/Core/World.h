@@ -8,6 +8,8 @@ namespace Enigma
 {
 	struct World
 	{
+		//world information for the engine and user to query
+		//may require more storage but means searching requires less complexity
 		std::vector<Light> Lights;
 		std::vector<Model*> Meshes;
 		std::vector<Enemy*> Enemies;
@@ -23,7 +25,7 @@ namespace Enigma
 			}
 			for (int i = 0; i < Enemies.size(); i++) {
 				Enemies[i]->moveInDirection();
-				float distanceFromPlayer = vec3Length(Enemies[i]->translation - player->translation);
+				float distanceFromPlayer = vec3Length(Enemies[i]->getTranslation() - player->getTranslation());
 				if (distanceFromPlayer < 2.f) {
 					player->health -= 1.f;
 				}

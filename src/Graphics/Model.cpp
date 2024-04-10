@@ -26,9 +26,9 @@ namespace Enigma
 
 	Model::Model(const std::string& filepath, const VulkanContext& context, int filetype) : m_filePath{filepath}, context{context}
 	{
-		if (filetype == 0)
+		if (filetype == ENIGMA_LOAD_OBJ_FILE)
 			LoadOBJModel(filepath);
-		else if (filetype == 1)
+		else if (filetype == ENIGMA_LOAD_FBX_FILE)
 			LoadFBXModel(filepath);
 	}
 
@@ -41,13 +41,11 @@ namespace Enigma
 			throw std::runtime_error("Failed to load model");
 		}
 
-		// obj can have non triangle faces. Triangulate will triangulate
-		// non triangle faces
-
-
 		for (const auto& shape : result.shapes) {
+			//finds if the model has a navmesh
 			if (shape.name == "Navmesh") {
 				std::vector<int> vertices;
+				//loop through the edges of navmesh adding unique vertices to the navmesh structure
 				for (int i = 0; i < shape.lines.indices.size(); i++) {
 					bool inVec = false;
 					for (int j = 0; j < vertices.size(); j++) {
@@ -63,6 +61,7 @@ namespace Enigma
 					}
 				}
 				navmesh.edges.resize(navmesh.vertices.size());
+				//loop through the edges adding the index of each neighbouring vertex to each vertex
 				for (int i = 0; i < shape.lines.indices.size(); i+=2) {
 					for (int j = 0; j < navmesh.vertices.size(); j++) {
 						if (result.attributes.positions[(shape.lines.indices[i].position_index * 3)] == navmesh.vertices[j].x &&
@@ -97,6 +96,9 @@ namespace Enigma
 				navmesh.numberOfBaseNodes = navmesh.vertices.size();
 			}
 		}
+
+		// obj can have non triangle faces. Triangulate will triangulate
+		// non triangle faces
 		rapidobj::Triangulate(result);
 
 		// store the prefix to the obj file
@@ -173,7 +175,7 @@ namespace Enigma
 						result.attributes.positions[idx.position_index * 3 + 2]
 						});
 
-					vertex.normals = (glm::vec3{
+					vertex.normal = (glm::vec3{
 						result.attributes.normals[idx.position_index * 3 + 0],
 						result.attributes.normals[idx.position_index * 3 + 1],
 						result.attributes.normals[idx.position_index * 3 + 2]
@@ -203,9 +205,6 @@ namespace Enigma
 			}
 
 		}
-
-		
-		// need to store it at mesh index not material index when pushing into loaded exxtures
 
 		const std::string defaultTexture = "../resources/textures/jpeg/sponza_floor_a_diff.jpg";
 		loadedTextures.resize(materials.size());
@@ -237,7 +236,6 @@ namespace Enigma
 			imageinfos.emplace_back(std::move(imageInfo));
 
 		}
-		// 12
 		VkWriteDescriptorSet descriptorWrite{};
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrite.dstSet = m_descriptorSet[0];
@@ -350,7 +348,7 @@ namespace Enigma
 
 				aiVector3D assimpNormVert;
 				assimpNormVert = scene->mMeshes[i]->mNormals[j];
-				vert.normals = glm::vec3(assimpNormVert.x, assimpNormVert.y, assimpNormVert.z);
+				vert.normal = glm::vec3(assimpNormVert.x, assimpNormVert.y, assimpNormVert.z);
 
 				if (scene->mMeshes[i]->HasVertexColors(i)) {
 					aiColor4D assimpColVert;
@@ -407,7 +405,6 @@ namespace Enigma
 			imageinfos.emplace_back(std::move(imageInfo));
 
 		}
-		// 12
 		VkWriteDescriptorSet descriptorWrite{};
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrite.dstSet = m_descriptorSet[0];

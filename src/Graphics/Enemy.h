@@ -23,7 +23,6 @@ namespace Enigma
 			std::vector<int> findDirection(Player* player);
 
 			void updateNavmesh(std::vector<Character*> character);
-			bool isMeshFurtherAway(glm::vec3 dir, glm::vec3 origin, AABB meshAABB);
 			bool notVisited(int node, std::vector<int> visited);
 	};
 }
