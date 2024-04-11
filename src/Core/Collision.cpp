@@ -68,6 +68,48 @@ namespace Enigma {
         return data;
     }
 }
+class Grid {
+public:
+    std::unordered_map<int, std::vector<Model*>> cells;
+
+    int computeGridKey(const glm::vec3& position) {
+        int x = static_cast<int>(floor(position.x / cellSize));
+        int z = static_cast<int>(floor(position.z / cellSize));
+        return x + 31 * z;  // 一个简单的散列函数
+    }
+
+    void addModel(Model* model) {
+        int key = computeGridKey(model->getPosition());
+        cells[key].push_back(model);
+    }
+
+    std::vector<Model*>& getModelsInCell(int key) {
+        return cells[key];
+    }
+private:
+    float cellSize = 10.0f;  // 网格单元的大小，根据实际情况调整
+};
+
+// 碰撞检测函数
+bool AABBvsAABB(const AABB& a, const AABB& b) {
+    return (a.min.x <= b.max.x && a.max.x >= b.min.x) &&
+        (a.min.y <= b.max.y && a.max.y >= b.min.y) &&
+        (a.min.z <= b.max.z && a.max.z >= b.min.z);
+}
+
+bool checkCollision(Model& character, Grid& grid) {
+    int gridKey = grid.computeGridKey(character.getPosition());
+    auto& models = grid.getModelsInCell(gridKey);
+
+    for (auto model : models) {
+        if (AABBvsAABB(character.getAABB(), model->getAABB())) {
+            return true;  // 发现碰撞
+        }
+    }
+
+    return false;  // 未发现碰撞
+}
+
 
 /*调用#include "Core/Collision/CollisionDetector.h"
 
