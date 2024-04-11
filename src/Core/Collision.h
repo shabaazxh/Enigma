@@ -11,10 +11,15 @@ namespace Enigma {
         glm::vec3 origin;    // 射线的起点
         glm::vec3 direction; // 射线的方向，应当是单位向量
 
-        Ray(glm::vec3& origin, glm::vec3& direction) : origin(origin), direction(glm::normalize(direction)) 
+        Ray(glm::vec3 origin, glm::vec3 direction) : origin(origin), direction(glm::normalize(direction)) 
         {
             //direction = direction * 0.0001f;
         }
+    };
+
+    struct collisionData {
+        bool intersects;
+        float t;
     };
 
     class CollisionDetector {
@@ -25,7 +30,7 @@ namespace Enigma {
             static bool CheckBulletCollision(Model& bullet, Model& character) {
                 return AABBvsAABB(bullet, character);
             };
-            bool RayIntersectsAABB(const Ray& ray, const AABB& aabb);
+            collisionData RayIntersectsAABB(const Ray& ray, const AABB& aabb);
 
         private:
             // 检测两个AABB之间的碰撞

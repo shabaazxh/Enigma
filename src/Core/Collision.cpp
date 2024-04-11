@@ -27,7 +27,9 @@ namespace Enigma {
     }
 
     //detect the ray and object
-    bool CollisionDetector::RayIntersectsAABB(const Ray& ray, const AABB& aabb) {
+    collisionData CollisionDetector::RayIntersectsAABB(const Ray& ray, const AABB& aabb) {
+        collisionData data;
+
         float tmin = (aabb.min.x - ray.origin.x) / ray.direction.x;
         float tmax = (aabb.max.x - ray.origin.x) / ray.direction.x;
 
@@ -38,8 +40,11 @@ namespace Enigma {
 
         if (tymin > tymax) std::swap(tymin, tymax);
 
-        if ((tmin > tymax) || (tymin > tmax))
-            return false;
+        if ((tmin > tymax) || (tymin > tmax)) {
+            data.intersects = false;
+            data.t = 0;
+            return data;
+        }
 
         if (tymin > tmin)
             tmin = tymin;
@@ -52,10 +57,15 @@ namespace Enigma {
 
         if (tzmin > tzmax) std::swap(tzmin, tzmax);
 
-        if ((tmin > tzmax) || (tzmin > tmax))
-            return false;
+        if ((tmin > tzmax) || (tzmin > tmax)) {
+            data.intersects = false;
+            data.t = 0;
+            return data;
+        }
 
-        return true;
+        data.intersects = true;
+        data.t = tmin;
+        return data;
     }
 }
 

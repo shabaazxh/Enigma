@@ -7,7 +7,6 @@
 #include <GLFW/glfw3.h>
 #include "../Graphics/Light.h"
 #include <fstream>
-#include "../Core/Error.h"
 #include <string>
 
 namespace Enigma
@@ -104,6 +103,4 @@ namespace Enigma
 			bool m_enableOvershadingVisual = false;
 			bool m_enableMeshDensityVisual = false;
 	};
-
-
 }

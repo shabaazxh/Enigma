@@ -17,7 +17,6 @@
 #include "Graphics/Renderer.h"
 #include "Graphics/Model.h"
 #include "Core/Engine.h"
-#include "Core/World.h"
 
 
 int main() {
@@ -38,17 +37,45 @@ int main() {
     glfwSetInputMode(window.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetWindowUserPointer(window.window, &window);
 
+    //initalize world struct
     Enigma::World world;
 
     Enigma::Renderer renderer = Enigma::Renderer(context, window, &FPSCamera, &world);
 
+    //ToDo: Max this just one function between character class
+    //add enemy to the world class
+    Enigma::Model* temp = new Enigma::Model("../resources/level1.obj", context, ENIGMA_LOAD_OBJ_FILE);
+    world.Meshes.push_back(temp);
+    Enigma::Enemy* enemy1 = new Enigma::Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE);
+    world.Meshes.push_back(enemy1->model);
+    enemy1->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+    enemy1->setTranslation(glm::vec3(60.f, 0.1f, 0.f));
+    world.Enemies.push_back(enemy1);
+
+    //add enemy to the world class
+    Enigma::Enemy* enemy2 = new Enigma::Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE);
+    world.Meshes.push_back(enemy2->model);
+    enemy2->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+    enemy2->setTranslation(glm::vec3(60.f, 0.1f, 50.f));
+    world.Enemies.push_back(enemy2);
+
+    //add player to world class
+    world.player = new Enigma::Player("../resources/gun.obj", context, ENIGMA_LOAD_OBJ_FILE);
+    if (!world.player->noModel) {
+        world.Meshes.push_back(world.player->model);
+    }
+    world.player->setTranslation(glm::vec3(-100.f, 0.1f, -40.f));
+    world.player->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
+    world.player->setRotationY(180);
+
+    //add the player and enemies to the correct query lists
     world.Characters.push_back(world.player);
     for (int i = 0; i < world.Enemies.size(); i++) {
         world.Characters.push_back(world.Enemies[i]);
     }
 
     for (int i = 0; i < world.Characters.size(); i++) {
-        world.Enemies[0]->addToNavmesh(world.Characters[i], world.Meshes[0]);
+       world.Enemies[0]->addToNavmesh(world.Characters[i], world.Meshes[0]);
     }
 
     //Sleep(1000);
@@ -58,7 +85,7 @@ int main() {
 
 
     while (!glfwWindowShouldClose(window.window)) {
-        world.Enemies[0]->ManageAI(world.Characters, world.Meshes[0], world.player);
+        world.ManageAIs(world.Characters, world.Meshes[0], world.player, world.Enemies);
         timer->Update();
         FPSCamera.Update(window.swapchainExtent.width, window.swapchainExtent.height);
         renderer.Update(&FPSCamera);

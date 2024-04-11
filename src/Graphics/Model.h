@@ -31,6 +31,7 @@ namespace Enigma
 		glm::vec3 pos;
 		glm::vec2 tex;
 		glm::vec3 color;
+		glm::vec3 normal;
 
 		static VkVertexInputBindingDescription GetBindingDescription()
 		{
@@ -122,26 +123,42 @@ namespace Enigma
 			std::vector<Material> materials;
 			std::vector<Mesh> meshes;
 			
-			//transformations
 			bool player = false;
+			bool hasAnimations = false;
+			aiAnimation** animations;
+
+
+		private:
 			glm::vec3 translation = glm::vec3(0.f, 0.f, 0.f);
 			float rotationX = 0.f;
 			float rotationY = 0.f;
 			float rotationZ = 0.f;
 			glm::mat4 rotMatrix = glm::mat4(1.0f);
 			glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
-			bool hasAnimations = false;
-			aiAnimation** animations;
-		private:
-			void LoadOBJModel(const std::string& filepath);
-			void LoadFBXModel(const std::string& filepath);
-			void CreateBuffers();
-		private:
 			std::vector<Image> loadedTextures;
 			std::vector<VkDescriptorSet> m_descriptorSet;
 			const VulkanContext& context;
 			std::string m_filePath;
 			AABB m_AABB;
+
+		public:
+			void setTranslation(glm::vec3 trans) { translation = trans; };
+			void setScale(glm::vec3 s) { scale = s; };
+			void setRotationX(float angle) { rotationX = angle; };
+			void setRotationY(float angle) { rotationY = angle; };
+			void setRotationZ(float angle) { rotationZ = angle; };
+			void setRotationMatrix(glm::mat4 rm) { rotMatrix = rm; };
+			glm::vec3 getTranslation() { return translation; }
+			float getXRotation() { return rotationX; }
+			float getYRotation() { return rotationY; }
+			float getZRotation() { return rotationZ; }
+			glm::mat4 getRotationMatrix() { return rotMatrix; }
+			glm::vec3 getScale() { return scale; }
+
+		private:
+			void LoadOBJModel(const std::string& filepath);
+			void LoadFBXModel(const std::string& filepath);
+			void CreateBuffers();
 	};
 }
 

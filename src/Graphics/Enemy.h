@@ -13,18 +13,16 @@ namespace Enigma
 		public:
 			Enemy(const std::string& filepath, const VulkanContext& context, int filetype);
 
-			void ManageAI(std::vector<Character*> character, Model* obj, Player* player);
-
+			void ManageAI(std::vector<Character*> characters, Model* obj, Player* player);
 			void addToNavmesh(Character* character, Model* obj);
+			void moveInDirection();
 
 		private:
 			int currentNode;
 			std::vector<int> pathToEnemy;
-			std::vector<int> findDirection();
+			std::vector<int> findDirection(Player* player);
 
 			void updateNavmesh(std::vector<Character*> character);
-			void moveInDirection();
-			bool isMeshFurtherAway(glm::vec3 dir, glm::vec3 origin, AABB meshAABB);
 			bool notVisited(int node, std::vector<int> visited);
 	};
 }

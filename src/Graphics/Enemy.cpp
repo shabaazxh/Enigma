@@ -6,54 +6,52 @@ namespace Enigma {
 		
 	}
 
-	void Enemy::ManageAI(std::vector<Character*> character, Model* obj, Player* player)
+	void Enemy::ManageAI(std::vector<Character*> characters, Model* obj, Player* player)
 	{
-		if (player->moved) {
-			updateNavmesh(character);
-			for (int i = 0; i < character.size(); i++) {
-				addToNavmesh(character[i], obj);
-			}
-			for (int i = 0; i < navmesh.vertices.size(); i++) {
-				for (int j = 0; j < navmesh.edges[i].size(); j++) {
-					printf("%i: %i\n", i, navmesh.edges[i][j].vertex2);
-				}
-			}
-			printf("\n");
-			pathToEnemy = findDirection();
-			player->moved = false;
+		//public class to manage AIs
+		updateNavmesh(characters);
+		for (int i = 0; i < characters.size(); i++) {
+			addToNavmesh(characters[i], obj);
 		}
+		pathToEnemy = findDirection(player);
+		player->moved = false;
 		moveInDirection();
 	}
 
 	void Enemy::addToNavmesh(Character* character, Model* obj) {
-		navmesh.vertices.push_back(character->translation);
+		//add the characters position to the navmesh as a vertex
+		character->navmeshPosition = navmesh.vertices.size();
+		navmesh.vertices.push_back(character->getTranslation());
 		navmesh.edges.resize(navmesh.vertices.size());
 		CollisionDetector cd;
+		//loop through the other vertices of the mesh
 		for (int node = 0; node < navmesh.vertices.size() - 1; node++) {
+			//remove previous connections to the character node being added
 			for (int edge = 0; edge < navmesh.edges[node].size(); edge++) {
 				if (navmesh.edges[node][edge].vertex2 == navmesh.vertices.size() - 1) {
 					navmesh.edges[node].erase(navmesh.edges[node].begin() + edge);
 				}
 			}
 
-			glm::vec3 direction = character->translation - navmesh.vertices[node];
-			bool intersects = false;
+			//get information for ray from the added node to the current node in loop
+			glm::vec3 direction = character->getTranslation() - navmesh.vertices[node];
 			float weight = vec3Length(direction);
-			Ray ray = Ray(character->translation, direction);
+			Ray ray = Ray(character->getTranslation(), direction);
+			collisionData colData;
+			direction = normalize(direction);
 
+			//check if the ray intersects any of the meshes
 			for (int mesh = 0; mesh < obj->meshes.size(); mesh++) {
 				if (obj->meshes[mesh].meshName != "Floor") {
-					bool furtherAway = isMeshFurtherAway(direction, character->translation, obj->meshes[mesh].meshAABB);
-					if (furtherAway == false) {
-						intersects = cd.RayIntersectsAABB(ray, obj->meshes[mesh].meshAABB);
-					}
-					if (intersects == true) {
+					colData = cd.RayIntersectsAABB(ray, obj->meshes[mesh].meshAABB);
+					if (colData.intersects == true && std::abs(colData.t) < weight) {
 						break;
 					}
 				}
 			}
 
-			if (intersects == false) {
+			//if the ray does not intersect a mesh add that edge to the navmesh
+			if (colData.intersects == false) {
 				Edge edge1;
 				Edge edge2;
 				edge1.vertex2 = node;
@@ -67,33 +65,45 @@ namespace Enigma {
 	}
 
 
-	void Enemy::updateNavmesh(std::vector<Character*> character) {
-		int numberOfAddedNodes = character.size();
+	void Enemy::updateNavmesh(std::vector<Character*> characters) {
+		int numberOfAddedNodes = characters.size();
 		for (int i = 0; i < numberOfAddedNodes; i++) {
-			navmesh.vertices.erase(navmesh.vertices.begin() + navmesh.numberOfBaseNodes + i - 1);
-			navmesh.edges[navmesh.numberOfBaseNodes + i - 1].clear();
+			navmesh.vertices.erase(navmesh.vertices.begin() + navmesh.vertices.size() - 1);
 		}
+		navmesh.edges.resize(navmesh.vertices.size());
 	}
 
-	std::vector<int> Enemy::findDirection() {
+	std::vector<int> Enemy::findDirection(Player* player) {
 		int graphVertices = navmesh.vertices.size();
-		int startVertex = graphVertices - 1;
-		int endVertex = graphVertices - 2;
+		int startVertex = this->navmeshPosition;
+		int endVertex = player->navmeshPosition;
 		std::vector<int> Visited;
 		std::queue<int> toVisit;
 		dijkstraData graph;
+
+		//resize dijkstra's graph to have the same amount of vertices as navmesh
 		graph.distance.resize(graphVertices);
 		graph.edgeFrom.resize(graphVertices);
+		//fill dijkstra's graphs distance with very large value to imitate infinity
 		std::fill(graph.distance.begin(), graph.distance.end(), 1000000000.f);
+		//make start vertex the current vertex
 		int currentVertex = startVertex;
+		//mark start vertex as visited
 		Visited.push_back(startVertex);
+		//make inital vertex have no distance
 		graph.distance[currentVertex] = 0;
 		graph.edgeFrom[currentVertex] = currentVertex;
 
+		//add first vertex to visit so it enters the loop
 		toVisit.push(currentVertex);
 		while (!toVisit.empty()) {
+			//make current vertex the first element in the stack
 			currentVertex = toVisit.front();
+			//loop through it's neighbours
 			for (int i = 0; i < navmesh.edges[currentVertex].size(); i++) {
+				//if the neighbour vertex hasn't been visted
+				//get the distance and update the dijkstra's graphs data
+				//add the neighbour to the toVisit stack
 				if (notVisited(navmesh.edges[currentVertex][i].vertex2, Visited)) {
 					float dist = navmesh.edges[currentVertex][i].weight + graph.distance[currentVertex];
 					if (dist < graph.distance[navmesh.edges[currentVertex][i].vertex2]) {
@@ -103,10 +113,13 @@ namespace Enigma {
 					}
 				}
 			}
+			//remove the current vertex from toVisit and add to visited
 			toVisit.pop();
 			Visited.push_back(currentVertex);
 		}
 
+		//go backwards from the end vertex finding the shortest path to the start vertex
+		//add the path of vertices to the path vector
 		currentVertex = endVertex;
 		std::vector<int> path;
 		path.push_back(currentVertex);
@@ -122,41 +135,27 @@ namespace Enigma {
 		}
 		currentNode = 0;
 		std::reverse(path.begin(), path.end());
-		for (int i = 0; i < path.size(); i++) {
-			printf("%i, ", path[i]);
-		}
-		printf("\n");
 
 		return path;
 	}
 
 	void Enemy::moveInDirection() {
-		glm::vec3 direction = navmesh.vertices[pathToEnemy[currentNode]] - this->translation;
+		//get direction from enemy position to next vertex in path
+		glm::vec3 direction = navmesh.vertices[pathToEnemy[currentNode]] - this->getTranslation();
+		//get distance
 		float distFromCurrentNode = vec3Length(direction);
+		//normalize direction to the vertex
 		direction = glm::normalize(direction);
-		if (distFromCurrentNode < 0.2f && currentNode < pathToEnemy.size()) {
+		//if enemy is close to the next vertex update vertex in path
+		//else move the enemy along the path
+		if (distFromCurrentNode < 0.5f && currentNode < pathToEnemy.size()) {
 			currentNode++;
 		}
 		else if(pathToEnemy[currentNode] != pathToEnemy.back()){
-			this->setTranslation(this->translation + direction * 0.1f);
+			this->setTranslation(this->getTranslation() + direction * 0.1f);
 		}
 		else if (distFromCurrentNode > 1.f) {
-			this->setTranslation(this->translation + direction * 0.1f);
-		}
-	}
-
-	bool Enemy::isMeshFurtherAway(glm::vec3 dir, glm::vec3 origin, AABB meshAABB) {
-		glm::vec3 originMinDis = origin - meshAABB.min;
-		glm::vec3 originMaxDis = origin - meshAABB.max;
-		float minDisLen = vec3Length(originMinDis);
-		float maxDisLen = vec3Length(originMaxDis);
-		float dirLen = vec3Length(dir);
-		if (dirLen > maxDisLen && dirLen > minDisLen) {
-			return true;
-		}
-		else
-		{
-			return false;
+			this->setTranslation(this->getTranslation() + direction * 0.1f);
 		}
 	}
 

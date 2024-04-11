@@ -22,42 +22,42 @@ namespace Enigma
 	void Character::setTranslation(glm::vec3 t) {
 		translation = t;
 		if (!noModel) {
-			model->translation = translation;
+			model->setTranslation(t);
 		}
 	}
 
 	void Character::setScale(glm::vec3 s) {
 		scale = s;
 		if (!noModel) {
-			model->scale = scale;
+			model->setScale(s);
 		}
 	}
 
 	void Character::setRotationX(float angle) {
 		rotationX = angle;
 		if (!noModel) {
-			model->rotationX = rotationX;
+			model->setRotationX(angle);
 		}
 	}
 
 	void Character::setRotationY(float angle) {
 		rotationY = angle;
 		if (!noModel) {
-			model->rotationY = rotationY;
+			model->setRotationY(angle);
 		}
 	}
 
 	void Character::setRotationZ(float angle) {
 		rotationZ = angle;
 		if (!noModel) {
-			model->rotationZ = rotationZ;
+			model->setRotationZ(angle);
 		}
 	}
 
 	void Character::setRotationMatrix(glm::mat4 rm) {
 		rotMatrix = rm;
 		if (!noModel) {
-			model->rotMatrix = rotMatrix;
+			model->setRotationMatrix(rm);
 		}
 	}
 
