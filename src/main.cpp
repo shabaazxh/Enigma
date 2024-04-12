@@ -42,43 +42,22 @@ int main() {
 
     Enigma::Renderer renderer = Enigma::Renderer(context, window, &FPSCamera, &world);
 
-    //ToDo: Max this just one function between character class
-    //add enemy to the world class
     Enigma::Model* temp = new Enigma::Model("../resources/level1.obj", context, ENIGMA_LOAD_OBJ_FILE);
     world.Meshes.push_back(temp);
-    Enigma::Enemy* enemy1 = new Enigma::Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE);
-    world.Meshes.push_back(enemy1->model);
-    enemy1->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-    enemy1->setTranslation(glm::vec3(60.f, 0.1f, 0.f));
-    world.Enemies.push_back(enemy1);
 
     //add enemy to the world class
-    Enigma::Enemy* enemy2 = new Enigma::Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE);
-    world.Meshes.push_back(enemy2->model);
-    enemy2->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-    enemy2->setTranslation(glm::vec3(60.f, 0.1f, 50.f));
-    world.Enemies.push_back(enemy2);
+    world.Enemies.push_back(new Enigma::Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE, glm::vec3(60.f, 0.1f, 0.f), glm::vec3(0.1f, 0.1f, 0.1f)));
+    world.Enemies.push_back(new Enigma::Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE, glm::vec3(60.f, 0.1f, 50.f), glm::vec3(0.1f, 0.1f, 0.1f)));
 
     //add player to world class
-    world.player = new Enigma::Player("../resources/gun.obj", context, ENIGMA_LOAD_OBJ_FILE);
-    if (!world.player->noModel) {
-        world.Meshes.push_back(world.player->model);
-    }
-    world.player->setTranslation(glm::vec3(-100.f, 0.1f, -40.f));
-    world.player->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-    world.player->setRotationY(180);
+    world.player = new Enigma::Player("../resources/gun.obj", context, ENIGMA_LOAD_OBJ_FILE, glm::vec3(-100.f, 0.1f, -40.f), glm::vec3(0.1f, 0.1f, 0.1f), 0, 180, 0);
+
+    world.addMeshesToWorld(world.player, world.Enemies);
 
     //add the player and enemies to the correct query lists
-    world.Characters.push_back(world.player);
-    for (int i = 0; i < world.Enemies.size(); i++) {
-        world.Characters.push_back(world.Enemies[i]);
-    }
+    world.addCharactersToWorld(world.player, world.Enemies);
 
-    for (int i = 0; i < world.Characters.size(); i++) {
-       world.Enemies[0]->addToNavmesh(world.Characters[i], world.Meshes[0]);
-    }
-
-    //Sleep(1000);
+    world.addCharctersToNavmesh(world.Characters);
 
     glfwSetKeyCallback(window.window, window.glfw_callback_key_press);
     glfwSetCursorPosCallback(window.window, window.glfw_callback_mouse);

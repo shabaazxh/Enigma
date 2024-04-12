@@ -6,6 +6,21 @@ namespace Enigma {
 		
 	}
 
+	Enemy::Enemy(const std::string& filepath, const VulkanContext& aContext, int filetype, glm::vec3 trans, glm::vec3 scale) : Character(filepath, aContext, filetype, trans, scale)
+	{
+		
+	}
+
+	Enemy::Enemy(const std::string& filepath, const VulkanContext& aContext, int filetype, glm::vec3 trans, glm::vec3 scale, float x, float y, float z) : Character(filepath, aContext, filetype, trans, scale, x, y, z)
+	{
+		
+	}
+
+	Enemy::Enemy(const std::string& filepath, const VulkanContext& aContext, int filetype, glm::vec3 trans, glm::vec3 scale, glm::mat4 rm) : Character(filepath, aContext, filetype, trans, scale, rm)
+	{
+		
+	}
+
 	void Enemy::ManageAI(std::vector<Character*> characters, Model* obj, Player* player)
 	{
 		//public class to manage AIs

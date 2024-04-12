@@ -31,6 +31,28 @@ namespace Enigma
 				}
 			}
 		}
+
+		void addMeshesToWorld(Player* p, std::vector<Enemy*> enemies) {
+			if (!p->noModel) {
+				this->Meshes.push_back(p->model);
+			}
+			for (int i = 0; i < enemies.size(); i++) {
+				this->Meshes.push_back(enemies[i]->model);
+			}
+		}
+
+		void addCharactersToWorld(Player* p, std::vector<Enemy*> enemies) {
+			this->Characters.push_back(p);
+			for (int i = 0; i < enemies.size(); i++) {
+				this->Characters.push_back(enemies[i]);
+			}
+		}
+
+		void addCharctersToNavmesh(std::vector<Character*> characters) {
+			for (int i = 0; i < characters.size(); i++) {
+				this->Enemies[0]->addToNavmesh(characters[i], this->Meshes[0]);
+			}
+		}
 	};
 
 }
