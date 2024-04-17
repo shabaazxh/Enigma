@@ -339,12 +339,12 @@ namespace
 		std::vector<VkFramebuffer> framebuffers;
 		for (const auto& imageView : swapchainImageViews)
 		{
-			VkImageView attachments[2]{ imageView, depth.imageView };
+			VkImageView attachments[1]{ imageView };
 
 			VkFramebufferCreateInfo fb_info{};
 			fb_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 			fb_info.renderPass = renderPass;
-			fb_info.attachmentCount = static_cast<uint32_t>(2);
+			fb_info.attachmentCount = static_cast<uint32_t>(1);
 			fb_info.pAttachments = attachments;
 			fb_info.width = extent.width;
 			fb_info.height = extent.height;
@@ -372,26 +372,26 @@ namespace
 		attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; // layout of resource at the end of the render pass
 
 		// we need depth attachment, leaving it for now
-		VkAttachmentDescription depthAttachment{};
-		depthAttachment.format = VK_FORMAT_D32_SFLOAT;
-		depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		//VkAttachmentDescription depthAttachment{};
+		//depthAttachment.format = VK_FORMAT_D32_SFLOAT;
+		//depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		//depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		//depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		//depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		//depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-		VkAttachmentDescription attachments[2] = { attachment, depthAttachment };
+		VkAttachmentDescription attachments[1] = { attachment };
 
 		VkAttachmentReference colorReference = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
-		VkAttachmentReference depthRefernece = { 1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+		//VkAttachmentReference depthRefernece = { 1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
 
 		VkSubpassDescription subpass{};
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &colorReference;
-		subpass.pDepthStencilAttachment = &depthRefernece;
+		//subpass.pDepthStencilAttachment = &depthRefernece;
 		
-		VkSubpassDependency dependency[2]{};
+		VkSubpassDependency dependency[1]{};
 		// Wait for EXTERNAL render pass to finish outputting
 		dependency[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 		dependency[0].srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -403,21 +403,21 @@ namespace
 		dependency[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 		dependency[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		
-		dependency[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-		dependency[1].srcSubpass = VK_SUBPASS_EXTERNAL;
-		dependency[1].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-		dependency[1].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-		dependency[1].dstSubpass = 0;
-		dependency[1].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-		dependency[1].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		//dependency[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+		//dependency[1].srcSubpass = VK_SUBPASS_EXTERNAL;
+		//dependency[1].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		//dependency[1].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+		//dependency[1].dstSubpass = 0;
+		//dependency[1].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+		//dependency[1].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 
 		VkRenderPassCreateInfo rp_info{};
 		rp_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-		rp_info.attachmentCount = 2;
+		rp_info.attachmentCount = 1;
 		rp_info.pAttachments = attachments;
 		rp_info.subpassCount = 1;
 		rp_info.pSubpasses = &subpass;
-		rp_info.dependencyCount = 2;
+		rp_info.dependencyCount = 1;
 		rp_info.pDependencies = dependency;
 
 		VkRenderPass renderPass = VK_NULL_HANDLE;

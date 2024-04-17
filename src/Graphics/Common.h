@@ -12,11 +12,10 @@
 #include "VulkanImage.h"
 
 class Model;
-class Enemy;
 
 namespace Enigma
 {
-	inline bool isPlayer = false;
+	inline bool isPlayer = false; // why is this here?
 
 	inline int MAX_FRAMES_IN_FLIGHT = 0;
 	inline int currentFrame = 0;
@@ -73,17 +72,22 @@ namespace Enigma
 		std::vector<float> distance;
 	};
 
-	struct Scene
-	{
-		
-	};
 
 	// output textures from the g-buffer
 	struct GBufferTargets
 	{
 		Image normals;
 		Image depth;
+		Image albedo;
 	};
+
+	struct Passes
+	{
+		Image lighting;
+		Image SSAO; // not yet implemented
+		Image SSR; // not yet implemented 
+	};
+
 
 	inline VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 	inline VkDescriptorSetLayout sceneDescriptorLayout = VK_NULL_HANDLE;
@@ -91,7 +95,6 @@ namespace Enigma
 
 	inline Sampler sampler;
 	inline Image depth;
-
 
 	// depth resources for the depth buffer
 	inline VkImage depthimg;

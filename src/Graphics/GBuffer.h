@@ -35,9 +35,5 @@ namespace Enigma
 		std::vector<VkDescriptorSet> m_sceneDescriptorSets;
 		VkDescriptorSetLayout m_descriptorSetLayout;
 		std::vector<Buffer> m_sceneUBO;
-		Buffer m_SSBO;
-		//GBufferTargets g_BufferOutputTargets; // TODO: class owns this for now but needs to be accessible outside it 
 	};
-
-	//inline GBufferTargets g_BufferOutputTargets; // this is not being released
 };

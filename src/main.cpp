@@ -15,10 +15,7 @@
 #include "Core/VulkanWindow.h"
 #include "Graphics/VulkanContext.h"
 #include "Graphics/Renderer.h"
-#include "Graphics/Model.h"
-#include "Core/Engine.h"
-#include "Core/World.h"
-
+#include "Graphics/Player.h"
 
 int main() {
 
@@ -38,25 +35,28 @@ int main() {
     glfwSetInputMode(window.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetWindowUserPointer(window.window, &window);
 
-    Enigma::World world;
-
-    Enigma::Renderer renderer = Enigma::Renderer(context, window, &FPSCamera, world);
-
-    world.Characters.push_back(world.player);
-    //for (int i = 0; i < world.Enemies.size(); i++) {
-    //    world.Characters.push_back(world.Enemies[i]);
-    //}
-
-    //for (int i = 0; i < world.Characters.size(); i++) {
-    //    world.Enemies[0]->addToNavmesh(world.Characters[i], world.Meshes[0]);
-    //}
-
+    // Set cursor and keyboard callbacks
     glfwSetKeyCallback(window.window, window.glfw_callback_key_press);
     glfwSetCursorPosCallback(window.window, window.glfw_callback_mouse);
 
+    // Create a directional light: Position, colour and intensity ( perhaps this should be moved to the Renderer )
+    Enigma::WorldInst.Lights.push_back(Enigma::CreateDirectionalLight(glm::vec4(0.0f, 10.0f, 0.0f, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 1.0));
 
+    Enigma::Renderer renderer = Enigma::Renderer(context, window, &FPSCamera);
+
+    Enigma::WorldInst.Characters.push_back(Enigma::WorldInst.player);
+    for (int i = 0; i < Enigma::WorldInst.Enemies.size(); i++) {
+        Enigma::WorldInst.Characters.push_back(Enigma::WorldInst.Enemies[i]);
+    }
+
+    // this is unsafe, 
+    // what if index 0 is invalid? you'll crash the entire program. probably should check just in case before doing this
+    for (int i = 0; i < Enigma::WorldInst.Characters.size(); i++) {
+        Enigma::WorldInst.Enemies[0]->addToNavmesh(Enigma::WorldInst.Characters[i], Enigma::WorldInst.Meshes[0]);
+    }
+
+    // game loop: to keep updating and rendering the game
     while (!glfwWindowShouldClose(window.window)) {
-        //world.Enemies[0]->ManageAI(world.Characters, world.Meshes[0], world.player);
         timer->Update();
         FPSCamera.Update(window.swapchainExtent.width, window.swapchainExtent.height);
         renderer.Update(&FPSCamera);
@@ -65,9 +65,9 @@ int main() {
     }
 
     glfwDestroyWindow(window.window);
-
     glfwTerminate();
 
     delete timer;
+    delete Enigma::WorldInst.player;
     return 0;
 }

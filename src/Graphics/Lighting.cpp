@@ -1,5 +1,5 @@
 #include "Lighting.h"
-
+#include "../Core/World.h"
 
 namespace Enigma
 {
@@ -8,6 +8,15 @@ namespace Enigma
 		m_width = window.swapchainExtent.width;
 		m_height = window.swapchainExtent.height;
 
+		m_uniformBO.resize(Enigma::MAX_FRAMES_IN_FLIGHT);
+		m_lightingUBO.resize(Enigma::MAX_FRAMES_IN_FLIGHT);
+
+		for (auto& buffer : m_uniformBO)
+			buffer = Enigma::CreateBuffer(context.allocator, sizeof(CameraTransform), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT);
+
+		for(auto& buffer : m_lightingUBO)
+			buffer = Enigma::CreateBuffer(context.allocator, sizeof(CameraTransform), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT);
+		
 		renderTarget = Enigma::CreateImageTexture2D(
 			context,
 			m_width,
@@ -25,6 +34,7 @@ namespace Enigma
 
 	Lighting::~Lighting()
 	{
+		// destroy vulkan allocated resources 
 	}
 
 	void Lighting::Execute(VkCommandBuffer cmd)
@@ -62,6 +72,37 @@ namespace Enigma
 		vkCmdDraw(cmd, 3, 1, 0, 0);
 
 		vkCmdEndRenderPass(cmd);
+	}
+
+	void Lighting::Update(Camera* camera)
+	{
+		void* data = nullptr;
+		vmaMapMemory(context.allocator.allocator, m_uniformBO[Enigma::currentFrame].allocation, &data);
+		std::memcpy(data, &camera->GetCameraTransform(), sizeof(camera->GetCameraTransform()));
+		vmaUnmapMemory(context.allocator.allocator, m_uniformBO[Enigma::currentFrame].allocation);
+
+		// if we have a directional light defined by the user then use it 
+		if (!Enigma::WorldInst.Lights.empty())
+		{
+			// Get the light
+			Light DirLightSource = Enigma::WorldInst.Lights[0]; // since the arr is not empty, index 0 is guaranteed to exist
+			m_lightUBO = {};
+			m_lightUBO.lightPosition = DirLightSource.m_position;
+			m_lightUBO.lightDirection = DirLightSource.m_direction;
+			m_lightUBO.lightColour = DirLightSource.m_color;
+		}
+		else
+		{	// if we have no user-defined directional light, provide a default one 
+			m_lightUBO = {};
+			m_lightUBO.lightPosition = glm::vec4(0.0f, 10.0f, 0.0f, 1.0f);
+			m_lightUBO.lightDirection = glm::vec4(0.0f, -1.0f, 0.0f, 1.0);
+			m_lightUBO.lightColour = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		}
+		
+		// Update the lighting uniform
+		vmaMapMemory(context.allocator.allocator, m_lightingUBO[Enigma::currentFrame].allocation, &data);
+		std::memcpy(data, &m_lightUBO, sizeof(m_lightUBO));
+		vmaUnmapMemory(context.allocator.allocator, m_lightingUBO[Enigma::currentFrame].allocation);
 	}
 
 	void Lighting::CreateFramebuffer(VkDevice device)
@@ -114,6 +155,7 @@ namespace Enigma
 		renderPassInfo.pSubpasses = &subpass;
 		renderPassInfo.dependencyCount = 1;
 		renderPassInfo.pDependencies = dependency;
+
 
 		ENIGMA_VK_CHECK(vkCreateRenderPass(device, &renderPassInfo, nullptr, &m_RenderPass), "Failed to create lighting pass render pass.");
 
@@ -255,13 +297,24 @@ namespace Enigma
 			std::vector<VkDescriptorSetLayoutBinding> bindings = {
 				CreateDescriptorBinding(0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT),
 				CreateDescriptorBinding(1, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT),
-				CreateDescriptorBinding(2, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+				CreateDescriptorBinding(2, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT),
+				CreateDescriptorBinding(3, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT),
+				CreateDescriptorBinding(4, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT)
 			};
 
 			m_descriptorSetLayout = CreateDescriptorSetLayout(context, bindings);
 		}
 
 		AllocateDescriptorSets(context, Enigma::descriptorPool, m_descriptorSetLayout, Enigma::MAX_FRAMES_IN_FLIGHT, m_descriptorSets);
+
+		for (size_t i = 0; i < Enigma::MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			VkDescriptorBufferInfo bufferInfo{};
+			bufferInfo.buffer = m_uniformBO[i].buffer;
+			bufferInfo.offset = 0;
+			bufferInfo.range = sizeof(CameraTransform);
+			UpdateDescriptorSet(context, 0, bufferInfo, m_descriptorSets[i], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
+		}
 		
 		for (size_t i = 0; i < Enigma::MAX_FRAMES_IN_FLIGHT; i++)
 		{
@@ -281,6 +334,25 @@ namespace Enigma
 			imageInfo.sampler = Enigma::defaultSampler;
 
 			UpdateDescriptorSet(context, 2, imageInfo, m_descriptorSets[i], VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+		}
+
+		for (size_t i = 0; i < Enigma::MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			VkDescriptorImageInfo imageInfo = {};
+			imageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+			imageInfo.imageView = gBufferTargets.albedo.imageView;
+			imageInfo.sampler = Enigma::defaultSampler;
+
+			UpdateDescriptorSet(context, 3, imageInfo, m_descriptorSets[i], VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+		}
+
+		for (size_t i = 0; i < Enigma::MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			VkDescriptorBufferInfo bufferInfo{};
+			bufferInfo.buffer = m_lightingUBO[i].buffer;
+			bufferInfo.offset = 0;
+			bufferInfo.range = sizeof(LightUBO);
+			UpdateDescriptorSet(context, 4, bufferInfo, m_descriptorSets[i], VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER);
 		}
 	}
 

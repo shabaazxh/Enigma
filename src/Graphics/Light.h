@@ -15,14 +15,14 @@ namespace Enigma
 		public:
 			Light() = default;
 
-			glm::vec3 m_position;
-			glm::vec3 m_direction;
-			glm::vec3 m_color;
+			glm::vec4 m_position;
+			glm::vec4 m_direction;
+			glm::vec4 m_color;
 			LightType m_type;
 			float m_intensity;
 	};
 
-	inline Light CreateDirectionalLight(const glm::vec3& pos, const glm::vec3& color, float intensity)
+	inline Light CreateDirectionalLight(const glm::vec4& pos, const glm::vec4& color, float intensity)
 	{
 		Light ret{};
 
@@ -34,7 +34,7 @@ namespace Enigma
 		return ret;
 	}
 
-	inline Light CreatePointLight(const glm::vec3& pos, const glm::vec3& color, float intensity)
+	inline Light CreatePointLight(const glm::vec4& pos, const glm::vec4& color, float intensity)
 	{
 		Light ret{};
 

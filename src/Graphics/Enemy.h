@@ -5,6 +5,7 @@
 #include "../Core/Collision.h"
 #include <queue>
 #include <algorithm>
+#include "Common.h" // should forward declare the properties for path finding you defined in here, then include in .cpp
 
 namespace Enigma
 {

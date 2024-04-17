@@ -1,7 +1,10 @@
 #pragma once
+#ifndef PLAYER_H
+#define PLAYER_H
 
 #include "../Graphics/Character.h"
-#include "../Core/Camera.h"
+
+class Camera;
 
 namespace Enigma
 {
@@ -14,4 +17,6 @@ namespace Enigma
 			void ManageInputs();
 	};
 }
+
+#endif // PLAYER_H
 
