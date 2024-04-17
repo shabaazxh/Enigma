@@ -87,6 +87,11 @@ namespace Enigma
 					{
 						windowClass->camera->PlayerLeft();
 					}
+
+					if (glfwGetKey(windowClass->window, GLFW_KEY_SPACE) == GLFW_PRESS)
+					{
+						windowClass->camera->PlayerJump();
+					}
 				}
 
 				if (glfwGetKey(windowClass->window, GLFW_KEY_P) == GLFW_PRESS)
@@ -141,8 +146,6 @@ namespace Enigma
 						Enigma::Settings::MESH_DENSITY_VISUAL_ON();
 					}
 				}
-				
-				
 			}
 
 			static void glfw_callback_mouse(GLFWwindow* window, double x, double y)

@@ -34,9 +34,6 @@ namespace Enigma
 			{
 				float speed = static_cast<float>(m_cameraSpeed * time.deltaTime);
 				m_position += speed * m_direction;
-				//glm::vec3 movement = glm::vec3(0, 0, 1.0);
-				//m_velocity = smoothstep(m_velocity, movement, 0.2f);
-				//m_position += m_velocity * speed;
 			}
 
 			void Back()
@@ -85,6 +82,13 @@ namespace Enigma
 				m_position.z -= glm::normalize(glm::cross(m_direction, m_up)).z * speed;
 			}
 
+			void PlayerJump()
+			{
+				float speed = static_cast<float>(m_cameraSpeed * time.deltaTime);
+				if(m_position.y == 13.f)
+					m_position.y += 10.f;
+			}
+
 			void Up()
 			{
 				float speed = static_cast<float>(m_cameraSpeed * time.deltaTime);
@@ -99,6 +103,11 @@ namespace Enigma
 
 			void Update(uint32_t width, uint32_t height)
 			{
+				if (isPlayer) {
+					m_position.y -= (9.8 / 60);
+					if (m_position.y < 13.f)
+						m_position.y = 13.f;
+				}
 				m_transform.model = glm::mat4(1.0f);
 				m_transform.view = glm::lookAt(m_position, m_position + m_direction, m_up);
 				m_transform.projection = glm::perspective(m_transform.fov, width / (float) height, m_transform.nearPlane, m_transform.farPlane);

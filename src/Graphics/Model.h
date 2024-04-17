@@ -95,13 +95,11 @@ namespace Enigma
 		
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
-		std::vector<glm::vec2> texcoords;
+		AABB meshAABB;
+		std::vector<Vertex> aabbVertices;
 		Buffer vertexBuffer;
 		Buffer indexBuffer;
-		glm::vec3 color;
-		AABB meshAABB;
 		Buffer AABB_buffer;
-		std::vector<Vertex> aabbVertices;
 		Buffer AABB_indexBuffer;
 	};
 
