@@ -1,5 +1,7 @@
 #include "Enemy.h"
 
+float accum = 0;
+
 namespace Enigma {
 	Enemy::Enemy(const std::string& filepath, const VulkanContext& context, int filetype) : Character(filepath, context, filetype)
 	{
@@ -163,15 +165,27 @@ namespace Enigma {
 		direction = glm::normalize(direction);
 		//if enemy is close to the next vertex update vertex in path
 		//else move the enemy along the path
+		glm::mat4 rm;
 		if (distFromCurrentNode < 0.5f && currentNode < pathToEnemy.size()) {
 			currentNode++;
+			float angle = acos(direction.z) + asin(direction.x);
+			angle = ((angle * 180) / 3.14);
+			rm = glm::inverse(glm::lookAt(this->getTranslation(), this->getTranslation() + direction, glm::vec3(0.f, 1.f, 0.f)));
+			this->setRotationMatrix(rm);
 		}
 		else if(pathToEnemy[currentNode] != pathToEnemy.back()){
 			this->setTranslation(this->getTranslation() + direction * 0.1f);
+			float angle = acos(direction.z) + asin(direction.x);
+			rm = glm::inverse(glm::lookAt(this->getTranslation(), this->getTranslation() + direction, glm::vec3(0.f, 1.f, 0.f)));
+			this->setRotationMatrix(rm);
 		}
 		else if (distFromCurrentNode > 1.f) {
 			this->setTranslation(this->getTranslation() + direction * 0.1f);
+			float angle = acos(direction.z) + asin(direction.x);
+			rm = glm::inverse(glm::lookAt(this->getTranslation(), this->getTranslation() + direction, glm::vec3(0.f, 1.f, 0.f)));
+			this->setRotationMatrix(rm);
 		}
+		//accum += 0.01f;
 	}
 
 	bool Enemy::notVisited(int node, std::vector<int> visited) {

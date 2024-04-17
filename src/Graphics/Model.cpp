@@ -774,6 +774,7 @@ namespace Enigma
 			}
 			else {
 				push.model = glm::translate(push.model, this->translation);
+				push.model = rotMatrix;
 				push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
 				push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
 				push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
@@ -804,6 +805,7 @@ namespace Enigma
 			}
 			else {
 				push.model = glm::translate(push.model, this->translation);
+				push.model = rotMatrix;
 				push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
 				push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
 				push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
