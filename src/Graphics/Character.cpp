@@ -41,6 +41,10 @@ namespace Enigma
 		this->setRotationMatrix(rm);
 	}
 
+	Character::~Character() {
+		equipment.clear();
+	}
+
 	void Character::ManageAnimation() {
 		//	ToDo
 	}

@@ -1,12 +1,12 @@
 # Blender 4.0.2 MTL File: 'None'
 # www.blender.org
 
-newmtl Material.001
-Ns 360.000000
-Ka 0.418750 0.418750 0.418750
-Kd 0.120614 0.101463 0.103945
+newmtl Rough_white_metal
+Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
-Ni 1.000000
+Ni 1.450000
 d 1.000000
 illum 3
+map_Kd textures/metal.jpg
+

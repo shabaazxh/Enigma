@@ -30,6 +30,7 @@ namespace Enigma
 			Character(const std::string& filepath, const VulkanContext& context, int filetype, glm::vec3 trans, glm::vec3 scale);
 			Character(const std::string& filepath, const VulkanContext& context, int filetype, glm::vec3 trans, glm::vec3 scale, float x, float y, float z);
 			Character(const std::string& filepath, const VulkanContext& context, int filetype, glm::vec3 trans, glm::vec3 scale, glm::mat4 rm);
+			~Character();
 
 			void ManageAnimation();
 			void ManageCollisions();
