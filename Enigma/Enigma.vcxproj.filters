@@ -63,6 +63,9 @@
     <ClInclude Include="..\src\Graphics\VulkanObjects.h">
       <Filter>Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\Graphics\Equipment.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\Core\Camera.cpp">
@@ -111,5 +114,8 @@
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\Graphics\Equipment.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

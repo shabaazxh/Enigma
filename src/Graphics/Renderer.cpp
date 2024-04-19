@@ -225,13 +225,18 @@ namespace Enigma
 				}
 				glm::vec3 dir = camera->GetDirection();
 				dir = dir * glm::vec3(3.14, 3.14, 3.14);
-				m_World->player->setRotationMatrix(glm::inverse(camera->GetCameraTransform().view));
+				//m_World->player->setRotationMatrix(glm::inverse(camera->GetCameraTransform().view));
+				m_World->player->getEquipment(m_World->player->getCurrentEquipment())->getModel()->setRotationMatrix(glm::inverse(camera->GetCameraTransform().view));
 			}
 
 			for (const auto& model : m_World->Meshes)
 			{
 				vkCmdBindPipeline(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
 				model->Draw(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle, m_aabbPipeline.handle);
+				if (model->player && !m_World->player->getEquipmentVec().empty()) {
+					vkCmdBindPipeline(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
+					m_World->player->getEquipment(m_World->player->getCurrentEquipment())->getModel()->Draw(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle, m_aabbPipeline.handle);
+				}
 			}
 			
 			vkCmdEndRenderPass(m_renderCommandBuffers[Enigma::currentFrame]);

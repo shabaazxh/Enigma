@@ -122,6 +122,7 @@ namespace Enigma
 			std::vector<Mesh> meshes;
 			
 			bool player = false;
+			bool equipment = false;
 			bool hasAnimations = false;
 			aiAnimation** animations;
 
@@ -133,6 +134,7 @@ namespace Enigma
 			float rotationZ = 0.f;
 			glm::mat4 rotMatrix = glm::mat4(1.0f);
 			glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
+			glm::vec3 offset = glm::vec3(0.f, 0.f, 0.f);
 			std::vector<Image> loadedTextures;
 			std::vector<VkDescriptorSet> m_descriptorSet;
 			const VulkanContext& context;
@@ -146,6 +148,7 @@ namespace Enigma
 			void setRotationY(float angle) { rotationY = angle; };
 			void setRotationZ(float angle) { rotationZ = angle; };
 			void setRotationMatrix(glm::mat4 rm) { rotMatrix = rm; };
+			void setOffset(glm::vec3 v) { offset = v; }
 			glm::vec3 getTranslation() { return translation; }
 			float getXRotation() { return rotationX; }
 			float getYRotation() { return rotationY; }

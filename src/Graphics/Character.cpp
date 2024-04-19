@@ -92,5 +92,12 @@ namespace Enigma
 		}
 	}
 
+	void Character::setCurrentEquipment(int i) {
+		currentEquipment = i;
+	}
+
+	void Character::addEquipment(Equipment* e) {
+		equipment.push_back(e);
+	}
 }
 
