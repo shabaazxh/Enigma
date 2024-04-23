@@ -27,7 +27,7 @@ namespace Enigma
 				Enemies[i]->moveInDirection();
 				float distanceFromPlayer = vec3Length(Enemies[i]->getTranslation() - player->getTranslation());
 				if (distanceFromPlayer < 2.f) {
-					player->health -= 1.f;
+					player->health -= 0.05f;
 				}
 			}
 		}
