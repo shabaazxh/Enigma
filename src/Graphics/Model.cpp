@@ -329,11 +329,14 @@ namespace Enigma
 			aiProcess_ValidateDataStructure | 
 			aiProcess_OptimizeGraph); 
 
+		m_Scene = scene;
+
 		if (scene && scene->mRootNode) {
 			// 设置全局逆变换矩阵
 			globalInverseTransform = scene->mRootNode->mTransformation;
 			globalInverseTransform.Inverse();
 		}
+
 		/*
 		if (scene->HasAnimations()) {
 			hasAnimations = true;
@@ -343,6 +346,7 @@ namespace Enigma
 			}
 		}
 		*/
+
 		processNode(scene->mRootNode, scene);
 		
 		for (int i = 0; i < scene->mNumMaterials; i++) {

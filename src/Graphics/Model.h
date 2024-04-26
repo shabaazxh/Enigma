@@ -163,7 +163,7 @@ namespace Enigma
 			bool player = false;
 			bool equipment = false;
 			bool hasAnimations = false;
-			aiAnimation** animations;
+			const aiScene* m_Scene;
 
 			std::unordered_map<std::string, int> boneMapping; // Global bone index mapping
 			int boneCount = 0; // Global bone counter
