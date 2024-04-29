@@ -37,6 +37,7 @@ namespace Enigma
 		}
 
 		vkDestroySampler(context.device, Enigma::defaultSampler, nullptr);
+		vkDestroySampler(context.device, Enigma::repeatSampler, nullptr);
 		vkDestroyDescriptorSetLayout(context.device, Enigma::sceneDescriptorLayout, nullptr);
 		vkDestroyDescriptorSetLayout(context.device, Enigma::descriptorLayoutModel, nullptr);
 		vkDestroyDescriptorPool(context.device, Enigma::descriptorPool, nullptr);
@@ -103,7 +104,8 @@ namespace Enigma
 	{
 		CreateDescriptorSetLayouts();
 
-		Enigma::defaultSampler = Enigma::CreateSampler(context);
+		Enigma::defaultSampler = Enigma::CreateSampler(context, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
+		Enigma::repeatSampler = Enigma::CreateSampler(context, VK_SAMPLER_ADDRESS_MODE_REPEAT);
 
 		for (size_t i = 0; i < Enigma::MAX_FRAMES_IN_FLIGHT; i++)
 		{
@@ -234,12 +236,12 @@ namespace Enigma
 
 			for (const auto& model : m_World->Meshes)
 			{
-				vkCmdBindPipeline(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
-				model->Draw(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle, m_aabbPipeline.handle);
-				if (model->player && !m_World->player->getEquipmentVec().empty()) {
-					vkCmdBindPipeline(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
-					m_World->player->getEquipment(m_World->player->getCurrentEquipment())->getModel()->Draw(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle, m_aabbPipeline.handle);
-				}
+				//vkCmdBindPipeline(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
+				//model->Draw(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle, m_aabbPipeline.handle);
+				//if (model->player && !m_World->player->getEquipmentVec().empty()) {
+				//	vkCmdBindPipeline(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
+				//	m_World->player->getEquipment(m_World->player->getCurrentEquipment())->getModel()->Draw(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle, m_aabbPipeline.handle);
+				//}
 			}
 			
 			if (isPlayer) {

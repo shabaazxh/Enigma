@@ -24,7 +24,9 @@ namespace Enigma
 
 	};
 
-	Model::Model(const std::string& filepath, const VulkanContext& context, int filetype) : m_filePath{filepath}, context{context}
+	// Note from Ahmad: change filetype to be an ENUM class so it's clearer 
+	// also, doesn't fbx model load all formats and not just fbx since it's using assimp which loads all model types?
+	Model::Model(const std::string& filepath, const VulkanContext& context, int filetype) : m_filePath{ filepath }, context{ context }
 	{
 		if (filetype == ENIGMA_LOAD_OBJ_FILE)
 			LoadOBJModel(filepath);
@@ -37,15 +39,16 @@ namespace Enigma
 		// Load the obj file
 		rapidobj::Result result = rapidobj::ParseFile(filepath.c_str());
 		if (result.error) {
+			std::cout << "RapidObj: " << result.error.code.message() << std::endl;
 			ENIGMA_ERROR("Failed to load model.");
 			throw std::runtime_error("Failed to load model");
 		}
 
+		// obj can have non triangle faces. Triangulate will triangulate
+		// non triangle faces
 		for (const auto& shape : result.shapes) {
-			//finds if the model has a navmesh
 			if (shape.name == "Navmesh") {
 				std::vector<int> vertices;
-				//loop through the edges of navmesh adding unique vertices to the navmesh structure
 				for (int i = 0; i < shape.lines.indices.size(); i++) {
 					bool inVec = false;
 					for (int j = 0; j < vertices.size(); j++) {
@@ -61,44 +64,40 @@ namespace Enigma
 					}
 				}
 				navmesh.edges.resize(navmesh.vertices.size());
-				//loop through the edges adding the index of each neighbouring vertex to each vertex
-				for (int i = 0; i < shape.lines.indices.size(); i+=2) {
+				for (int i = 0; i < shape.lines.indices.size(); i += 2) {
 					for (int j = 0; j < navmesh.vertices.size(); j++) {
 						if (result.attributes.positions[(shape.lines.indices[i].position_index * 3)] == navmesh.vertices[j].x &&
 							result.attributes.positions[(shape.lines.indices[i].position_index * 3) + 1] == navmesh.vertices[j].y &&
 							result.attributes.positions[(shape.lines.indices[i].position_index * 3) + 2] == navmesh.vertices[j].z) {
-								Edge edge;
-								glm::vec3 thisVert = navmesh.vertices[j];
-								glm::vec3 otherVert = glm::vec3(result.attributes.positions[(shape.lines.indices[i+1].position_index * 3)], result.attributes.positions[(shape.lines.indices[i+1].position_index * 3) + 1], result.attributes.positions[(shape.lines.indices[i+1].position_index * 3) + 2]);
-								glm::vec3 edgeDir = thisVert - otherVert;
-								float weight = vec3Length(edgeDir);
-								int otherVertIndex;
-								for (int k = 0; k < navmesh.vertices.size(); k++) {
-									if (navmesh.vertices[k].x == otherVert.x &&
-										navmesh.vertices[k].y == otherVert.y &&
-										navmesh.vertices[k].z == otherVert.z) {
-											Edge edge2;
-											otherVertIndex = k;
-											edge2.vertex2 = j;
-											edge2.weight = weight;
-											navmesh.edges[k].push_back(edge2);
-											break;
-									}
+							Edge edge;
+							glm::vec3 thisVert = navmesh.vertices[j];
+							glm::vec3 otherVert = glm::vec3(result.attributes.positions[(shape.lines.indices[i + 1].position_index * 3)], result.attributes.positions[(shape.lines.indices[i + 1].position_index * 3) + 1], result.attributes.positions[(shape.lines.indices[i + 1].position_index * 3) + 2]);
+							glm::vec3 edgeDir = thisVert - otherVert;
+							float weight = vec3Length(edgeDir);
+							int otherVertIndex;
+							for (int k = 0; k < navmesh.vertices.size(); k++) {
+								if (navmesh.vertices[k].x == otherVert.x &&
+									navmesh.vertices[k].y == otherVert.y &&
+									navmesh.vertices[k].z == otherVert.z) {
+									Edge edge2;
+									otherVertIndex = k;
+									edge2.vertex2 = j;
+									edge2.weight = weight;
+									navmesh.edges[k].push_back(edge2);
+									break;
 								}
-								edge.vertex2 = otherVertIndex;
-								edge.weight = weight;
+							}
+							edge.vertex2 = otherVertIndex;
+							edge.weight = weight;
 
-								navmesh.edges[j].push_back(edge);
-								break;
+							navmesh.edges[j].push_back(edge);
+							break;
 						}
 					}
 				}
 				navmesh.numberOfBaseNodes = navmesh.vertices.size();
 			}
 		}
-
-		// obj can have non triangle faces. Triangulate will triangulate
-		// non triangle faces
 		rapidobj::Triangulate(result);
 
 		// store the prefix to the obj file
@@ -108,6 +107,7 @@ namespace Enigma
 		const std::string prefix = pathEnd ? std::string(pathBegin, pathEnd + 1) : "";
 
 		m_filePath = filepath;
+		modelName = std::string(pathEnd);
 
 		// Find the materials for this model (searching for diffuse only at the moement)
 		for (const auto& mat : result.materials)
@@ -117,9 +117,21 @@ namespace Enigma
 			mi.diffuseColour = glm::vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]);
 
 			if (!mat.diffuse_texname.empty())
+			{
 				mi.diffuseTexturePath = prefix + mat.diffuse_texname;
+			}
 
-			materials.emplace_back(std::move(mi)); 
+			if (!mat.metallic_texname.empty())
+			{
+				mi.metallicTexturePath = prefix + mat.metallic_texname;
+			}
+
+			if (!mat.roughness_texname.empty())
+			{
+				mi.roughnessTexturePath = prefix + mat.roughness_texname;
+			}
+
+			materials.emplace_back(std::move(mi));
 		}
 
 		// Extract mesh data 
@@ -139,14 +151,16 @@ namespace Enigma
 				assert(matID < int(materials.size()));
 				activeMaterials.emplace(matID);
 			}
-			;
+
 			// process vertices for materials which are active
 			for (const auto matID : activeMaterials)
 			{
 				Vertex vertex{};
-				const bool textured = !materials[matID].diffuseTexturePath.empty();
+				const bool diffuse = !materials[matID].diffuseTexturePath.empty();
+				const bool metallic = !materials[matID].metallicTexturePath.empty();
+				const bool roughness = !materials[matID].roughnessTexturePath.empty();
 
-				if (!textured)
+				if (!diffuse)
 				{
 					vertex.color = materials[matID].diffuseColour;
 				}
@@ -176,12 +190,13 @@ namespace Enigma
 						});
 
 					vertex.normal = (glm::vec3{
-						result.attributes.normals[idx.position_index * 3 + 0],
-						result.attributes.normals[idx.position_index * 3 + 1],
-						result.attributes.normals[idx.position_index * 3 + 2]
+
+						result.attributes.normals[idx.normal_index * 3 + 0],
+						result.attributes.normals[idx.normal_index * 3 + 1],
+						result.attributes.normals[idx.normal_index * 3 + 2]
 						});
 
-					if (textured)
+					if (diffuse)
 					{
 						vertex.tex = (glm::vec2(
 							result.attributes.texcoords[idx.texcoord_index * 2 + 0],
@@ -200,13 +215,19 @@ namespace Enigma
 
 				mesh.materialIndex = (int)matID;
 				mesh.meshName = std::move(meshName);
-				mesh.textured = textured;
+				mesh.textured = diffuse;
+				mesh.hasMetallic = metallic;
+				mesh.hadRoughness = roughness;
 				meshes.emplace_back(std::move(mesh));
 			}
 
 		}
 
-		const std::string defaultTexture = "../resources/textures/jpeg/sponza_floor_a_diff.jpg";
+
+		// need to store it at mesh index not material index when pushing into loaded exxtures
+		// if a diffuse texture cannot be found, a pink texure is used as a placeholder
+		// pink is used since it's easily visible in the scene to indicate there is a mesh issue
+		const std::string defaultTexture = "../resources/default_texture.jpg";
 		loadedTextures.resize(materials.size());
 		for (int i = 0; i < materials.size(); i++)
 		{
@@ -222,6 +243,21 @@ namespace Enigma
 			}
 		}
 
+		MetallicTextures.resize(materials.size());
+		for (int i = 0; i < materials.size(); i++)
+		{
+			if (materials[i].roughnessTexturePath != "")
+			{
+				Image texture = Enigma::CreateTexture(context, materials[i].metallicTexturePath);
+				MetallicTextures[i] = std::move(texture);
+			}
+			else
+			{
+				Image defaultTex = Enigma::CreateTexture(context, defaultTexture);
+				MetallicTextures[i] = std::move(defaultTex);
+			}
+		}
+
 		Enigma::AllocateDescriptorSets(context, Enigma::descriptorPool, Enigma::descriptorLayoutModel, 1, m_descriptorSet);
 
 		std::vector<VkDescriptorImageInfo> imageinfos;
@@ -231,11 +267,24 @@ namespace Enigma
 			VkDescriptorImageInfo imageInfo{};
 			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			imageInfo.imageView = loadedTextures[i].imageView;
-			imageInfo.sampler = Enigma::defaultSampler;
+			imageInfo.sampler = Enigma::repeatSampler;
 
 			imageinfos.emplace_back(std::move(imageInfo));
 
 		}
+
+		std::vector<VkDescriptorImageInfo> metallic_image_infos;
+		for (size_t i = 0; i < MetallicTextures.size(); i++)
+		{
+			VkDescriptorImageInfo imageInfo{};
+			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo.imageView = MetallicTextures[i].imageView;
+			imageInfo.sampler = Enigma::defaultSampler;
+
+			metallic_image_infos.emplace_back(std::move(imageInfo));
+		}
+
+		// 12
 		VkWriteDescriptorSet descriptorWrite{};
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrite.dstSet = m_descriptorSet[0];
@@ -245,9 +294,19 @@ namespace Enigma
 		descriptorWrite.descriptorCount = static_cast<uint32_t>(imageinfos.size());
 		descriptorWrite.pImageInfo = imageinfos.data();
 
-		vkUpdateDescriptorSets(context.device, 1, &descriptorWrite, 0, nullptr);
-	
-		
+		VkWriteDescriptorSet metallic_descriptorWrite{};
+		metallic_descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		metallic_descriptorWrite.dstSet = m_descriptorSet[0];
+		metallic_descriptorWrite.dstBinding = 1;
+		metallic_descriptorWrite.dstArrayElement = 0;
+		metallic_descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		metallic_descriptorWrite.descriptorCount = static_cast<uint32_t>(metallic_image_infos.size());
+		metallic_descriptorWrite.pImageInfo = metallic_image_infos.data();
+
+		std::vector<VkWriteDescriptorSet> sets = { descriptorWrite, metallic_descriptorWrite };
+
+		vkUpdateDescriptorSets(context.device, (uint32_t)sets.size(), sets.data(), 0, nullptr);
+
 		for (auto& mesh : meshes)
 		{
 			std::vector<Vertex> verts;
@@ -266,7 +325,7 @@ namespace Enigma
 				minX = std::min(minX, verts[i].pos.x);
 				minY = std::min(minY, verts[i].pos.y);
 				minZ = std::min(minZ, verts[i].pos.z);
-														
+
 				maxX = std::max(maxX, verts[i].pos.x);
 				maxY = std::max(maxY, verts[i].pos.y);
 				maxZ = std::max(maxZ, verts[i].pos.z);
@@ -278,16 +337,16 @@ namespace Enigma
 			mesh.meshAABB = { minPoint, maxPoint };
 			mesh.aabbVertices.resize(8);
 
-			mesh.aabbVertices[0] = Vertex{ {minPoint.x, maxPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right back
-			mesh.aabbVertices[1] = Vertex{ {maxPoint.x, maxPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right back
-			mesh.aabbVertices[2] = Vertex{ {maxPoint.x, minPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right front
-			mesh.aabbVertices[3] = Vertex{ {minPoint.x, minPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right front
+			mesh.aabbVertices[0] = Vertex{ {minPoint.x, maxPoint.y, minPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right back
+			mesh.aabbVertices[1] = Vertex{ {maxPoint.x, maxPoint.y, minPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right back
+			mesh.aabbVertices[2] = Vertex{ {maxPoint.x, minPoint.y, minPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right front
+			mesh.aabbVertices[3] = Vertex{ {minPoint.x, minPoint.y, minPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right front
 
-			mesh.aabbVertices[4] = Vertex{ {minPoint.x, maxPoint.y, maxPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top left back
-			mesh.aabbVertices[5] = Vertex{ {maxPoint.x, maxPoint.y, maxPoint.z}, { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // bottom left back
-			mesh.aabbVertices[6] = Vertex{ {maxPoint.x, minPoint.y, maxPoint.z}, { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // top left front 
-			mesh.aabbVertices[7] = Vertex{ {minPoint.x, minPoint.y, maxPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom left front
-		
+			mesh.aabbVertices[4] = Vertex{ {minPoint.x, maxPoint.y, maxPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top left back
+			mesh.aabbVertices[5] = Vertex{ {maxPoint.x, maxPoint.y, maxPoint.z}, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // bottom left back
+			mesh.aabbVertices[6] = Vertex{ {maxPoint.x, minPoint.y, maxPoint.z}, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // top left front 
+			mesh.aabbVertices[7] = Vertex{ {minPoint.x, minPoint.y, maxPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom left front
+
 		}
 
 		CreateBuffers();
@@ -346,16 +405,12 @@ namespace Enigma
 				assimpTexVert = scene->mMeshes[i]->mTextureCoords[0][j];
 				vert.tex = glm::vec2(assimpTexVert.x, assimpTexVert.y);
 
-				aiVector3D assimpNormVert;
-				assimpNormVert = scene->mMeshes[i]->mNormals[j];
-				vert.normal = glm::vec3(assimpNormVert.x, assimpNormVert.y, assimpNormVert.z);
-
 				if (scene->mMeshes[i]->HasVertexColors(i)) {
 					aiColor4D assimpColVert;
 					assimpColVert = scene->mMeshes[i]->mColors[0][j];
 					vert.color = glm::vec3(assimpColVert.r, assimpColVert.g, assimpColVert.b);
 				}
-				
+
 				mesh.vertices.push_back(vert);
 			}
 			for (int j = 0; j < scene->mMeshes[i]->mNumFaces; j++) {
@@ -405,6 +460,7 @@ namespace Enigma
 			imageinfos.emplace_back(std::move(imageInfo));
 
 		}
+		// 12
 		VkWriteDescriptorSet descriptorWrite{};
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrite.dstSet = m_descriptorSet[0];
@@ -446,15 +502,15 @@ namespace Enigma
 			mesh.meshAABB = { minPoint, maxPoint };
 			mesh.aabbVertices.resize(8);
 
-			mesh.aabbVertices[0] = Vertex{ {minPoint.x, maxPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right back
-			mesh.aabbVertices[1] = Vertex{ {maxPoint.x, maxPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right back
-			mesh.aabbVertices[2] = Vertex{ {maxPoint.x, minPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right front
-			mesh.aabbVertices[3] = Vertex{ {minPoint.x, minPoint.y, minPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right front
+			mesh.aabbVertices[0] = Vertex{ {minPoint.x, maxPoint.y, minPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right back
+			mesh.aabbVertices[1] = Vertex{ {maxPoint.x, maxPoint.y, minPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right back
+			mesh.aabbVertices[2] = Vertex{ {maxPoint.x, minPoint.y, minPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top right front
+			mesh.aabbVertices[3] = Vertex{ {minPoint.x, minPoint.y, minPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom right front
 
-			mesh.aabbVertices[4] = Vertex{ {minPoint.x, maxPoint.y, maxPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top left back
-			mesh.aabbVertices[5] = Vertex{ {maxPoint.x, maxPoint.y, maxPoint.z}, { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // bottom left back
-			mesh.aabbVertices[6] = Vertex{ {maxPoint.x, minPoint.y, maxPoint.z}, { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // top left front 
-			mesh.aabbVertices[7] = Vertex{ {minPoint.x, minPoint.y, maxPoint.z }, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom left front
+			mesh.aabbVertices[4] = Vertex{ {minPoint.x, maxPoint.y, maxPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // top left back
+			mesh.aabbVertices[5] = Vertex{ {maxPoint.x, maxPoint.y, maxPoint.z}, {0.0f, 0.f, 0.0f},  { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // bottom left back
+			mesh.aabbVertices[6] = Vertex{ {maxPoint.x, minPoint.y, maxPoint.z}, {0.0f, 0.f, 0.0f},  { 0.0f, 0.0f },  { 0.0f, 0.0f, 0.0f } }; // top left front 
+			mesh.aabbVertices[7] = Vertex{ {minPoint.x, minPoint.y, maxPoint.z }, {0.0f, 0.f, 0.0f}, { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }; // bottom left front
 		}
 
 		CreateBuffers();
@@ -761,34 +817,26 @@ namespace Enigma
 	}
 
 	// Call to draw the model
-	void Model::Draw(VkCommandBuffer cmd, VkPipelineLayout layout, VkPipeline aabPipeline)
+	void Model::Draw(VkCommandBuffer cmd, VkPipelineLayout layout)
 	{
 		for (auto& mesh : meshes)
 		{
 			ModelPushConstant push = {};
 			push.model = glm::mat4(1.0f);
+			push.model = glm::scale(push.model, scale);
+			push.model = push.model * rotMatrix;
+			push.model = glm::translate(push.model, translation);
+
 			if (player) {
-				push.model = glm::translate(push.model, this->translation + glm::vec3(0.f, 8.3f, 0.f));
-				//push.model = rotMatrix;
-				push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
-			}
-			else if (equipment) {
-				push.model = glm::translate(push.model, this->translation + offset);
 				push.model = rotMatrix;
 				push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
 			}
 			else {
-				push.model = glm::translate(push.model, this->translation);
-				push.model = rotMatrix;
-				push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
+				//push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
+				//push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
+				//push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
 			}
-			push.model = glm::scale(push.model, this->scale);
+
 			push.textureIndex = mesh.materialIndex;
 			push.isTextured = mesh.textured;
 
@@ -803,27 +851,22 @@ namespace Enigma
 			vkCmdDrawIndexed(cmd, static_cast<uint32_t>(mesh.indices.size()), 1, 0, 0, 0);
 		}
 
+	}
+
+
+	void Model::DrawDebug(VkCommandBuffer cmd, VkPipelineLayout layout, VkPipeline AABBPipeline)
+	{
 		for (auto& mesh : meshes) {
 
 			ModelPushConstant push = {};
 			push.model = glm::mat4(1.0f);
 			if (player) {
-				push.model = glm::translate(push.model, this->translation + glm::vec3(0.f, 8.3f, 0.f));
-				//push.model = rotMatrix;
-				push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
-			}
-			else if (equipment) {
-				push.model = glm::translate(push.model, this->translation + offset);
+				push.model = glm::translate(push.model, this->translation + glm::vec3(0.f, 13.f, 0.f));
 				push.model = rotMatrix;
 				push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
 			}
 			else {
 				push.model = glm::translate(push.model, this->translation);
-				push.model = rotMatrix;
 				push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
 				push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
 				push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
@@ -834,12 +877,11 @@ namespace Enigma
 
 			vkCmdPushConstants(cmd, layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(ModelPushConstant), &push);
 
-			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, aabPipeline);
+			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, AABBPipeline);
 			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 1, 1, &m_descriptorSet[0], 0, nullptr);
 
 			VkDeviceSize offset[] = { 0 };
 			vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.AABB_buffer.buffer, offset);
-			//vkCmdDraw(cmd, mesh.aabbVertices.size(), 1, 0, 0);
 
 			vkCmdBindIndexBuffer(cmd, mesh.AABB_indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 			vkCmdDrawIndexed(cmd, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);

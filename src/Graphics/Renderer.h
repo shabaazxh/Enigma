@@ -3,6 +3,7 @@
 #include "Allocator.h"
 #include "VulkanObjects.h"
 #include "VulkanContext.h"
+#include "Model.h"
 #include "Common.h"
 #include "../Core/VulkanWindow.h"
 #include <memory.h>
@@ -10,6 +11,14 @@
 #include "../Core/Error.h"
 #include "../Core/Engine.h"
 #include "../Core/World.h"
+
+#include <memory>
+#include "GBuffer.h"
+#include "Lighting.h"
+#include "Composite.h"
+#include "ShadowPass.h"
+#include "ImGuiRenderer.h"
+
 
 namespace Enigma
 {
