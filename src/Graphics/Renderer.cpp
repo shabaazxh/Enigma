@@ -34,8 +34,8 @@ namespace Enigma
 		m_compositePass = new Composite(context, window, m_lightingPass->GetRenderTarget());
 		ImGuiRenderer::Initialize(context, window);
 
-		m_pipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/fragment.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-		m_aabbPipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/line.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
+		// m_pipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/fragment.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+		//m_aabbPipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/line.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
 
 		// Create a directional light: Position, colour and intensity -125.242f, 359.0f, -67.708, 1.0f
 		Enigma::Light SunLight = Enigma::CreateDirectionalLight(glm::vec4(-45.802f, 105.0f, 23.894, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 1.0);
@@ -67,7 +67,7 @@ namespace Enigma
 		Enigma::WorldInst.player->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
 		Enigma::WorldInst.player->setRotationY(180);
 
-		CreateBlood();
+		//CreateBlood();
 	}
 
 	Renderer::~Renderer()
@@ -462,37 +462,6 @@ namespace Enigma
 			VkCommandBufferBeginInfo beginInfo{};
 			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 			ENIGMA_VK_CHECK(vkBeginCommandBuffer(m_renderCommandBuffers[Enigma::currentFrame], &beginInfo), "Failed to begin command buffer");
-			
-			// begin recording commands 
-			//VkRenderPassBeginInfo renderpassInfo{};
-			//renderpassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-			//renderpassInfo.renderPass = window.renderPass;
-			//renderpassInfo.framebuffer = window.swapchainFramebuffers[index];
-			//renderpassInfo.renderArea.extent = window.swapchainExtent;
-			//renderpassInfo.renderArea.offset = { 0,0 };
-
-			//VkClearValue clearColor[2];
-			//clearColor[0] = { 0.0f, 0.0f, 0.0f, 1.0f };
-			//clearColor[1].depthStencil.depth = 1.0f;
-			//renderpassInfo.clearValueCount = 2;
-			//renderpassInfo.pClearValues = clearColor;
-
-			//VkViewport viewport{};
-			//viewport.x = 0.0f;
-			//viewport.y = 0.0f;
-			//viewport.width = (float)window.swapchainExtent.width;
-			//viewport.height = (float)window.swapchainExtent.height;
-			//viewport.minDepth = 0.0f;
-			//viewport.maxDepth = 1.0f;
-			//vkCmdSetViewport(m_renderCommandBuffers[Enigma::currentFrame], 0, 1, &viewport);
-
-			//VkRect2D scissor{};
-			//scissor.offset = { 0,0 };
-			//scissor.extent = window.swapchainExtent;
-			//vkCmdSetScissor(m_renderCommandBuffers[Enigma::currentFrame], 0, 1, &scissor);
-
-			//vkCmdBeginRenderPass(m_renderCommandBuffers[Enigma::currentFrame], &renderpassInfo, VK_SUBPASS_CONTENTS_INLINE);
-			//vkCmdBindDescriptorSets(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelinePipelineLayout.handle, 0, 1, &m_sceneDescriptorSets[Enigma::currentFrame], 0, nullptr);
 
 			if (current_state) {
 				if (camera->GetPosition().x != Enigma::WorldInst.player->getTranslation().x ||

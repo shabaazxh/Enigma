@@ -74,6 +74,9 @@ namespace Enigma
 			PipelineLayout m_pipelinePipelineLayout;
 			std::vector<VkDescriptorSet> m_sceneDescriptorSets;
 
+			std::vector<Buffer> m_sceneUBO;
+			Buffer m_SSBO;
+
 			//blood
 			std::vector<glm::vec2> bloodVertices;
 			Buffer bloodVertexBuffer;

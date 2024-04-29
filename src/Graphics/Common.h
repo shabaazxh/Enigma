@@ -110,7 +110,6 @@ namespace Enigma
 	inline Debug debugSettings;
 
 	inline VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-	inline VkDescriptorSetLayout sceneDescriptorLayout = VK_NULL_HANDLE;
 	inline VkDescriptorSetLayout descriptorLayoutModel = VK_NULL_HANDLE;
 
 	inline Sampler sampler;
