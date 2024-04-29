@@ -25,7 +25,7 @@ namespace Enigma
 	class Renderer
 	{
 		public:
-			explicit Renderer(const VulkanContext& context, VulkanWindow& window, Camera* camera, World* world);
+			explicit Renderer(const VulkanContext& context, VulkanWindow& window, Camera* camera);
 			~Renderer();
 			void DrawScene();
 			void Update(Camera* cam);
@@ -46,10 +46,12 @@ namespace Enigma
 
 		private:
 			bool current_state = false;
-			World* m_World;
 			Camera* camera;
 			const VulkanContext& context;
 			VulkanWindow& window;
+
+			GBuffer* m_gBufferPass;
+			GBufferTargets gBufferTargets;
 
 			std::vector<Fence> m_fences;
 			std::vector<Semaphore> m_imagAvailableSemaphores;
