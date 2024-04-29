@@ -28,10 +28,9 @@ namespace Enigma
 	// also, doesn't fbx model load all formats and not just fbx since it's using assimp which loads all model types?
 	Model::Model(const std::string& filepath, const VulkanContext& context, int filetype) : m_filePath{filepath}, context{context}
 	{
-		modelName = "";
-		if (filetype == 0)
+		if (filetype == ENIGMA_LOAD_OBJ_FILE)
 			LoadOBJModel(filepath);
-		else if (filetype == 1)
+		else if (filetype == ENIGMA_LOAD_FBX_FILE)
 			LoadFBXModel(filepath);
 	}
 
@@ -47,8 +46,6 @@ namespace Enigma
 
 		// obj can have non triangle faces. Triangulate will triangulate
 		// non triangle faces
-
-
 		for (const auto& shape : result.shapes) {
 			if (shape.name == "Navmesh") {
 				std::vector<int> vertices;

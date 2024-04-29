@@ -577,6 +577,7 @@ namespace Enigma
 			};
 
 			m_descriptorSetLayout = CreateDescriptorSetLayout(context, bindings);
+			Enigma::sceneDescriptorLayout = CreateDescriptorSetLayout(context, bindings);
 		}
 
 		AllocateDescriptorSets(context, Enigma::descriptorPool, m_descriptorSetLayout, Enigma::MAX_FRAMES_IN_FLIGHT, m_sceneDescriptorSets);

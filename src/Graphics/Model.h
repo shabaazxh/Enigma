@@ -144,31 +144,48 @@ namespace Enigma
 
 			std::vector<Material> materials;
 			std::vector<Mesh> meshes;
-			
-			//transformations
-			// Note from Ahmad: why are all these transformations public? 
-			bool player = false; // Note from Ahmad: why is this here? 
+
+			bool player = false;
+			bool equipment = false;
+			bool hasAnimations = false;
+			aiAnimation** animations;
+
+			std::string modelName;
+		private:
 			glm::vec3 translation = glm::vec3(0.f, 0.f, 0.f);
 			float rotationX = 0.f;
 			float rotationY = 0.f;
 			float rotationZ = 0.f;
 			glm::mat4 rotMatrix = glm::mat4(1.0f);
 			glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
-			bool hasAnimations = false; 
-			aiAnimation** animations; 
-			std::string modelName;
-		private:
-			void LoadOBJModel(const std::string& filepath);
-			void LoadFBXModel(const std::string& filepath);
-			void CreateBuffers();
-		private:
+			glm::vec3 offset = glm::vec3(0.f, 0.f, 0.f);
 			std::vector<Image> loadedTextures;
 			std::vector<Image> MetallicTextures;
 			std::vector<VkDescriptorSet> m_descriptorSet;
 			const VulkanContext& context;
 			std::string m_filePath;
 			AABB m_AABB;
-	};
+
+		public:
+			void setTranslation(glm::vec3 trans) { translation = trans; };
+			void setScale(glm::vec3 s) { scale = s; };
+			void setRotationX(float angle) { rotationX = angle; };
+			void setRotationY(float angle) { rotationY = angle; };
+			void setRotationZ(float angle) { rotationZ = angle; };
+			void setRotationMatrix(glm::mat4 rm) { rotMatrix = rm; };
+			void setOffset(glm::vec3 v) { offset = v; }
+			glm::vec3 getTranslation() { return translation; }
+			float getXRotation() { return rotationX; }
+			float getYRotation() { return rotationY; }
+			float getZRotation() { return rotationZ; }
+			glm::mat4 getRotationMatrix() { return rotMatrix; }
+			glm::vec3 getScale() { return scale; }
+
+		private:
+			void LoadOBJModel(const std::string& filepath);
+			void LoadFBXModel(const std::string& filepath);
+			void CreateBuffers();
+		};
 }
 
 template<>

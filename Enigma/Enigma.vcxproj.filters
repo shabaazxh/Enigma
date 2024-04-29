@@ -114,6 +114,9 @@
     <ClInclude Include="..\src\Core\Settings.h">
       <Filter>src\Core</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\Graphics\Equipment.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\libs\imgui\imgui.cpp">
@@ -198,6 +201,9 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\ShadowPass.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Graphics\Equipment.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
   </ItemGroup>

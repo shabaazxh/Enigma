@@ -5,28 +5,29 @@
 #include "../Core/Collision.h"
 #include <queue>
 #include <algorithm>
-#include "Common.h" // should forward declare the properties for path finding you defined in here, then include in .cpp
+#include "../Graphics/Common.h"
 
 namespace Enigma
 {
 	class Enemy : public Character
 	{
-		public:
-			Enemy(const std::string& filepath, const VulkanContext& context, int filetype);
+	public:
+		Enemy(const std::string& filepath, const VulkanContext& context, int filetype);
+		Enemy(const std::string& filepath, const VulkanContext& context, int filetype, glm::vec3 trans, glm::vec3 scale);
+		Enemy(const std::string& filepath, const VulkanContext& context, int filetype, glm::vec3 trans, glm::vec3 scale, float x, float y, float z);
+		Enemy(const std::string& filepath, const VulkanContext& context, int filetype, glm::vec3 trans, glm::vec3 scale, glm::mat4 rm);
 
-			void ManageAI(std::vector<Character*> character, Model* obj, Player* player);
+		void ManageAI(std::vector<Character*> characters, Model* obj, Player* player);
+		void addToNavmesh(Character* character, Model* obj);
+		void moveInDirection();
 
-			void addToNavmesh(Character* character, Model* obj);
+	private:
+		int currentNode;
+		std::vector<int> pathToEnemy;
+		std::vector<int> findDirection(Player* player);
 
-		private:
-			int currentNode;
-			std::vector<int> pathToEnemy;
-			std::vector<int> findDirection();
-
-			void updateNavmesh(std::vector<Character*> character);
-			void moveInDirection();
-			bool isMeshFurtherAway(glm::vec3 dir, glm::vec3 origin, AABB meshAABB);
-			bool notVisited(int node, std::vector<int> visited);
+		void updateNavmesh(std::vector<Character*> character);
+		bool notVisited(int node, std::vector<int> visited);
 	};
 }
 
