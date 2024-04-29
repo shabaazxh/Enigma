@@ -1,121 +1,207 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Core">
-      <UniqueIdentifier>{2EB4837C-1AEB-840D-C3D7-6A10AFED000F}</UniqueIdentifier>
+    <Filter Include="libs">
+      <UniqueIdentifier>{2F149A7C-1B4B-9B0D-C437-8110B04D170F}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Graphics">
-      <UniqueIdentifier>{1653CE33-0220-293F-2B39-17E717655ECD}</UniqueIdentifier>
+    <Filter Include="libs\imgui">
+      <UniqueIdentifier>{D948162C-C500-5879-2E08-31D51ADFF269}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Core">
+      <UniqueIdentifier>{A5D31CCF-91A0-77DA-BAB9-6582A6E5AC68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Graphics">
+      <UniqueIdentifier>{0D564864-F9B8-D708-A23E-10BF8E80A38B}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\libs\imgui\imconfig.h">
+      <Filter>libs\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\imgui\imgui.h">
+      <Filter>libs\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\imgui\imgui_impl_glfw.h">
+      <Filter>libs\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\imgui\imgui_impl_vulkan.h">
+      <Filter>libs\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\imgui\imgui_internal.h">
+      <Filter>libs\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\imgui\imstb_rectpack.h">
+      <Filter>libs\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\imgui\imstb_textedit.h">
+      <Filter>libs\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libs\imgui\imstb_truetype.h">
+      <Filter>libs\imgui</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\Core\Camera.h">
-      <Filter>Core</Filter>
+      <Filter>src\Core</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Core\Collision.h">
-      <Filter>Core</Filter>
+      <Filter>src\Core</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Core\Engine.h">
-      <Filter>Core</Filter>
+      <Filter>src\Core</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Core\Error.h">
-      <Filter>Core</Filter>
+      <Filter>src\Core</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Core\VulkanWindow.h">
-      <Filter>Core</Filter>
+      <Filter>src\Core</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Core\World.h">
-      <Filter>Core</Filter>
+      <Filter>src\Core</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Graphics\Allocator.h">
-      <Filter>Graphics</Filter>
+      <Filter>src\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Graphics\Character.h">
-      <Filter>Graphics</Filter>
+      <Filter>src\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Graphics\Common.h">
-      <Filter>Graphics</Filter>
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\Composite.h">
+      <Filter>src\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Graphics\Enemy.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Graphics\Light.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Graphics\Model.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Graphics\Player.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Graphics\Renderer.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Graphics\VulkanBuffer.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Graphics\VulkanContext.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Graphics\VulkanImage.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Graphics\VulkanObjects.h">
-      <Filter>Graphics</Filter>
+      <Filter>src\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Graphics\Equipment.h">
-      <Filter>Graphics</Filter>
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\GBuffer.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\ImGuiRenderer.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\Light.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\Lighting.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\Model.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\Player.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\Renderer.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\ShadowPass.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\VulkanBuffer.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\VulkanContext.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\VulkanImage.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\VulkanObjects.h">
+      <Filter>src\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\libs\imgui\imgui.cpp">
+      <Filter>libs\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\imgui\imgui_demo.cpp">
+      <Filter>libs\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\imgui\imgui_draw.cpp">
+      <Filter>libs\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\imgui\imgui_impl_glfw.cpp">
+      <Filter>libs\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\imgui\imgui_impl_vulkan.cpp">
+      <Filter>libs\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\imgui\imgui_tables.cpp">
+      <Filter>libs\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libs\imgui\imgui_widgets.cpp">
+      <Filter>libs\imgui</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\Core\Camera.cpp">
-      <Filter>Core</Filter>
+      <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Core\Collision.cpp">
-      <Filter>Core</Filter>
+      <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Core\Engine.cpp">
-      <Filter>Core</Filter>
+      <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Core\VulkanWindow.cpp">
-      <Filter>Core</Filter>
+      <Filter>src\Core</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\Allocator.cpp">
-      <Filter>Graphics</Filter>
+      <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\Character.cpp">
-      <Filter>Graphics</Filter>
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Graphics\Composite.cpp">
+      <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\Enemy.cpp">
-      <Filter>Graphics</Filter>
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Graphics\Equipment.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Graphics\GBuffer.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Graphics\ImGuiRenderer.cpp">
+      <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\Light.cpp">
-      <Filter>Graphics</Filter>
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Graphics\Lighting.cpp">
+      <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\Model.cpp">
-      <Filter>Graphics</Filter>
+      <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\Player.cpp">
-      <Filter>Graphics</Filter>
+      <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\Renderer.cpp">
-      <Filter>Graphics</Filter>
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Graphics\ShadowPass.cpp">
+      <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\VulkanBuffer.cpp">
-      <Filter>Graphics</Filter>
+      <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\VulkanContext.cpp">
-      <Filter>Graphics</Filter>
+      <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\VulkanImage.cpp">
-      <Filter>Graphics</Filter>
+      <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\VulkanObjects.cpp">
-      <Filter>Graphics</Filter>
+      <Filter>src\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\Graphics\Equipment.cpp">
-      <Filter>Graphics</Filter>
+    <ClCompile Include="..\src\main.cpp">
+      <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -3,6 +3,7 @@
 #include "Allocator.h"
 #include "VulkanObjects.h"
 #include "VulkanContext.h"
+#include "Model.h"
 #include "Common.h"
 #include "../Core/VulkanWindow.h"
 #include <memory.h>
@@ -11,12 +12,20 @@
 #include "../Core/Engine.h"
 #include "../Core/World.h"
 
+#include <memory>
+#include "GBuffer.h"
+#include "Lighting.h"
+#include "Composite.h"
+#include "ShadowPass.h"
+#include "ImGuiRenderer.h"
+
+
 namespace Enigma
 {
 	class Renderer
 	{
 		public:
-			explicit Renderer(const VulkanContext& context, VulkanWindow& window, Camera* camera, World* world);
+			explicit Renderer(const VulkanContext& context, VulkanWindow& window, Camera* camera);
 			~Renderer();
 			void DrawScene();
 			void Update(Camera* cam);
@@ -37,10 +46,12 @@ namespace Enigma
 
 		private:
 			bool current_state = false;
-			World* m_World;
 			Camera* camera;
 			const VulkanContext& context;
 			VulkanWindow& window;
+
+			GBuffer* m_gBufferPass;
+			GBufferTargets gBufferTargets;
 
 			std::vector<Fence> m_fences;
 			std::vector<Semaphore> m_imagAvailableSemaphores;

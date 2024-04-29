@@ -3,7 +3,8 @@
 
 namespace Enigma
 {
-	Renderer::Renderer(const VulkanContext& context, VulkanWindow& window, Camera* camera, World* world) : context{ context }, window{ window }, camera{ camera }, m_World{ world } {
+	Renderer::Renderer(const VulkanContext& context, VulkanWindow& window, Camera* camera) : context{ context }, window{ window }, camera{ camera } {
+
 
 		m_sceneUBO.resize(Enigma::MAX_FRAMES_IN_FLIGHT);
 
@@ -12,11 +13,11 @@ namespace Enigma
 		
 		CreateRendererResources();
 
+		m_gBufferPass = new GBuffer(context, window, gBufferTargets);
+
 		m_pipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/fragment.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, {Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel}, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 		m_aabbPipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/line.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
 		
-		m_World = world;
-
         CreateBlood();
 	}
 
@@ -25,7 +26,7 @@ namespace Enigma
 		// Ensure all commands have finished and the GPU is now idle
 		vkDeviceWaitIdle(context.device);
 
-		for (auto& model : m_World->Meshes)
+		for (auto& model : Enigma::WorldInst.Meshes)
 		{
 			delete model;
 		}
@@ -37,6 +38,7 @@ namespace Enigma
 		}
 
 		vkDestroySampler(context.device, Enigma::defaultSampler, nullptr);
+		vkDestroySampler(context.device, Enigma::repeatSampler, nullptr);
 		vkDestroyDescriptorSetLayout(context.device, Enigma::sceneDescriptorLayout, nullptr);
 		vkDestroyDescriptorSetLayout(context.device, Enigma::descriptorLayoutModel, nullptr);
 		vkDestroyDescriptorPool(context.device, Enigma::descriptorPool, nullptr);
@@ -103,7 +105,8 @@ namespace Enigma
 	{
 		CreateDescriptorSetLayouts();
 
-		Enigma::defaultSampler = Enigma::CreateSampler(context);
+		Enigma::defaultSampler = Enigma::CreateSampler(context, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
+		Enigma::repeatSampler = Enigma::CreateSampler(context, VK_SAMPLER_ADDRESS_MODE_REPEAT);
 
 		for (size_t i = 0; i < Enigma::MAX_FRAMES_IN_FLIGHT; i++)
 		{
@@ -152,7 +155,7 @@ namespace Enigma
 		void* data = nullptr;
 		if (current_state != isPlayer) {
 			if (isPlayer) {
-				camera->SetPosition(m_World->player->getTranslation() + glm::vec3(0.f, 13.f, 0.f));
+				camera->SetPosition(Enigma::WorldInst.player->getTranslation() + glm::vec3(0.f, 13.f, 0.f));
 				camera->SetNearPlane(0.05f);
 			}
 			else {
@@ -220,26 +223,26 @@ namespace Enigma
 			vkCmdBindDescriptorSets(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelinePipelineLayout.handle, 0, 1, &m_sceneDescriptorSets[Enigma::currentFrame], 0, nullptr);
 			
 			if (current_state) {
-				if (camera->GetPosition().x != m_World->player->getTranslation().x ||
-					camera->GetPosition().z != m_World->player->getTranslation().z
+				if (camera->GetPosition().x != Enigma::WorldInst.player->getTranslation().x ||
+					camera->GetPosition().z != Enigma::WorldInst.player->getTranslation().z
 					) {
-					m_World->player->moved = true;
-					m_World->player->setTranslation(glm::vec3(camera->GetPosition().x, 0.1f, camera->GetPosition().z));
+					Enigma::WorldInst.player->moved = true;
+					Enigma::WorldInst.player->setTranslation(glm::vec3(camera->GetPosition().x, 0.1f, camera->GetPosition().z));
 				}
 				glm::vec3 dir = camera->GetDirection();
 				dir = dir * glm::vec3(3.14, 3.14, 3.14);
-				//m_World->player->setRotationMatrix(glm::inverse(camera->GetCameraTransform().view));
-				m_World->player->getEquipment(m_World->player->getCurrentEquipment())->getModel()->setRotationMatrix(glm::inverse(camera->GetCameraTransform().view));
+				//Enigma::WorldInst.player->setRotationMatrix(glm::inverse(camera->GetCameraTransform().view));
+				Enigma::WorldInst.player->getEquipment(Enigma::WorldInst.player->getCurrentEquipment())->getModel()->setRotationMatrix(glm::inverse(camera->GetCameraTransform().view));
 			}
 
-			for (const auto& model : m_World->Meshes)
+			for (const auto& model : Enigma::WorldInst.Meshes)
 			{
-				vkCmdBindPipeline(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
-				model->Draw(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle, m_aabbPipeline.handle);
-				if (model->player && !m_World->player->getEquipmentVec().empty()) {
-					vkCmdBindPipeline(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
-					m_World->player->getEquipment(m_World->player->getCurrentEquipment())->getModel()->Draw(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle, m_aabbPipeline.handle);
-				}
+				//vkCmdBindPipeline(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
+				//model->Draw(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle, m_aabbPipeline.handle);
+				//if (model->player && !Enigma::WorldInst.player->getEquipmentVec().empty()) {
+				//	vkCmdBindPipeline(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
+				//	Enigma::WorldInst.player->getEquipment(Enigma::WorldInst.player->getCurrentEquipment())->getModel()->Draw(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle, m_aabbPipeline.handle);
+				//}
 			}
 			
 			if (isPlayer) {
@@ -771,7 +774,7 @@ namespace Enigma
 
         // set blood value
         vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_bloodPipeline.handle);
-        UpdateBlood(m_World->player->health/100.f);
+        UpdateBlood(Enigma::WorldInst.player->health/100.f);
         vkCmdPushConstants(cmdBuffer, m_bloodPipelineLayout.handle, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4),
                            &bloodTransformMatrix);
         vkCmdDraw(cmdBuffer, 4, 1, 0, 0);

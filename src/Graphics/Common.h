@@ -12,34 +12,33 @@
 #include "VulkanImage.h"
 
 class Model;
-class Enemy;
 
 namespace Enigma
 {
-	inline bool isPlayer = false;
+	inline bool isPlayer = false; // why is this here?
 
 	inline int MAX_FRAMES_IN_FLIGHT = 0;
 	inline int currentFrame = 0;
 
 	class Time
 	{
-		public:
-			Time() {
-				current = 0.0;
-				deltaTime = 0.0;
-				lastFrame = 0.0;
-			}
+	public:
+		Time() {
+			current = 0.0;
+			deltaTime = 0.0;
+			lastFrame = 0.0;
+		}
 
-			void Update()
-			{
-				current = glfwGetTime();
-				deltaTime = current - lastFrame;
-				lastFrame = current;
-			}
+		void Update()
+		{
+			current = glfwGetTime();
+			deltaTime = current - lastFrame;
+			lastFrame = current;
+		}
 
-			double deltaTime;
-			double lastFrame;
-			double current;
+		double deltaTime;
+		double lastFrame;
+		double current;
 	};
 
 
@@ -48,6 +47,7 @@ namespace Enigma
 		glm::mat4 model;
 		glm::mat4 view;
 		glm::mat4 projection;
+		glm::vec3 cameraPosition;
 
 		float fov = 45.0f;
 		float nearPlane = 1.0f;
@@ -73,10 +73,41 @@ namespace Enigma
 		std::vector<float> distance;
 	};
 
-	struct Scene
+
+	// output textures from the g-buffer
+	struct GBufferTargets
 	{
-		
+		Image position;
+		Image normals;
+		Image depth;
+		Image albedo;
 	};
+
+	struct Passes
+	{
+		Image lighting;
+		Image SSAO; // not yet implemented
+		Image SSR; // not yet implemented 
+	};
+
+	struct LightUBO
+	{
+		glm::vec4 lightPosition;
+		glm::vec4 lightDirection;
+		glm::vec4 lightColour;
+		glm::mat4 LightSpaceMatrix;
+	};
+
+	struct Debug
+	{
+		int debugRenderTarget;
+		int stepCount;
+		float thickness;
+		float maxDistance;
+	};
+
+
+	inline Debug debugSettings;
 
 	inline VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 	inline VkDescriptorSetLayout sceneDescriptorLayout = VK_NULL_HANDLE;
@@ -85,13 +116,14 @@ namespace Enigma
 	inline Sampler sampler;
 	inline Image depth;
 
+	// depth resources for the depth buffer
 	inline VkImage depthimg;
 	inline VkImageView depthimageview;
 	inline VmaAllocation depthimageallocation;
 
-	inline VkSampler defaultSampler;
-
-	inline VkPipeline draw_line_list;
+	inline VkSampler defaultSampler; // a default sampler for sampling textures 
+	inline VkSampler repeatSampler;
+	inline VkPipeline draw_line_list; // pipeline to draw meshes as a line
 
 	inline Navmesh navmesh;
 }
@@ -106,7 +138,7 @@ namespace Enigma
 		info.pBindings = bindings.data();
 
 		VkDescriptorSetLayout layout = VK_NULL_HANDLE;
-		
+
 		ENIGMA_VK_CHECK(vkCreateDescriptorSetLayout(context.device, &info, nullptr, &layout), "Failed to crate descriptor set layout");
 
 		return layout;
@@ -115,7 +147,7 @@ namespace Enigma
 	inline void AllocateDescriptorSets(const VulkanContext& context, VkDescriptorPool descriptorPool, const VkDescriptorSetLayout descriptorLayout, uint32_t setCount, std::vector<VkDescriptorSet>& descriptorSet)
 	{
 		std::vector<VkDescriptorSetLayout> setLayout(Enigma::MAX_FRAMES_IN_FLIGHT, descriptorLayout);
-		
+
 		VkDescriptorSetAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
 		allocInfo.descriptorPool = descriptorPool;
 		allocInfo.descriptorSetCount = setCount;
@@ -175,7 +207,7 @@ namespace Enigma
 		allocInfo.commandBufferCount = 1;
 		allocInfo.commandPool = cmdPool;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		
+
 		VkCommandBuffer cmd = VK_NULL_HANDLE;
 		ENIGMA_VK_CHECK(vkAllocateCommandBuffers(context.device, &allocInfo, &cmd), "Failed to allocate command buffer");
 
@@ -216,7 +248,7 @@ namespace Enigma
 		submit.pCommandBuffers = &cmd;
 
 		ENIGMA_VK_CHECK(vkQueueSubmit(context.graphicsQueue, 1, &submit, complete.handle), "Failed to submit command buffer");
-	
+
 		vkWaitForFences(context.device, 1, &complete.handle, VK_TRUE, UINT64_MAX);
 	}
 
@@ -286,24 +318,28 @@ namespace Enigma
 		return m;
 	}
 
-	inline VkSampler CreateSampler(const VulkanContext& context)
+	inline VkSampler CreateSampler(const VulkanContext& context, VkSamplerAddressMode mode)
 	{
 		VkSamplerCreateInfo samplerInfo{};
 		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 		samplerInfo.magFilter = VK_FILTER_LINEAR;
 		samplerInfo.minFilter = VK_FILTER_LINEAR;
 		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeU = mode;
+		samplerInfo.addressModeV = mode;
+		samplerInfo.addressModeW = mode;
 		samplerInfo.minLod = 0.0f;
-		samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
+		samplerInfo.maxLod = 1.0f;
 		samplerInfo.mipLodBias = 0.f;
 		samplerInfo.maxAnisotropy = 16.0f;
 		samplerInfo.anisotropyEnable = VK_TRUE;
-		
+		samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+		samplerInfo.compareEnable = VK_TRUE;
+		samplerInfo.compareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+
 		VkSampler sampler = VK_NULL_HANDLE;
 		ENIGMA_VK_CHECK(vkCreateSampler(context.device, &samplerInfo, nullptr, &sampler), "Failed to create sampler");
-		
+
 		return sampler;
 	}
 
