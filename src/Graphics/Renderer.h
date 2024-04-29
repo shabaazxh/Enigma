@@ -1,15 +1,5 @@
 #pragma once
-#include <Volk/volk.h>
-#include "Allocator.h"
-#include "VulkanObjects.h"
-#include "VulkanContext.h"
-#include "Common.h"
-#include "../Core/VulkanWindow.h"
-#include <memory.h>
-#include <vector>
-#include "../Core/Error.h"
-#include "../Core/Engine.h"
-#include "../Core/World.h"
+#include "../Core/Pipelines.h"
 
 namespace Enigma
 {
@@ -20,7 +10,7 @@ namespace Enigma
 			~Renderer();
 			void DrawScene();
 			void Update(Camera* cam);
-			Pipeline CreateGraphicsPipeline(const std::string& vertex, const std::string& fragment, VkBool32 enableBlend, VkBool32 enableDepth, VkBool32 enableDepthWrite, const std::vector<VkDescriptorSetLayout>& descriptorLayouts, PipelineLayout& pipelinelayout, VkPrimitiveTopology topology);
+			//Pipeline CreateGraphicsPipeline(const std::string& vertex, const std::string& fragment, VkBool32 enableBlend, VkBool32 enableDepth, VkBool32 enableDepthWrite, const std::vector<VkDescriptorSetLayout>& descriptorLayouts, PipelineLayout& pipelinelayout, VkPrimitiveTopology topology);
 		private:
 			void CreateRendererResources();
 			void CreateDescriptorSetLayouts();
@@ -51,6 +41,7 @@ namespace Enigma
 
 			Pipeline m_pipeline;
 			Pipeline m_aabbPipeline;
+			Pipeline m_animPipeline;
 	
 			PipelineLayout m_pipelinePipelineLayout;
 			std::vector<VkDescriptorSet> m_sceneDescriptorSets;

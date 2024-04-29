@@ -463,12 +463,14 @@ namespace Enigma
 				boneIndex = numBones++;
 				BoneInfo bi;
 				boneInfo.push_back(bi);
-				boneMapping[boneName] = boneIndex;
-				boneInfo[boneIndex].offset = mesh->mBones[i]->mOffsetMatrix;
 			}
 			else {
 				boneIndex = boneMapping[boneName];
 			}
+
+
+			boneMapping[boneName] = boneIndex;
+			boneInfo[boneIndex].offset = mesh->mBones[i]->mOffsetMatrix;
 
 			for (uint32_t j = 0; j < mesh->mBones[i]->mNumWeights; j++) {
 				uint32_t vertexID = mesh->mBones[i]->mWeights[j].mVertexId;
@@ -476,14 +478,11 @@ namespace Enigma
 				boneData[vertexID].add(boneIndex, weight);
 			}
 		}
-		boneTransforms.resize(numBones);
 	}
 
 	void Model::processMesh(aiMesh* mesh, const aiScene* scene) {
 		std::vector<Vertex> vertices(mesh->mNumVertices);
 		std::vector<unsigned int> indices;
-
-		std::vector<Vertex> boneData(mesh->mNumVertices);
 
 		// Process vertices: positions, normals, and texture coordinates
 		for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
@@ -507,6 +506,10 @@ namespace Enigma
 			vertices[i] = vertex;
 		}
 
+		if ((mesh->HasBones())) {
+			loadBones(mesh, vertices);
+		}
+
 		// Process indices
 		for (unsigned int i = 0; i < mesh->mNumFaces; i++) 
 		{
@@ -519,7 +522,6 @@ namespace Enigma
 		Mesh tempMesh;
 		tempMesh.vertices = vertices;
 		tempMesh.indices = indices;
-		tempMesh.boneData = boneData;  // ´æ´¢¹Ç÷ÀÊý¾Ý
 		if (mesh->mMaterialIndex >= 0) {
 			tempMesh.materialIndex = mesh->mMaterialIndex;
 		}
@@ -540,6 +542,7 @@ namespace Enigma
 			processNode(node->mChildren[i], scene);
 		}
 	}
+
 	/*
 	void Model::LoadAnimations(const aiScene* scene) {
 		for (unsigned int i = 0; i < scene->mNumAnimations; i++) {
@@ -547,6 +550,7 @@ namespace Enigma
 		}
 	}
 	*/
+
 	void Model::updateAnimation(const aiScene* scene, float deltaTime) {
 		// check if there is animation
 		if (!scene || scene->mNumAnimations == 0)
@@ -562,6 +566,9 @@ namespace Enigma
 
 			readNodeHierarchy(scene->mRootNode, aiMatrix4x4(), animationTime, anim);
 		}
+
+		boneTransforms.resize(numBones);
+
 		for (uint32_t i = 0; i < boneTransforms.size(); i++)
 		{
 			boneTransforms[i] = boneInfo[i].finalTransformation;

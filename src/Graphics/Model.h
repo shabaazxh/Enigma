@@ -36,8 +36,8 @@ namespace Enigma
 		glm::vec3 color;
 		glm::vec3 normal;
 
-		std::array<uint32_t, MAX_BONES_PER_VERTEX> boneIDs;
-		std::array<float, MAX_BONES_PER_VERTEX> weights;
+		std::array<uint32_t, MAX_BONES_PER_VERTEX> boneIDs = { 0, 0, 0, 0 };
+		std::array<float, MAX_BONES_PER_VERTEX> weights = { 0.f, 0.f, 0.f, 0.f };
 
 		void add(uint32_t boneID, float weight) {
 			for (uint32_t i = 0; i < MAX_BONES_PER_VERTEX; i++) {
@@ -130,8 +130,6 @@ namespace Enigma
 		Buffer indexBuffer;
 		Buffer AABB_buffer;
 		Buffer AABB_indexBuffer;
-
-		std::vector<Vertex> boneData;  // Add bone data to the Mesh structure
 	};
 
 	struct ModelPushConstant
@@ -156,6 +154,7 @@ namespace Enigma
 			void Draw(VkCommandBuffer cmd, VkPipelineLayout layout, VkPipeline aabPipeline);
 			glm::vec3 GetAABBMin() { return m_AABB.min; };
 			glm::vec3 GetAABBMax() { return m_AABB.max; };
+			void updateAnimation(const aiScene* scene, float deltaTime);
 
 			std::vector<Material> materials;
 			std::vector<Mesh> meshes;
@@ -166,19 +165,6 @@ namespace Enigma
 			const aiScene* m_Scene;
 
 			std::unordered_map<std::string, int> boneMapping; // Global bone index mapping
-			int boneCount = 0; // Global bone counter
-			int getBoneID(const std::string& boneName) {
-				auto it = boneMapping.find(boneName);
-				if (it != boneMapping.end()) {
-					return it->second;
-				}
-				else {
-					int id = boneCount;
-					boneMapping[boneName] = id;
-					boneCount++;
-					return id;
-				}
-			}
 
 		private:
 			glm::vec3 translation = glm::vec3(0.f, 0.f, 0.f);
@@ -343,7 +329,6 @@ namespace Enigma
 			std::vector<aiMatrix4x4> boneTransforms;
 
 			void loadBones(aiMesh* mesh, std::vector<Vertex>& boneData);
-			void updateAnimation(const aiScene* scene, float deltaTime);
 
 			void processNode(aiNode* node, const aiScene* scene);
 			void processMesh(aiMesh* mesh, const aiScene* scene);

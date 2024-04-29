@@ -100,6 +100,7 @@ IF EXIST "$(SolutionDir)zlib1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlib1.dll"
     <ClInclude Include="..\src\Core\Collision.h" />
     <ClInclude Include="..\src\Core\Engine.h" />
     <ClInclude Include="..\src\Core\Error.h" />
+    <ClInclude Include="..\src\Core\Pipelines.h" />
     <ClInclude Include="..\src\Core\VulkanWindow.h" />
     <ClInclude Include="..\src\Core\World.h" />
     <ClInclude Include="..\src\Graphics\Allocator.h" />
@@ -120,6 +121,7 @@ IF EXIST "$(SolutionDir)zlib1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlib1.dll"
     <ClCompile Include="..\src\Core\Camera.cpp" />
     <ClCompile Include="..\src\Core\Collision.cpp" />
     <ClCompile Include="..\src\Core\Engine.cpp" />
+    <ClCompile Include="..\src\Core\Pipelines.cpp" />
     <ClCompile Include="..\src\Core\VulkanWindow.cpp" />
     <ClCompile Include="..\src\Graphics\Allocator.cpp" />
     <ClCompile Include="..\src\Graphics\Character.cpp" />

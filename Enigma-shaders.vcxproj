@@ -67,6 +67,9 @@
       <Message>Compiling GLSL: '%(Filename)%(Extension)'</Message>
     </CustomBuild>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\Shaders\vertexAnim.vert" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
