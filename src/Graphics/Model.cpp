@@ -28,6 +28,7 @@ namespace Enigma
 	// also, doesn't fbx model load all formats and not just fbx since it's using assimp which loads all model types?
 	Model::Model(const std::string& filepath, const VulkanContext& context, int filetype) : m_filePath{filepath}, context{context}
 	{
+		modelName = "";
 		if (filetype == 0)
 			LoadOBJModel(filepath);
 		else if (filetype == 1)
@@ -39,6 +40,7 @@ namespace Enigma
 		// Load the obj file
 		rapidobj::Result result = rapidobj::ParseFile(filepath.c_str());
 		if (result.error) {
+			std::cout << "RapidObj: " << result.error.code.message() << std::endl;
 			ENIGMA_ERROR("Failed to load model.");
 			throw std::runtime_error("Failed to load model");
 		}
@@ -108,6 +110,7 @@ namespace Enigma
 		const std::string prefix = pathEnd ? std::string(pathBegin, pathEnd + 1) : "";
 
 		m_filePath = filepath;
+		modelName = std::string(pathEnd);
 
 		// Find the materials for this model (searching for diffuse only at the moement)
 		for (const auto& mat : result.materials)
@@ -116,8 +119,20 @@ namespace Enigma
 			mi.materialName = mat.name;
 			mi.diffuseColour = glm::vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]);
 
-			if (!mat.diffuse_texname.empty())
+			if (!mat.diffuse_texname.empty()) 
+			{
 				mi.diffuseTexturePath = prefix + mat.diffuse_texname;
+			}
+			
+			if (!mat.metallic_texname.empty())
+			{
+				mi.metallicTexturePath = prefix + mat.metallic_texname;
+			}
+
+			if (!mat.roughness_texname.empty())
+			{
+				mi.roughnessTexturePath = prefix + mat.roughness_texname;
+			}
 
 			materials.emplace_back(std::move(mi));
 		}
@@ -139,14 +154,16 @@ namespace Enigma
 				assert(matID < int(materials.size()));
 				activeMaterials.emplace(matID);
 			}
-			;
+			
 			// process vertices for materials which are active
 			for (const auto matID : activeMaterials)
 			{
 				Vertex vertex{};
-				const bool textured = !materials[matID].diffuseTexturePath.empty();
+				const bool diffuse = !materials[matID].diffuseTexturePath.empty();
+				const bool metallic = !materials[matID].metallicTexturePath.empty();
+				const bool roughness = !materials[matID].roughnessTexturePath.empty();
 
-				if (!textured)
+				if (!diffuse)
 				{
 					vertex.color = materials[matID].diffuseColour;
 				}
@@ -182,7 +199,7 @@ namespace Enigma
 						result.attributes.normals[idx.normal_index * 3 + 2]
 						});
 
-					if (textured)
+					if (diffuse)
 					{
 						vertex.tex = (glm::vec2(
 							result.attributes.texcoords[idx.texcoord_index * 2 + 0],
@@ -201,7 +218,9 @@ namespace Enigma
 
 				mesh.materialIndex = (int)matID;
 				mesh.meshName = std::move(meshName);
-				mesh.textured = textured;
+				mesh.textured = diffuse;
+				mesh.hasMetallic = metallic;
+				mesh.hadRoughness = roughness;
 				meshes.emplace_back(std::move(mesh));
 			}
 
@@ -209,8 +228,9 @@ namespace Enigma
 
 		
 		// need to store it at mesh index not material index when pushing into loaded exxtures
-
-		const std::string defaultTexture = "../resources/textures/jpeg/sponza_floor_a_diff.jpg";
+		// if a diffuse texture cannot be found, a pink texure is used as a placeholder
+		// pink is used since it's easily visible in the scene to indicate there is a mesh issue
+		const std::string defaultTexture = "../resources/default_texture.jpg";
 		loadedTextures.resize(materials.size());
 		for (int i = 0; i < materials.size(); i++)
 		{
@@ -226,6 +246,21 @@ namespace Enigma
 			}
 		}
 
+		MetallicTextures.resize(materials.size());
+		for (int i = 0; i < materials.size(); i++)
+		{
+			if (materials[i].roughnessTexturePath != "")
+			{
+				Image texture = Enigma::CreateTexture(context, materials[i].metallicTexturePath);
+				MetallicTextures[i] = std::move(texture);
+			}
+			else
+			{
+				Image defaultTex = Enigma::CreateTexture(context, defaultTexture);
+				MetallicTextures[i] = std::move(defaultTex);
+			}
+		}
+
 		Enigma::AllocateDescriptorSets(context, Enigma::descriptorPool, Enigma::descriptorLayoutModel, 1, m_descriptorSet);
 
 		std::vector<VkDescriptorImageInfo> imageinfos;
@@ -235,11 +270,23 @@ namespace Enigma
 			VkDescriptorImageInfo imageInfo{};
 			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			imageInfo.imageView = loadedTextures[i].imageView;
-			imageInfo.sampler = Enigma::defaultSampler;
+			imageInfo.sampler = Enigma::repeatSampler;
 
 			imageinfos.emplace_back(std::move(imageInfo));
 
 		}
+
+		std::vector<VkDescriptorImageInfo> metallic_image_infos;
+		for (size_t i = 0; i < MetallicTextures.size(); i++)
+		{
+			VkDescriptorImageInfo imageInfo{};
+			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo.imageView = MetallicTextures[i].imageView;
+			imageInfo.sampler = Enigma::defaultSampler;
+
+			metallic_image_infos.emplace_back(std::move(imageInfo));
+		}
+
 		// 12
 		VkWriteDescriptorSet descriptorWrite{};
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -250,9 +297,19 @@ namespace Enigma
 		descriptorWrite.descriptorCount = static_cast<uint32_t>(imageinfos.size());
 		descriptorWrite.pImageInfo = imageinfos.data();
 
-		vkUpdateDescriptorSets(context.device, 1, &descriptorWrite, 0, nullptr);
+		VkWriteDescriptorSet metallic_descriptorWrite{};
+		metallic_descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		metallic_descriptorWrite.dstSet = m_descriptorSet[0];
+		metallic_descriptorWrite.dstBinding = 1;
+		metallic_descriptorWrite.dstArrayElement = 0;
+		metallic_descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		metallic_descriptorWrite.descriptorCount = static_cast<uint32_t>(metallic_image_infos.size());
+		metallic_descriptorWrite.pImageInfo = metallic_image_infos.data();
+
+		std::vector<VkWriteDescriptorSet> sets = { descriptorWrite, metallic_descriptorWrite };
+
+		vkUpdateDescriptorSets(context.device, (uint32_t)sets.size(), sets.data(), 0, nullptr);
 	
-		
 		for (auto& mesh : meshes)
 		{
 			std::vector<Vertex> verts;
@@ -769,17 +826,20 @@ namespace Enigma
 		{
 			ModelPushConstant push = {};
 			push.model = glm::mat4(1.0f);
-			push.model = glm::translate(push.model, this->translation);
+			push.model = glm::scale(push.model, scale);
+			push.model = push.model * rotMatrix;
+			push.model = glm::translate(push.model, translation);
+
 			if (player) {
 				push.model = rotMatrix;
 				push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
 			}
 			else {
-				push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
+				//push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
+				//push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
+				//push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
 			}
-			push.model = glm::scale(push.model, this->scale);
+
 			push.textureIndex = mesh.materialIndex;
 			push.isTextured = mesh.textured;
 
@@ -825,7 +885,6 @@ namespace Enigma
 
 			VkDeviceSize offset[] = { 0 };
 			vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.AABB_buffer.buffer, offset);
-			//vkCmdDraw(cmd, mesh.aabbVertices.size(), 1, 0, 0);
 
 			vkCmdBindIndexBuffer(cmd, mesh.AABB_indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 			vkCmdDrawIndexed(cmd, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);

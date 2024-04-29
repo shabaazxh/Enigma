@@ -9,6 +9,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE 
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
 
@@ -20,7 +21,7 @@
 int main() {
 
     Enigma::Time* timer = new Enigma::Time();
-    Enigma::Camera FPSCamera = Enigma::Camera(glm::vec3(-16.0f, 6.1f, -3.07), glm::normalize(glm::vec3(30, 0, -1) + glm::vec3(0, 0, 0)), glm::vec3(0, 1, 0), *timer, 800.0f / 600.0f);
+    Enigma::Camera FPSCamera = Enigma::Camera(glm::vec3(-16.0f, 6.1f, -3.07), glm::normalize(glm::vec3(-16.0f, 6.1f, -3.07) + glm::vec3(0, 0, -1)), glm::vec3(0, 1, 0), *timer, 1920.0f / 1080.0f);
     
     // Prepare context initializes Volk and prepares a instance with debug enabled (if in DEBUG mode).
     Enigma::VulkanContext context = Enigma::PrepareContext();
@@ -32,15 +33,11 @@ int main() {
     // Finialize the window by creating swapchain resources for presentation
     Enigma::MakeVulkanWindow(window, context, &FPSCamera);
 
-    glfwSetInputMode(window.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetWindowUserPointer(window.window, &window);
 
     // Set cursor and keyboard callbacks
     glfwSetKeyCallback(window.window, window.glfw_callback_key_press);
     glfwSetCursorPosCallback(window.window, window.glfw_callback_mouse);
-
-    // Create a directional light: Position, colour and intensity ( perhaps this should be moved to the Renderer )
-    Enigma::WorldInst.Lights.push_back(Enigma::CreateDirectionalLight(glm::vec4(0.0f, 10.0f, 0.0f, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 1.0));
 
     Enigma::Renderer renderer = Enigma::Renderer(context, window, &FPSCamera);
 

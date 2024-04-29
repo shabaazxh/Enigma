@@ -16,7 +16,9 @@ project "Enigma"
 		"src/Core/**.h",
 		"src/Graphics/**.h",
         "src/Graphics/**.cpp",
-		"src/**.cpp"
+		"src/**.cpp",
+		"libs/imgui/**.cpp",
+		"libs/imgui/**.h"
 	}
 
 	kind "ConsoleApp"
@@ -36,7 +38,8 @@ project "Enigma"
 		"libs/rapidobj/",
 		"libs/stb/",
 		"libs/assimp_x64-windows/",
-		"libs/assimp_x64-windows/include/"
+		"libs/assimp_x64-windows/include/",
+		"libs/imgui"
 	}
 
 	links {

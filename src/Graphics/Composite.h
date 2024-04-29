@@ -24,8 +24,7 @@ namespace Enigma
 		~Composite();
 
 		void Execute(VkCommandBuffer cmd);
-		void Update(Camera* camera);
-		void Resize();
+		void Resize(VulkanWindow& window);
 	private:
 		void CreatePipeline(VkDevice device, VkExtent2D swapchainExtent);
 		void BuildDescriptorSetLayout(const VulkanContext& context);
@@ -39,7 +38,6 @@ namespace Enigma
 		VkDescriptorSetLayout m_descriptorSetLayout;
 		std::vector<VkDescriptorSet> m_descriptorSets;
 		Image renderTarget;
-
 		Image& m_LightingPass;
 	};
 };

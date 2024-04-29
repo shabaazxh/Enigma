@@ -1,6 +1,26 @@
 #include "Renderer.h"
 #include "Player.h"
 #include <fstream>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_vulkan.h>#
+#include <cmath>
+#include <corecrt_math_defines.h>
+#include "../Core/Settings.h"
+#include <imgui/imgui_impl_vulkan.h>
+
+namespace Tweakables
+{
+	glm::vec4 SunPosition;
+	float SunInclination = 0.1f;
+	float SunOrientation = 0.1f;
+
+	float SunIntensity;
+	int DebugDisplayRenderTarget = 0;
+
+	int stepCount = 0;
+	float thickness = 0.001f;
+	float maxDistance = 0.005f;
+}
 
 namespace Enigma
 {
@@ -8,12 +28,22 @@ namespace Enigma
 	{	
 		CreateRendererResources();		
 
+		m_shadowPass = new ShadowPass(context, window);
 		m_gBufferPass = new GBuffer(context, window, gBufferTargets);
-		m_lightingPass = new Lighting(context, window, gBufferTargets);
+		m_lightingPass = new Lighting(context, window, gBufferTargets, m_shadowPass->GetRenderTarget());
 		m_compositePass = new Composite(context, window, m_lightingPass->GetRenderTarget());
+		ImGuiRenderer::Initialize(context, window);
 
-		Model* sponza = new Model("../resources/sponza_with_ship.obj", context, ENIGMA_LOAD_OBJ_FILE);
-		Enigma::WorldInst.Meshes.push_back(sponza);
+		// Create a directional light: Position, colour and intensity -125.242f, 359.0f, -67.708, 1.0f
+		Enigma::Light SunLight = Enigma::CreateDirectionalLight(glm::vec4(-45.802f, 105.0f, 23.894, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 1.0);
+		Enigma::WorldInst.Lights.push_back(SunLight);
+
+		Model* Level = new Model("../resources/level1.obj", context, ENIGMA_LOAD_OBJ_FILE);
+		Model* LightBulb = new Model("../resources/Light/Light.obj", context, ENIGMA_LOAD_OBJ_FILE);
+		Enigma::WorldInst.Meshes.push_back(Level);
+		Enigma::WorldInst.Meshes.push_back(LightBulb);
+		Enigma::WorldInst.Meshes[0]->scale = glm::vec3(1.0f, 1.0f, 1.0f);
+
 		Enemy* enemy1 = new Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE);
 		Enigma::WorldInst.Meshes.push_back(enemy1->model);
 		enemy1->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
@@ -26,7 +56,6 @@ namespace Enigma
 		enemy2->setTranslation(glm::vec3(60.f, 0.1f, 50.f));
 		Enigma::WorldInst.Enemies.push_back(enemy2);
 
-		//player = new Player(context);
 		Enigma::WorldInst.player = new Player("../resources/gun.obj", context, ENIGMA_LOAD_OBJ_FILE);
 		if (!Enigma::WorldInst.player->noModel) {
 			Enigma::WorldInst.Meshes.push_back(Enigma::WorldInst.player->model);
@@ -41,9 +70,12 @@ namespace Enigma
 		// Ensure all commands have finished and the GPU is now idle
 		vkDeviceWaitIdle(context.device);
 
+		delete m_shadowPass;
 		delete m_lightingPass;
 		delete m_gBufferPass;
 		delete m_compositePass;
+
+		ImGuiRenderer::Shutdown(context);
 
 		for (auto& model : Enigma::WorldInst.Meshes)
 		{
@@ -57,7 +89,7 @@ namespace Enigma
 		}
 
 		vkDestroySampler(context.device, Enigma::defaultSampler, nullptr);
-		vkDestroyDescriptorSetLayout(context.device, Enigma::sceneDescriptorLayout, nullptr);
+		vkDestroySampler(context.device, Enigma::repeatSampler, nullptr);
 		vkDestroyDescriptorSetLayout(context.device, Enigma::descriptorLayoutModel, nullptr); // this one is not being destroyed for some reason 
 		vkDestroyDescriptorPool(context.device, Enigma::descriptorPool, nullptr);
 	}
@@ -79,23 +111,14 @@ namespace Enigma
 		info.maxSets = 1536;
 
 		ENIGMA_VK_CHECK(vkCreateDescriptorPool(context.device, &info, nullptr, &Enigma::descriptorPool), "Failed to create descriptor pool in renderer");
-	
-		// Set = 1
-		{
-			std::vector<VkDescriptorSetLayoutBinding> bindings = {
-				CreateDescriptorBinding(0, 40, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
-			};
-
-			Enigma::descriptorLayoutModel = CreateDescriptorSetLayout(context, bindings);
-		}
-
 	}
 
 	void Renderer::CreateRendererResources()
 	{
 		CreateDescriptorPool();
 
-		Enigma::defaultSampler = Enigma::CreateSampler(context);
+		Enigma::defaultSampler = Enigma::CreateSampler(context, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
+		Enigma::repeatSampler = Enigma::CreateSampler(context, VK_SAMPLER_ADDRESS_MODE_REPEAT);
 
 		for (size_t i = 0; i < Enigma::MAX_FRAMES_IN_FLIGHT; i++)
 		{
@@ -139,27 +162,144 @@ namespace Enigma
 		}
 	}
 
+	// This will handle the settings shown in ImGui
+	void Renderer::UpdateImGui()
+	{	
+		if (Enigma::isDebug)
+		{
+			ImGuiViewport* pViewport = ImGui::GetMainViewport();
+
+			if (ImGui::BeginMainMenuBar())
+			{
+				if (ImGui::BeginMenu("File"))
+				{
+					if (ImGui::MenuItem("Load Mesh", nullptr, nullptr))
+					{
+						if (ImGui::Begin("Mesh Loader"))
+						{
+							static char str[200] = "some content";
+							ImGui::InputText("Input text: ", str, IM_ARRAYSIZE(str));
+							if (ImGui::Button("Load"))
+							{
+								std::cout << "Pressed button" << std::endl;
+							}
+						}
+
+						ImGui::End();
+					}
+
+					ImGui::EndMenu();
+				}
+
+				ImGui::EndMainMenuBar();
+			}
+
+			ImGui::Begin("Debug");
+			ImGui::TextColored(ImVec4(0.76, 0.5, 0.0, 1.0), "FPS: (%.1f FPS), %.3f ms/frame", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+			ImGui::Text("Camera Position: (%.2f, %.2f, %.2f)",
+				camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z);
+
+			if (!Enigma::WorldInst.Lights.empty())
+			{
+				Tweakables::SunPosition = Enigma::WorldInst.Lights[0].m_position;
+				if (ImGui::CollapsingHeader("Lighting"))
+				{
+					float* SunPosition[3] = { &Tweakables::SunPosition.x, &Tweakables::SunPosition.y, &Tweakables::SunPosition.z };
+					ImGui::SliderFloat("X: ", SunPosition[0], -300.0f, 300.0f);
+					ImGui::SliderFloat("Y: ", SunPosition[1], -10.0f, 2000.0f);
+					ImGui::SliderFloat("Z: ", SunPosition[2], -300.0f, 300.0f);
+					ImGui::SliderFloat("Intesity: ", &Tweakables::SunIntensity, 1.0, 10.0);
+					ImGui::SliderFloat("Shadow View:", &Enigma::WorldInst.Lights[0].view, 0, 2000.0f);
+					ImGui::SliderFloat("Light Near: ", &Enigma::WorldInst.Lights[0].m_near, -100.0f, 10.0f);
+					ImGui::SliderFloat("Light Far: ", &Enigma::WorldInst.Lights[0].m_far, 1.0f, 1000.0f);
+				}
+
+				Enigma::WorldInst.Lights[0].m_position = Tweakables::SunPosition;
+				Enigma::WorldInst.Lights[0].m_intensity = Tweakables::SunIntensity;
+				Enigma::WorldInst.Meshes[1]->translation = glm::vec3(Tweakables::SunPosition.x, Tweakables::SunPosition.y, Tweakables::SunPosition.z);
+			}
+
+			if (ImGui::CollapsingHeader("Render Type"))
+			{
+				const char* types[3] = { "Final", "ShadowMap", "Normals" };
+				if (ImGui::ListBox("Render Type", &Tweakables::DebugDisplayRenderTarget, types, 3))
+				{
+					debugSettings.debugRenderTarget = Tweakables::DebugDisplayRenderTarget;
+				}
+			}
+
+			if (ImGui::CollapsingHeader("SSR"))
+			{
+				ImGui::SliderInt("RayCount: ", &Tweakables::stepCount, 0, 100);
+				ImGui::SliderFloat("Thickness: ", &Tweakables::thickness, 0.f, 0.100f);
+				ImGui::SliderFloat("MaxDist: ", &Tweakables::maxDistance, 0.f, 1.100f);
+
+				debugSettings.stepCount = Tweakables::stepCount;
+				debugSettings.thickness = Tweakables::thickness;
+				debugSettings.maxDistance = Tweakables::maxDistance;
+			}
+
+			// Use the ID to uniquely move each unique mesh we have inside the meshes array
+			int n = 0;
+			for (const auto& model : Enigma::WorldInst.Meshes)
+			{
+				ImGui::PushID(n);
+				if (ImGui::CollapsingHeader(model->modelName.c_str()))
+				{
+					float* pos[3] = { &model->translation.x, &model->translation.y, &model->translation.z };
+					float* scale = &model->scale.x;
+					ImGui::SliderFloat3("Transform: ", *pos, -1000.0f, 1000.0f);
+					ImGui::SliderFloat("Scale: ", scale, 0.f, 1.0);
+
+					model->scale.y = *scale;
+					model->scale.z = *scale;
+				}
+				ImGui::PopID();
+				n++;
+			}
+
+			ImGui::End();
+		}
+	}
+
 	void Renderer::Update(Camera* cam)
 	{
-		void* data = nullptr;
+		ImGui_ImplVulkan_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		if (Enigma::isDebug)
+		{
+			glfwSetInputMode(window.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+		else
+		{
+			glfwSetInputMode(window.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		}
+		
+		cam->Update(window.window);
+
+		UpdateImGui();
+
 		if (current_state != isPlayer) {
 			if (isPlayer) {
 				camera->SetPosition(Enigma::WorldInst.player->translation + glm::vec3(0.f, 13.f, 0.f));
 				camera->SetNearPlane(0.05f);
 			}
 			else {
-				camera->SetNearPlane(1.f);
+				camera->SetNearPlane(0.1f);
+				camera->SetFarPlane(80.0f);
 			}
 			current_state = isPlayer;
 		}
-	
+		
+		m_shadowPass->Update();
 		m_gBufferPass->Update(cam);
 		m_lightingPass->Update(cam);
 	}
 
 	void Renderer::DrawScene()
 	{
-
 		vkWaitForFences(context.device, 1, &m_fences[Enigma::currentFrame].handle, VK_TRUE, UINT64_MAX);
 		vkResetFences(context.device, 1, &m_fences[Enigma::currentFrame].handle);
 		
@@ -171,7 +311,6 @@ namespace Enigma
 		vkResetCommandBuffer(m_renderCommandBuffers[Enigma::currentFrame], 0);
 
 		VkCommandBuffer cmd = m_renderCommandBuffers[Enigma::currentFrame];
-
 
 		// Rendering ( Record commands for submission )
 		{
@@ -191,10 +330,11 @@ namespace Enigma
 				Enigma::WorldInst.player->setRotationMatrix(glm::inverse(camera->GetCameraTransform().view));
 			}
 
+			m_shadowPass->Execute(m_renderCommandBuffers[Enigma::currentFrame], Enigma::WorldInst.Meshes);
 			m_gBufferPass->Execute(m_renderCommandBuffers[Enigma::currentFrame], Enigma::WorldInst.Meshes);
 			m_lightingPass->Execute(m_renderCommandBuffers[Enigma::currentFrame]);
 			m_compositePass->Execute(m_renderCommandBuffers[Enigma::currentFrame]);
-
+			ImGuiRenderer::Render(cmd, window, index);
 			vkEndCommandBuffer(m_renderCommandBuffers[Enigma::currentFrame]);
 		}
 
@@ -227,8 +367,12 @@ namespace Enigma
 		// if it is, recreate the swapchain to ensure it's rendering at the new window size
 		if (window.isSwapchainOutdated(res))
 		{
+			gBufferTargets;
 			vkDeviceWaitIdle(context.device);
 			Enigma::RecreateSwapchain(context, window); 
+			m_gBufferPass->Resize(window);
+			m_lightingPass->Resize(window);
+			m_compositePass->Resize(window);
 			window.hasResized = true;
 		}
 

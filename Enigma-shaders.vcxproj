@@ -78,6 +78,12 @@
       <Outputs>resources/Shaders/fs_quad.vert.spv</Outputs>
       <Message>Compiling GLSL: '%(Filename)%(Extension)'</Message>
     </CustomBuild>
+    <CustomBuild Include="resources\Shaders\fs_shadowpass.frag">
+      <FileType>Document</FileType>
+      <Command>"libs/glslangValidator.exe" -V %(Identity) -o %(Identity).spv</Command>
+      <Outputs>resources/Shaders/fs_shadowpass.frag.spv</Outputs>
+      <Message>Compiling GLSL: '%(Filename)%(Extension)'</Message>
+    </CustomBuild>
     <CustomBuild Include="resources\Shaders\gbuffer.frag">
       <FileType>Document</FileType>
       <Command>"libs/glslangValidator.exe" -V %(Identity) -o %(Identity).spv</Command>
@@ -94,6 +100,12 @@
       <FileType>Document</FileType>
       <Command>"libs/glslangValidator.exe" -V %(Identity) -o %(Identity).spv</Command>
       <Outputs>resources/Shaders/vertex.vert.spv</Outputs>
+      <Message>Compiling GLSL: '%(Filename)%(Extension)'</Message>
+    </CustomBuild>
+    <CustomBuild Include="resources\Shaders\vs_shadowpass.vert">
+      <FileType>Document</FileType>
+      <Command>"libs/glslangValidator.exe" -V %(Identity) -o %(Identity).spv</Command>
+      <Outputs>resources/Shaders/vs_shadowpass.vert.spv</Outputs>
       <Message>Compiling GLSL: '%(Filename)%(Extension)'</Message>
     </CustomBuild>
   </ItemGroup>

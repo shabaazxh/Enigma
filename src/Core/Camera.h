@@ -1,10 +1,12 @@
 #pragma once
 
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "../Graphics/Common.h"
+#include <GLFW/glfw3.h>
 
 namespace Enigma
 {
@@ -12,7 +14,8 @@ namespace Enigma
 	{
 		public:
 			Camera() = default;
-			Camera(const glm::vec3 position, glm::vec3 direction, glm::vec3 up, Time& time, float aspect) : m_position{ position }, m_direction{ direction }, m_up{ up }, time{ time } {}
+			Camera(const glm::vec3 position, glm::vec3 direction, glm::vec3 up, Time& time, float aspect) : m_position{ position }, m_direction{ direction }, m_up { up }, time{ time }
+			{}
 
 			void SetSpeed(float speed) { m_cameraSpeed = speed; }
 
@@ -24,37 +27,38 @@ namespace Enigma
 
 			const CameraTransform& GetCameraTransform() const { return m_transform; }
 
-			glm::vec3 smoothstep(const glm::vec3& v1, const glm::vec3& v2, float t)
-			{
-				t = glm::clamp(t, 0.0f, 1.0f);
-				return glm::smoothstep(v1, v2, glm::vec3(t));
-			}
 
-			void Forward()
+			void Update(GLFWwindow* window)
 			{
-				float speed = static_cast<float>(m_cameraSpeed * time.deltaTime);
-				m_position += speed * m_direction;
-				//glm::vec3 movement = glm::vec3(0, 0, 1.0);
-				//m_velocity = smoothstep(m_velocity, movement, 0.2f);
-				//m_position += m_velocity * speed;
-			}
+				glm::vec3 movementAmount = glm::vec3(0.0f, 0.0f, 0.0f);
 
-			void Back()
-			{
-				float speed = static_cast<float>(m_cameraSpeed * time.deltaTime);
-				m_position -= speed * m_direction;  
-			}
+				if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+				{
+					glm::vec3 forward = glm::normalize(m_direction);
+					movementAmount += forward;
+				}
 
-			void Right()
-			{
-				float speed = static_cast<float>(m_cameraSpeed * time.deltaTime);
-				m_position += glm::normalize(glm::cross(m_direction, m_up)) * speed;
-			}
+				else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+				{
+					glm::vec3 forward = glm::normalize(m_direction);
+					movementAmount -= forward;
+				}
 
-			void Left()
-			{
+				if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+				{
+					glm::vec3 left = glm::normalize(glm::cross(m_direction, m_up));
+					movementAmount -= left;
+				}
+
+				else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+				{
+					glm::vec3 right = glm::normalize(glm::cross(m_direction, m_up));
+					movementAmount += right;
+				}
+
 				float speed = static_cast<float>(m_cameraSpeed * time.deltaTime);
-				m_position -= glm::normalize(glm::cross(m_direction, m_up)) * speed;
+				auto movement = movementAmount * speed;
+				m_position += movement;
 			}
 
 			void PlayerForward()
@@ -103,9 +107,10 @@ namespace Enigma
 				m_transform.view = glm::lookAt(m_position, m_position + m_direction, m_up);
 				m_transform.projection = glm::perspective(m_transform.fov, width / (float) height, m_transform.nearPlane, m_transform.farPlane);
 				m_transform.projection[1][1] *= -1;
+				m_transform.cameraPosition = m_position;
 			}
 
-			void LogPosition()
+			void LogPosition() const
 			{
 				std::cout << "Position: " << m_position.x << ", " << m_position.y << ", " << m_position.z << " Speed: " << m_cameraSpeed << std::endl;
 			}

@@ -7,6 +7,7 @@
 #include <GLFW/glfw3.h>
 #include "../Core/Engine.h"
 #include "../Core/Error.h"
+#include "../Core/Settings.h"
 
 namespace Enigma
 {
@@ -27,6 +28,11 @@ namespace Enigma
 					glfwSetWindowShouldClose(window, GLFW_TRUE);
 				}
 
+				if (GLFW_KEY_M == key && action == GLFW_PRESS)
+				{
+					Enigma::isDebug = Enigma::isDebug ? false : true;
+				}
+
 				if (glfwGetKey(windowClass->window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 				{
 					windowClass->camera->SetSpeed(100.0f);
@@ -35,139 +41,39 @@ namespace Enigma
 					windowClass->camera->SetSpeed(50.0f);
 				}
 
-				if (!isPlayer) {
-					if (glfwGetKey(windowClass->window, GLFW_KEY_W) == GLFW_PRESS)
-					{
-						windowClass->camera->Forward();
-					}
-
-					if (glfwGetKey(windowClass->window, GLFW_KEY_S) == GLFW_PRESS)
-					{
-						windowClass->camera->Back();
-					}
-
-					if (glfwGetKey(windowClass->window, GLFW_KEY_D) == GLFW_PRESS)
-					{
-						windowClass->camera->Right();
-					}
-
-					if (glfwGetKey(windowClass->window, GLFW_KEY_A) == GLFW_PRESS)
-					{
-						windowClass->camera->Left();
-					}
-
-					if (glfwGetKey(windowClass->window, GLFW_KEY_Q) == GLFW_PRESS)
-					{
-						windowClass->camera->Up();
-					}
-
-					if (glfwGetKey(windowClass->window, GLFW_KEY_E) == GLFW_PRESS)
-					{
-						windowClass->camera->Down();
-					}
-				}
-
-				else {
-					if (glfwGetKey(windowClass->window, GLFW_KEY_W) == GLFW_PRESS)
-					{
-						windowClass->camera->PlayerForward();
-					}
-
-					if (glfwGetKey(windowClass->window, GLFW_KEY_S) == GLFW_PRESS)
-					{
-						windowClass->camera->PlayerBack();
-					}
-
-					if (glfwGetKey(windowClass->window, GLFW_KEY_D) == GLFW_PRESS)
-					{
-						windowClass->camera->PlayerRight();
-					}
-
-					if (glfwGetKey(windowClass->window, GLFW_KEY_A) == GLFW_PRESS)
-					{
-						windowClass->camera->PlayerLeft();
-					}
-				}
-
 				if (glfwGetKey(windowClass->window, GLFW_KEY_P) == GLFW_PRESS)
 				{
 					isPlayer = !isPlayer;
-				}
-
-				if (glfwGetKey(windowClass->window, GLFW_KEY_C) == GLFW_PRESS)
-				{
-					if (Enigma::Settings::MIP_VISUAL() == true)
-					{
-						Enigma::Settings::MIP_VISUAL_OFF();
-					}
-					else
-					{
-						Enigma::Settings::MIP_VISUAL_ON();
-					}
-				}
-
-				if (glfwGetKey(windowClass->window, GLFW_KEY_V) == GLFW_PRESS)
-				{
-					if (Enigma::Settings::OVERDRAW_VISUAL() == true)
-					{
-						Enigma::Settings::OVERDRAW_VISUAL_OFF();
-					}
-					else
-					{
-						Enigma::Settings::OVERDRAW_VISUAL_ON();
-					}
-				}
-
-				if (glfwGetKey(windowClass->window, GLFW_KEY_B) == GLFW_PRESS)
-				{
-					if (Enigma::Settings::OVERSHADE_VISUAL() == true)
-					{
-						Enigma::Settings::OVERSHADING_VISUAL_OFF();
-					}
-					else
-					{
-						Enigma::Settings::OVERSHADIING_VISUAL_ON();
-					}
-				}
-
-				if (glfwGetKey(windowClass->window, GLFW_KEY_N) == GLFW_PRESS)
-				{
-					if (Enigma::Settings::MESH_DENSITY_VISUAL())
-					{
-						Enigma::Settings::MESH_DENSITY_VISUAL_OFF();
-					}
-					else
-					{
-						Enigma::Settings::MESH_DENSITY_VISUAL_ON();
-					}
-				}
-				
+				}				
 				
 			}
 
 			static void glfw_callback_mouse(GLFWwindow* window, double x, double y)
 			{
-
 				VulkanWindow* windowClass = reinterpret_cast<VulkanWindow*>(glfwGetWindowUserPointer(window));
 
-				double x_offset = x - windowClass->m_lastMousePosX;
-				double y_offset = windowClass->m_lastMousePosY - y;
+				// check if right mouse button is pressed, then move the camera
+				if (!Enigma::isDebug)
+				{
+					double x_offset = x - windowClass->m_lastMousePosX;
+					double y_offset = windowClass->m_lastMousePosY - y;
 
-				windowClass->m_lastMousePosX = x;
-				windowClass->m_lastMousePosY = y;
+					windowClass->m_lastMousePosX = x;
+					windowClass->m_lastMousePosY = y;
 
-				const float mouseSensitivity = 0.1f;
-				x_offset *= mouseSensitivity;
-				y_offset *= mouseSensitivity;
+					const float mouseSensitivity = 0.1f;
+					x_offset *= mouseSensitivity;
+					y_offset *= mouseSensitivity;
 
-				windowClass->yaw += x_offset;
-				windowClass->pitch += y_offset;
+					windowClass->yaw += x_offset;
+					windowClass->pitch += y_offset;
 
-				glm::vec3 direction;
-				direction.x = static_cast<float>(std::cos(glm::radians(windowClass->yaw) * std::cos(glm::radians(windowClass->pitch))));
-				direction.y = static_cast<float>(std::sin(glm::radians(windowClass->pitch)));
-				direction.z = static_cast<float>(std::sin(glm::radians(windowClass->yaw) * std::cos(glm::radians(windowClass->pitch))));
-				windowClass->camera->SetDirection(glm::normalize(direction));
+					glm::vec3 direction = glm::vec3(0.0f);
+					direction.x = static_cast<float>(std::cos(glm::radians(windowClass->yaw)) * std::cos(glm::radians(windowClass->pitch)));
+					direction.y = static_cast<float>(std::sin(glm::radians(windowClass->pitch)));
+					direction.z = static_cast<float>(std::sin(glm::radians(windowClass->yaw)) * std::cos(glm::radians(windowClass->pitch)));
+					windowClass->camera->SetDirection(glm::normalize(direction));
+				}
 			}
 
 		public:

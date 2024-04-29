@@ -2,6 +2,7 @@
 
 #include <Volk/volk.h>
 #define GLM_ENABLE_EXPERIMENTAL
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE 
 #include <glm/gtx/hash.hpp>
 #include <glm/glm.hpp>
 #include "VulkanContext.h"
@@ -88,6 +89,9 @@ namespace Enigma
 		std::string materialName;
 		glm::vec3 diffuseColour;
 		std::string diffuseTexturePath;
+		std::string metallicTexturePath;
+		std::string roughnessTexturePath;
+		//std::string normalaMapTexture;
 	};
 	
 	struct Mesh
@@ -95,6 +99,9 @@ namespace Enigma
 		std::string meshName;
 		int materialIndex;
 		bool textured = false;
+		bool hasMetallic = false;
+		bool hadRoughness = false;
+		bool hasDiffuse = false;
 		size_t vertexStartIndex;
 		size_t vertexCount;
 		
@@ -149,12 +156,14 @@ namespace Enigma
 			glm::vec3 scale = glm::vec3(1.f, 1.f, 1.f);
 			bool hasAnimations = false; 
 			aiAnimation** animations; 
+			std::string modelName;
 		private:
 			void LoadOBJModel(const std::string& filepath);
 			void LoadFBXModel(const std::string& filepath);
 			void CreateBuffers();
 		private:
 			std::vector<Image> loadedTextures;
+			std::vector<Image> MetallicTextures;
 			std::vector<VkDescriptorSet> m_descriptorSet;
 			const VulkanContext& context;
 			std::string m_filePath;

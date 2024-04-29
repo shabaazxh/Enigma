@@ -146,7 +146,7 @@ namespace Enigma
 
 		// Re-create new swapchain: images, imageviews, framebuffers, renderpass
 		window.swapchainImages = GetSwapchainImages(context.device, window.swapchain);
-		window.swapchainImageViews = CreateSwapchainImageViews(context.device, VK_FORMAT_B8G8R8A8_SRGB, window.swapchainImages);
+		window.swapchainImageViews = CreateSwapchainImageViews(context.device, VK_FORMAT_B8G8R8A8_UNORM, window.swapchainImages);
 		
 		vkDestroyImageView(context.device, Enigma::depth.imageView, nullptr);
 		vmaDestroyImage(context.allocator.allocator, Enigma::depth.image, Enigma::depth.allocation);
@@ -155,7 +155,7 @@ namespace Enigma
 		Enigma::depth.allocation = VK_NULL_HANDLE;
 
 		Enigma::depth = Enigma::CreateImageTexture2D(context, window.swapchainExtent.width, window.swapchainExtent.height, VK_FORMAT_D32_SFLOAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT, 1);
-		window.renderPass = CreateSwapchainRenderPass(context.device, VK_FORMAT_B8G8R8A8_SRGB);
+		window.renderPass = CreateSwapchainRenderPass(context.device, VK_FORMAT_B8G8R8A8_UNORM);
 		window.swapchainFramebuffers = CreateSwapchainFramebuffers(context.device, window.swapchainImageViews, Enigma::depth, window.renderPass, window.swapchainExtent);
 	}
 }
@@ -205,14 +205,14 @@ namespace
 		VkSurfaceFormatKHR swapFormat = formats[0];
 		for (const auto& format : formats)
 		{
-			if (format.format == VK_FORMAT_R8G8B8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+			if (format.format == VK_FORMAT_B8G8R8A8_UNORM && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
 			{
 				swapFormat = format;
 				break;
 			}
 
 
-			if (format.format == VK_FORMAT_B8G8R8A8_SRGB && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+			if (format.format == VK_FORMAT_B8G8R8A8_UNORM && format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
 			{
 				swapFormat = format;
 				break;

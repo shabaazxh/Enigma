@@ -9,7 +9,6 @@ namespace Enigma
 	{
 		m_width = window.swapchainExtent.width;
 		m_height = window.swapchainExtent.height;
-		//m_format = window.swapchainFormat;
 
 		BuildDescriptorSetLayout(context);
 		CreatePipeline(context.device, window.swapchainExtent);
@@ -17,7 +16,10 @@ namespace Enigma
 
 	Composite::~Composite()
 	{
-
+		if (m_descriptorSetLayout != VK_NULL_HANDLE)
+		{
+			vkDestroyDescriptorSetLayout(context.device, m_descriptorSetLayout, nullptr);
+		}
 	}
 	void Composite::Execute(VkCommandBuffer cmd)
 	{
@@ -27,7 +29,7 @@ namespace Enigma
 		rpBegin.renderArea.extent = { window.swapchainExtent.width, window.swapchainExtent.height };
 		
 		VkClearValue clearValues[1];
-		clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
+		clearValues[0].color = { {0.0f, 0.0f, 0.5f, 1.0f} };
 		rpBegin.clearValueCount = 1;
 		rpBegin.pClearValues = clearValues;
 
@@ -55,6 +57,20 @@ namespace Enigma
 
 		vkCmdEndRenderPass(cmd);
 
+	}
+	void Composite::Resize(VulkanWindow& window)
+	{
+		m_width = window.swapchainExtent.width;
+		m_height = window.swapchainExtent.height;
+
+		for (size_t i = 0; i < Enigma::MAX_FRAMES_IN_FLIGHT; i++)
+		{
+			VkDescriptorImageInfo imageInfo = {};
+			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo.imageView = m_LightingPass.imageView;// need the g-buffer normals texture image view
+			imageInfo.sampler = Enigma::defaultSampler;
+			UpdateDescriptorSet(context, 1, imageInfo, m_descriptorSets[i], VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+		}
 	}
 	void Composite::CreatePipeline(VkDevice device, VkExtent2D swapchainExtent)
 	{
@@ -87,24 +103,20 @@ namespace Enigma
 		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-		VkViewport viewport{};
-		viewport.x = 0.0f;
-		viewport.y = 0.0f;
-		viewport.width = (float)m_width;
-		viewport.height = (float)m_height;
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
+		std::vector<VkDynamicState> dynamicStates = {
+			VK_DYNAMIC_STATE_VIEWPORT,
+			VK_DYNAMIC_STATE_SCISSOR
+		};
 
-		VkRect2D scissor{};
-		scissor.offset = { 0,0 };
-		scissor.extent = swapchainExtent;
+		VkPipelineDynamicStateCreateInfo dynamicState{};
+		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+		dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+		dynamicState.pDynamicStates = dynamicStates.data();
 
 		VkPipelineViewportStateCreateInfo viewportInfo{};
 		viewportInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 		viewportInfo.viewportCount = 1;
-		viewportInfo.pViewports = &viewport;
 		viewportInfo.scissorCount = 1;
-		viewportInfo.pScissors = &scissor;
 
 		VkPipelineRasterizationStateCreateInfo rasterInfo{};
 		rasterInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -129,7 +141,6 @@ namespace Enigma
 		blendStates[0].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 		blendStates[0].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
 		blendStates[0].alphaBlendOp = VK_BLEND_OP_ADD;
-
 
 		VkPipelineColorBlendStateCreateInfo blendInfo{ VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
 		blendInfo.logicOpEnable = VK_FALSE;
@@ -171,7 +182,7 @@ namespace Enigma
 		pipelineInfo.pMultisampleState = &samplingInfo;
 		pipelineInfo.pDepthStencilState = &depthInfo;
 		pipelineInfo.pColorBlendState = &blendInfo;
-		pipelineInfo.pDynamicState = nullptr;
+		pipelineInfo.pDynamicState = &dynamicState;
 		pipelineInfo.layout = m_pipelineLayout.handle;
 		pipelineInfo.renderPass = window.renderPass;
 		pipelineInfo.subpass = 0;

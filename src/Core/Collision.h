@@ -2,6 +2,7 @@
 
 #include "../Graphics/Model.h"  // 假设Model类中包含了物体的位置、大小等信息
 #include <vector>
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE 
 #include <glm/glm.hpp>
 
 namespace Enigma {

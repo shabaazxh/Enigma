@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Common.h"
 #include "VulkanContext.h"
 #include "VulkanImage.h"
@@ -18,15 +19,17 @@ namespace Enigma
 
 		void Execute(VkCommandBuffer cmd, const std::vector<Model*>& models);
 		void Update(Camera* camera);
-		void Resize();
+		void Resize(const VulkanWindow& window);
 	private:
 		void CreateFramebuffer(VkDevice device, GBufferTargets& targets);
 		void CreateRenderPass(VkDevice device);
 		void CreatePipeline(VkDevice device, VkExtent2D swapchainExtent);
+		void CreateAABBPipeline(VkDevice device, VkExtent2D swapchainExtent);
 		void BuildDescriptorSetLayout(const VulkanContext& context);
 	private:
 		const VulkanContext& context;
 		Pipeline m_pipeline;
+		Pipeline m_aabPipeline;
 		PipelineLayout m_pipelineLayout;
 		uint32_t m_width;
 		uint32_t m_height;
@@ -35,5 +38,6 @@ namespace Enigma
 		std::vector<VkDescriptorSet> m_sceneDescriptorSets;
 		VkDescriptorSetLayout m_descriptorSetLayout;
 		std::vector<Buffer> m_sceneUBO;
+		GBufferTargets& targets;
 	};
 };

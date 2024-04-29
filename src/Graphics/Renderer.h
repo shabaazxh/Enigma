@@ -16,6 +16,8 @@
 #include "GBuffer.h"
 #include "Lighting.h"
 #include "Composite.h"
+#include "ShadowPass.h"
+#include "ImGuiRenderer.h"
 
 namespace Enigma
 {
@@ -26,6 +28,7 @@ namespace Enigma
 			~Renderer();
 			void DrawScene();
 			void Update(Camera* cam);
+			void UpdateImGui();
 		private:
 			void CreateRendererResources();
 			void CreateDescriptorPool();
@@ -38,6 +41,7 @@ namespace Enigma
 			GBuffer* m_gBufferPass;
 			Lighting* m_lightingPass;
 			Composite* m_compositePass;
+			ShadowPass* m_shadowPass;
 
 			// Rendering resources
 			std::vector<Fence> m_fences;
@@ -51,5 +55,6 @@ namespace Enigma
 			bool current_state = false;
 			Camera* camera;
 			GBufferTargets gBufferTargets;
+			LightUBO m_lightUBO;
 	};
 }

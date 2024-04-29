@@ -57,10 +57,11 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>\libs\GLFW\include;..\libs;..\libs\glm;..\libs\include;..\libs\Volk;..\libs\vulkan\include;..\libs\VulkanMemoryAllocator\include;..\libs\rapidobj;..\libs\stb;..\libs\assimp_x64-windows;..\libs\assimp_x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>\libs\GLFW\include;..\libs;..\libs\glm;..\libs\include;..\libs\Volk;..\libs\vulkan\include;..\libs\VulkanMemoryAllocator\include;..\libs\rapidobj;..\libs\stb;..\libs\assimp_x64-windows;..\libs\assimp_x64-windows\include;..\libs\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
+      <PreprocessorDefinitions>GLM_FORCE_DEPTH_ZERO_TO_ONE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -78,10 +79,11 @@ IF EXIST "$(SolutionDir)zlib1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlib1.dll"
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>\libs\GLFW\include;..\libs;..\libs\glm;..\libs\include;..\libs\Volk;..\libs\vulkan\include;..\libs\VulkanMemoryAllocator\include;..\libs\rapidobj;..\libs\stb;..\libs\assimp_x64-windows;..\libs\assimp_x64-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>\libs\GLFW\include;..\libs;..\libs\glm;..\libs\include;..\libs\Volk;..\libs\vulkan\include;..\libs\VulkanMemoryAllocator\include;..\libs\rapidobj;..\libs\stb;..\libs\assimp_x64-windows;..\libs\assimp_x64-windows\include;..\libs\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
+      <PreprocessorDefinitions>GLM_FORCE_DEPTH_ZERO_TO_ONE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -96,10 +98,19 @@ IF EXIST "$(SolutionDir)zlib1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlib1.dll"
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\libs\imgui\imconfig.h" />
+    <ClInclude Include="..\libs\imgui\imgui.h" />
+    <ClInclude Include="..\libs\imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="..\libs\imgui\imgui_impl_vulkan.h" />
+    <ClInclude Include="..\libs\imgui\imgui_internal.h" />
+    <ClInclude Include="..\libs\imgui\imstb_rectpack.h" />
+    <ClInclude Include="..\libs\imgui\imstb_textedit.h" />
+    <ClInclude Include="..\libs\imgui\imstb_truetype.h" />
     <ClInclude Include="..\src\Core\Camera.h" />
     <ClInclude Include="..\src\Core\Collision.h" />
     <ClInclude Include="..\src\Core\Engine.h" />
     <ClInclude Include="..\src\Core\Error.h" />
+    <ClInclude Include="..\src\Core\Settings.h" />
     <ClInclude Include="..\src\Core\VulkanWindow.h" />
     <ClInclude Include="..\src\Core\World.h" />
     <ClInclude Include="..\src\Graphics\Allocator.h" />
@@ -108,17 +119,26 @@ IF EXIST "$(SolutionDir)zlib1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlib1.dll"
     <ClInclude Include="..\src\Graphics\Composite.h" />
     <ClInclude Include="..\src\Graphics\Enemy.h" />
     <ClInclude Include="..\src\Graphics\GBuffer.h" />
+    <ClInclude Include="..\src\Graphics\ImGuiRenderer.h" />
     <ClInclude Include="..\src\Graphics\Light.h" />
     <ClInclude Include="..\src\Graphics\Lighting.h" />
     <ClInclude Include="..\src\Graphics\Model.h" />
     <ClInclude Include="..\src\Graphics\Player.h" />
     <ClInclude Include="..\src\Graphics\Renderer.h" />
+    <ClInclude Include="..\src\Graphics\ShadowPass.h" />
     <ClInclude Include="..\src\Graphics\VulkanBuffer.h" />
     <ClInclude Include="..\src\Graphics\VulkanContext.h" />
     <ClInclude Include="..\src\Graphics\VulkanImage.h" />
     <ClInclude Include="..\src\Graphics\VulkanObjects.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\libs\imgui\imgui.cpp" />
+    <ClCompile Include="..\libs\imgui\imgui_demo.cpp" />
+    <ClCompile Include="..\libs\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\libs\imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="..\libs\imgui\imgui_impl_vulkan.cpp" />
+    <ClCompile Include="..\libs\imgui\imgui_tables.cpp" />
+    <ClCompile Include="..\libs\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\src\Core\Camera.cpp" />
     <ClCompile Include="..\src\Core\Collision.cpp" />
     <ClCompile Include="..\src\Core\Engine.cpp" />
@@ -128,11 +148,13 @@ IF EXIST "$(SolutionDir)zlib1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlib1.dll"
     <ClCompile Include="..\src\Graphics\Composite.cpp" />
     <ClCompile Include="..\src\Graphics\Enemy.cpp" />
     <ClCompile Include="..\src\Graphics\GBuffer.cpp" />
+    <ClCompile Include="..\src\Graphics\ImGuiRenderer.cpp" />
     <ClCompile Include="..\src\Graphics\Light.cpp" />
     <ClCompile Include="..\src\Graphics\Lighting.cpp" />
     <ClCompile Include="..\src\Graphics\Model.cpp" />
     <ClCompile Include="..\src\Graphics\Player.cpp" />
     <ClCompile Include="..\src\Graphics\Renderer.cpp" />
+    <ClCompile Include="..\src\Graphics\ShadowPass.cpp" />
     <ClCompile Include="..\src\Graphics\VulkanBuffer.cpp" />
     <ClCompile Include="..\src\Graphics\VulkanContext.cpp" />
     <ClCompile Include="..\src\Graphics\VulkanImage.cpp" />

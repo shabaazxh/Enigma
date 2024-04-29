@@ -47,6 +47,7 @@ namespace Enigma
 		glm::mat4 model;
 		glm::mat4 view;
 		glm::mat4 projection;
+		glm::vec3 cameraPosition;
 
 		float fov = 45.0f;
 		float nearPlane = 1.0f;
@@ -76,6 +77,7 @@ namespace Enigma
 	// output textures from the g-buffer
 	struct GBufferTargets
 	{
+		Image position;
 		Image normals;
 		Image depth;
 		Image albedo;
@@ -88,9 +90,26 @@ namespace Enigma
 		Image SSR; // not yet implemented 
 	};
 
+	struct LightUBO
+	{
+		glm::vec4 lightPosition;
+		glm::vec4 lightDirection;
+		glm::vec4 lightColour;
+		glm::mat4 LightSpaceMatrix;
+	};
+
+	struct Debug
+	{
+		int debugRenderTarget;
+		int stepCount;
+		float thickness;
+		float maxDistance;
+	};
+
+
+	inline Debug debugSettings;
 
 	inline VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-	inline VkDescriptorSetLayout sceneDescriptorLayout = VK_NULL_HANDLE;
 	inline VkDescriptorSetLayout descriptorLayoutModel = VK_NULL_HANDLE;
 
 	inline Sampler sampler;
@@ -102,6 +121,7 @@ namespace Enigma
 	inline VmaAllocation depthimageallocation;
 
 	inline VkSampler defaultSampler; // a default sampler for sampling textures 
+	inline VkSampler repeatSampler;
 	inline VkPipeline draw_line_list; // pipeline to draw meshes as a line
 
 	inline Navmesh navmesh;
@@ -297,20 +317,24 @@ namespace Enigma
 		return m;
 	}
 
-	inline VkSampler CreateSampler(const VulkanContext& context)
+	inline VkSampler CreateSampler(const VulkanContext& context, VkSamplerAddressMode mode)
 	{
 		VkSamplerCreateInfo samplerInfo{};
 		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 		samplerInfo.magFilter = VK_FILTER_LINEAR;
 		samplerInfo.minFilter = VK_FILTER_LINEAR;
 		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeU = mode;
+		samplerInfo.addressModeV = mode;
+		samplerInfo.addressModeW = mode;
 		samplerInfo.minLod = 0.0f;
-		samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
+		samplerInfo.maxLod = 1.0f;
 		samplerInfo.mipLodBias = 0.f;
 		samplerInfo.maxAnisotropy = 16.0f;
 		samplerInfo.anisotropyEnable = VK_TRUE;
+		samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+		samplerInfo.compareEnable = VK_TRUE;
+		samplerInfo.compareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 		
 		VkSampler sampler = VK_NULL_HANDLE;
 		ENIGMA_VK_CHECK(vkCreateSampler(context.device, &samplerInfo, nullptr, &sampler), "Failed to create sampler");

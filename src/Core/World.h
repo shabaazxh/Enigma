@@ -3,6 +3,7 @@
 #include "../Graphics/Character.h"
 #include "../Graphics/Enemy.h"
 #include "../Graphics/Player.h"
+#include "../Graphics/Light.h"
 
 namespace Enigma
 {
