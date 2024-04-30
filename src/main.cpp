@@ -41,19 +41,36 @@ int main() {
 
     Enigma::Renderer renderer = Enigma::Renderer(context, window, &FPSCamera);
 
-    Enigma::WorldInst.Characters.push_back(Enigma::WorldInst.player);
-    for (int i = 0; i < Enigma::WorldInst.Enemies.size(); i++) {
-        Enigma::WorldInst.Characters.push_back(Enigma::WorldInst.Enemies[i]);
-    }
+    // Create a directional light: Position, colour and intensity -125.242f, 359.0f, -67.708, 1.0f
+    Enigma::Light SunLight = Enigma::CreateDirectionalLight(glm::vec4(-45.802f, 105.0f, 23.894, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 1.0);
+    Enigma::WorldInst.Lights.push_back(SunLight);
 
-    // this is unsafe, 
-    // what if index 0 is invalid? you'll crash the entire program. probably should check just in case before doing this
-    for (int i = 0; i < Enigma::WorldInst.Characters.size(); i++) {
-        Enigma::WorldInst.Enemies[0]->addToNavmesh(Enigma::WorldInst.Characters[i], Enigma::WorldInst.Meshes[0]);
-    }
+    Enigma::Model* Level = new Enigma::Model("../resources/level1.obj", context, ENIGMA_LOAD_OBJ_FILE);
+    Enigma::Model* LightBulb = new Enigma::Model("../resources/Light/Light.obj", context, ENIGMA_LOAD_OBJ_FILE);
+    Enigma::WorldInst.Meshes.push_back(Level);
+    Enigma::WorldInst.Meshes.push_back(LightBulb);
+    Enigma::WorldInst.Meshes[0]->setScale(glm::vec3(1.0f, 1.0f, 1.0f));
+
+    //add enemy to the world class
+    Enigma::WorldInst.Enemies.push_back(new Enigma::Enemy("../resources/zombie-walk-test/source/Zombie_Walk.fbx", context, ENIGMA_LOAD_FBX_FILE, glm::vec3(60.f, 0.1f, 0.f), glm::vec3(0.1f, 0.1f, 0.1f), 0, 180, 0));
+    Enigma::WorldInst.Enemies.push_back(new Enigma::Enemy("../resources/zombie-walk-test/source/Zombie_Walk.fbx", context, ENIGMA_LOAD_FBX_FILE, glm::vec3(60.f, 0.1f, 50.f), glm::vec3(0.1f, 0.1f, 0.1f), 0, 180, 0));
+
+    //world.Enemies[0]->model->updateAnimation(world.Enemies[0]->model->m_Scene, timer->deltaTime);
+
+    //add player to world class
+    Enigma::WorldInst.player = new Enigma::Player("../resources/player.fbx", context, ENIGMA_LOAD_FBX_FILE, glm::vec3(-100.f, 0.1f, -40.f), glm::vec3(0.1f, 0.1f, 0.09f), 90.f, 0.f, 0.f);
+    Enigma::WorldInst.player->addEquipment(new Enigma::Equipment(glm::vec3(0.f, 13.f, 0.f), new Enigma::Model("../resources/gun.obj", context, ENIGMA_LOAD_OBJ_FILE)));
+
+    Enigma::WorldInst.addMeshesToWorld(Enigma::WorldInst.player, Enigma::WorldInst.Enemies);
+
+    //add the player and enemies to the correct query lists
+    Enigma::WorldInst.addCharactersToWorld(Enigma::WorldInst.player, Enigma::WorldInst.Enemies);
+
+    Enigma::WorldInst.addCharctersToNavmesh(Enigma::WorldInst.Characters);
 
     // game loop: to keep updating and rendering the game
     while (!glfwWindowShouldClose(window.window)) {
+        Enigma::WorldInst.ManageAIs(Enigma::WorldInst.Characters, Enigma::WorldInst.Meshes[0], Enigma::WorldInst.player, Enigma::WorldInst.Enemies);
         timer->Update();
         FPSCamera.Update(window.swapchainExtent.width, window.swapchainExtent.height);
         renderer.Update(&FPSCamera);

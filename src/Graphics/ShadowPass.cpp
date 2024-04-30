@@ -89,6 +89,10 @@ namespace Enigma
 		{
 			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
 			model->Draw(cmd, m_pipelineLayout.handle);
+			if (model->player && !Enigma::WorldInst.player->getEquipmentVec().empty()) {
+				vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
+				Enigma::WorldInst.player->getEquipment(Enigma::WorldInst.player->getCurrentEquipment())->getModel()->Draw(cmd, m_pipelineLayout.handle);
+			}
 		}
 
 		vkCmdEndRenderPass(cmd);

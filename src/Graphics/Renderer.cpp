@@ -37,35 +37,7 @@ namespace Enigma
 		// m_pipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/fragment.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 		//m_aabbPipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/line.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
 
-		// Create a directional light: Position, colour and intensity -125.242f, 359.0f, -67.708, 1.0f
-		Enigma::Light SunLight = Enigma::CreateDirectionalLight(glm::vec4(-45.802f, 105.0f, 23.894, 1.0f), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 1.0);
-		Enigma::WorldInst.Lights.push_back(SunLight);
-
-		Model* Level = new Model("../resources/level1.obj", context, ENIGMA_LOAD_OBJ_FILE);
-		Model* LightBulb = new Model("../resources/Light/Light.obj", context, ENIGMA_LOAD_OBJ_FILE);
-		Enigma::WorldInst.Meshes.push_back(Level);
-		Enigma::WorldInst.Meshes.push_back(LightBulb);
-		Enigma::WorldInst.Meshes[0]->setScale(glm::vec3(1.0f, 1.0f, 1.0f));
-
-		Enemy* enemy1 = new Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE);
-		Enigma::WorldInst.Meshes.push_back(enemy1->model);
-		enemy1->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-		enemy1->setTranslation(glm::vec3(60.f, 0.1f, 0.f));
-		Enigma::WorldInst.Enemies.push_back(enemy1);
-
-		Enemy* enemy2 = new Enemy("../resources/zombie-walk-test/source/Zombie_Walk1.fbx", context, ENIGMA_LOAD_FBX_FILE);
-		Enigma::WorldInst.Meshes.push_back(enemy2->model);
-		enemy2->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-		enemy2->setTranslation(glm::vec3(60.f, 0.1f, 50.f));
-		Enigma::WorldInst.Enemies.push_back(enemy2);
-
-		Enigma::WorldInst.player = new Player("../resources/gun.obj", context, ENIGMA_LOAD_OBJ_FILE);
-		if (!Enigma::WorldInst.player->noModel) {
-			Enigma::WorldInst.Meshes.push_back(Enigma::WorldInst.player->model);
-		}
-		Enigma::WorldInst.player->setTranslation(glm::vec3(-100.f, 0.1f, -40.f));
-		Enigma::WorldInst.player->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-		Enigma::WorldInst.player->setRotationY(180);
+		
 
 		//CreateBlood();
 	}
@@ -472,7 +444,9 @@ namespace Enigma
 				}
 				glm::vec3 dir = camera->GetDirection();
 				dir = dir * glm::vec3(3.14, 3.14, 3.14);
-				Enigma::WorldInst.player->getEquipment(Enigma::WorldInst.player->getCurrentEquipment())->getModel()->setRotationMatrix(glm::inverse(camera->GetCameraTransform().view));
+				if (!Enigma::WorldInst.player->getEquipmentVec().empty()) {
+					Enigma::WorldInst.player->getEquipment(Enigma::WorldInst.player->getCurrentEquipment())->getModel()->setRotationMatrix(glm::inverse(camera->GetCameraTransform().view));
+				}
 			}
 
 			for (const auto& model : Enigma::WorldInst.Meshes)

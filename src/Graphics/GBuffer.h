@@ -5,6 +5,7 @@
 #include "VulkanImage.h"
 #include "Model.h"
 #include "../Core/VulkanWindow.h"
+#include "../Core/World.h"
 
 #define VERTEX "../resources/Shaders/vertex.vert.spv"
 #define FRAGMENT "../resources/Shaders/gbuffer.frag.spv"

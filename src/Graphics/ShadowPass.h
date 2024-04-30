@@ -6,6 +6,7 @@
 #include "VulkanImage.h"
 #include "Model.h"
 #include "../Core/VulkanWindow.h"
+#include "../Core/World.h"
 
 #define VERTEX "../resources/Shaders/vs_shadowpass.vert.spv"
 #define FRAGMENT "../resources/Shaders/fs_shadowpass.frag.spv"
