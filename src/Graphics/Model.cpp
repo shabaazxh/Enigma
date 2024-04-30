@@ -7,6 +7,8 @@
 #include <unordered_map>
 #include <string>
 
+glm::mat4 aiMat4x4toMat4(aiMatrix4x4 m);
+
 namespace Enigma
 {
 
@@ -470,7 +472,7 @@ namespace Enigma
 
 
 			boneMapping[boneName] = boneIndex;
-			boneInfo[boneIndex].offsetMatrix = mesh->mBones[i]->mOffsetMatrix;
+			boneInfo[boneIndex].offsetMatrix = aiMat4x4toMat4(mesh->mBones[i]->mOffsetMatrix);
 
 			for (uint32_t j = 0; j < mesh->mBones[i]->mNumWeights; j++) {
 				uint32_t vertexID = mesh->mBones[i]->mWeights[j].mVertexId;
@@ -982,5 +984,28 @@ namespace Enigma
 			vkCmdDrawIndexed(cmd, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 		}
 	}
+}
+
+glm::mat4 aiMat4x4toMat4(aiMatrix4x4 m) {
+	glm::mat4 newM;
+
+	newM[0][0] = m[0][0];
+	newM[1][0] = m[1][0];
+	newM[2][0] = m[2][0];
+	newM[3][0] = m[3][0];
+	newM[0][1] = m[0][1];
+	newM[1][1] = m[1][1];
+	newM[2][1] = m[2][1];
+	newM[3][1] = m[3][1];
+	newM[0][2] = m[0][2];
+	newM[1][2] = m[1][2];
+	newM[2][2] = m[2][2];
+	newM[3][2] = m[3][2];
+	newM[0][3] = m[0][3];
+	newM[1][3] = m[1][3];
+	newM[2][3] = m[2][3];
+	newM[3][3] = m[3][3];
+
+	return newM;
 }
 
