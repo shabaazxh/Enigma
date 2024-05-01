@@ -32,28 +32,59 @@ namespace Enigma
 			{
 				glm::vec3 movementAmount = glm::vec3(0.0f, 0.0f, 0.0f);
 
-				if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-				{
-					glm::vec3 forward = glm::normalize(m_direction);
-					movementAmount += forward;
-				}
+				if (!isPlayer) {
+					if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+					{
+						glm::vec3 forward = glm::normalize(m_direction);
+						movementAmount += forward;
+					}
 
-				else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-				{
-					glm::vec3 forward = glm::normalize(m_direction);
-					movementAmount -= forward;
-				}
+					else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+					{
+						glm::vec3 forward = glm::normalize(m_direction);
+						movementAmount -= forward;
+					}
 
-				if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-				{
-					glm::vec3 left = glm::normalize(glm::cross(m_direction, m_up));
-					movementAmount -= left;
-				}
+					if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+					{
+						glm::vec3 left = glm::normalize(glm::cross(m_direction, m_up));
+						movementAmount -= left;
+					}
 
-				else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-				{
-					glm::vec3 right = glm::normalize(glm::cross(m_direction, m_up));
-					movementAmount += right;
+					else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+					{
+						glm::vec3 right = glm::normalize(glm::cross(m_direction, m_up));
+						movementAmount += right;
+					}
+				}
+				else if (isPlayer) {
+					if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+					{
+						glm::vec3 forward = glm::normalize(m_direction);
+						movementAmount.x += forward.x;
+						movementAmount.z += forward.z;
+					}
+
+					else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+					{
+						glm::vec3 forward = glm::normalize(m_direction);
+						movementAmount.x -= forward.x;
+						movementAmount.z -= forward.z;
+					}
+
+					if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+					{
+						glm::vec3 left = glm::normalize(glm::cross(m_direction, m_up));
+						movementAmount.x -= left.x;
+						movementAmount.z -= left.z;
+					}
+
+					else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+					{
+						glm::vec3 right = glm::normalize(glm::cross(m_direction, m_up));
+						movementAmount.x += right.x;
+						movementAmount.z += right.z;
+					}
 				}
 
 				float speed = static_cast<float>(m_cameraSpeed * time.deltaTime);
