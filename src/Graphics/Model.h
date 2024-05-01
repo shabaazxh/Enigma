@@ -149,18 +149,6 @@ namespace Enigma
 		BoneInfo() : offset(), finalTransformation() {}
 	};
 	*/
-	struct Animation {
-		float ticksPerSecond;
-		float duration;
-		std::vector<NodeAnim> channel; // Channel of animation for each node
-	};
-
-	struct NodeAnim {
-		std::string nodeName;
-		std::vector<KeyPosition> positions;
-		std::vector<KeyRotation> rotations;
-		std::vector<KeyScale> scales;
-	};
 
 	struct KeyPosition {
 		float time;
@@ -175,6 +163,19 @@ namespace Enigma
 	struct KeyScale {
 		float time;
 		glm::vec3 scale;
+	};
+
+	struct NodeAnim {
+		std::string nodeName;
+		std::vector<KeyPosition> positions;
+		std::vector<KeyRotation> rotations;
+		std::vector<KeyScale> scales;
+	};
+
+	struct Animation {
+		float ticksPerSecond;
+		float duration;
+		std::vector<NodeAnim> channel; // Channel of animation for each node
 	};
 
 	struct Node {
