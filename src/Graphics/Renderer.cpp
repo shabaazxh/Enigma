@@ -228,7 +228,7 @@ namespace Enigma
 					float* pos[3] = { &current_position.x, &current_position.y, &current_position.z};
 					float* scale[3] = { &current_scale.x, &current_scale.y, &current_scale.z };
 					
-					ImGui::SliderFloat3("Transform: ", *pos, -1000.0f, 1000.0f);
+					ImGui::SliderFloat3("Transform: ", *pos, -100.0f, 100.0f);
 					ImGui::SliderFloat3("Scale: ", *scale, 0.f, 1.0);
 
 					model->setScale(current_scale);
@@ -395,7 +395,7 @@ namespace Enigma
 			glfwSetInputMode(window.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		}
 		
-		cam->Update(window.window);
+		cam->Update(window.window, Enigma::WorldInst);
 
 		UpdateImGui();
 
@@ -440,7 +440,7 @@ namespace Enigma
 					camera->GetPosition().z != Enigma::WorldInst.player->getTranslation().z
 					) {
 					Enigma::WorldInst.player->moved = true;
-					Enigma::WorldInst.player->setTranslation(glm::vec3(camera->GetPosition().x, 0.1f, camera->GetPosition().z));
+					Enigma::WorldInst.player->setTranslation(glm::vec3(camera->GetPosition().x, Enigma::WorldInst.player->getTranslation().y, camera->GetPosition().z));
 				}
 				glm::vec3 dir = camera->GetDirection();
 				dir = dir * glm::vec3(3.14, 3.14, 3.14);

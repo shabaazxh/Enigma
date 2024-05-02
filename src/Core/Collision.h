@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Graphics/Model.h"  // 假设Model类中包含了物体的位置、大小等信息
+#include "../Graphics/Player.h"
 #include <vector>
 #include <glm/glm.hpp>
 
@@ -27,13 +27,10 @@ namespace Enigma {
         // 检测角色与环境之间的碰撞
         static bool CheckCollision(Model& character, std::vector<Model>& environment);
         // 检测子弹与角色的碰撞
-        static bool CheckBulletCollision(Model& bullet, Model& character) {
-            return AABBvsAABB(bullet, character);
-        };
-        collisionData RayIntersectsAABB(const Ray& ray, const AABB& aabb);
+        collisionData RayIntersectsAABB(const Ray& ray, const AABB& aabb); 
+        bool PlayerAABBvsAABB(Player& player, Model& obj);
 
     private:
         // 检测两个AABB之间的碰撞
-        static bool AABBvsAABB(Model& obj1, Model& obj2);
     };
 }

@@ -58,7 +58,7 @@ int main() {
     //world.Enemies[0]->model->updateAnimation(world.Enemies[0]->model->m_Scene, timer->deltaTime);
 
     //add player to world class
-    Enigma::WorldInst.player = new Enigma::Player("../resources/player.fbx", context, ENIGMA_LOAD_FBX_FILE, glm::vec3(-100.f, 0.1f, -40.f), glm::vec3(0.1f, 0.1f, 0.09f), 90.f, 0.f, 0.f);
+    Enigma::WorldInst.player = new Enigma::Player("../resources/player.fbx", context, ENIGMA_LOAD_FBX_FILE, glm::vec3(-100.f, 7.f, -40.f), glm::vec3(0.1f, 0.2f, 0.03f), 0.f, 0.f, 0.f);
     Enigma::WorldInst.player->addEquipment(new Enigma::Equipment(glm::vec3(0.f, 13.f, 0.f), new Enigma::Model("../resources/gun.obj", context, ENIGMA_LOAD_OBJ_FILE)));
 
     Enigma::WorldInst.addMeshesToWorld(Enigma::WorldInst.player, Enigma::WorldInst.Enemies);

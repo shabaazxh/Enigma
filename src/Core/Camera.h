@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "../Graphics/Common.h"
+#include "../Core/World.h"
 #include <GLFW/glfw3.h>
 
 namespace Enigma
@@ -28,7 +29,7 @@ namespace Enigma
 			const CameraTransform& GetCameraTransform() const { return m_transform; }
 
 
-			void Update(GLFWwindow* window)
+			void Update(GLFWwindow* window, World WorldInst)
 			{
 				glm::vec3 movementAmount = glm::vec3(0.0f, 0.0f, 0.0f);
 
@@ -90,9 +91,15 @@ namespace Enigma
 				float speed = static_cast<float>(m_cameraSpeed * time.deltaTime);
 				auto movement = movementAmount * speed;
 				m_position += movement;
+				if (isPlayer) {
+					WorldInst.player->setTranslation(WorldInst.player->getTranslation() + movement);
+				}
+				if (WorldInst.ManageCollisions(WorldInst.Meshes[0], WorldInst.player) && isPlayer) {
+					m_position -= 1.f*movement; 
+				}
 			}
 
-			void PlayerForward()
+			/*void PlayerForward()
 			{
 				float speed = static_cast<float>(m_cameraSpeed * time.deltaTime);
 				m_position.x += speed * m_direction.x;
@@ -130,7 +137,7 @@ namespace Enigma
 			{
 				float speed = static_cast<float>(m_cameraSpeed * time.deltaTime);
 				m_position -= speed * m_up;
-			}
+			}*/
 
 			void Update(uint32_t width, uint32_t height)
 			{

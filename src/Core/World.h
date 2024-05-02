@@ -4,6 +4,7 @@
 #include "../Graphics/Enemy.h"
 #include "../Graphics/Player.h"
 #include "../Graphics/Light.h"
+#include "../Core/Collision.h"
 
 namespace Enigma
 {
@@ -31,6 +32,12 @@ namespace Enigma
 					player->health -= 0.05f;
 				}
 			}
+		}
+
+		bool ManageCollisions(Model* level, Player* player) {
+			CollisionDetector cd;
+			bool collision = cd.PlayerAABBvsAABB(*player, *level);
+			return collision;
 		}
 
 		void addMeshesToWorld(Player* p, std::vector<Enemy*> enemies) {

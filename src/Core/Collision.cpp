@@ -2,28 +2,30 @@
 #include "Collision.h"
 
 namespace Enigma {
-    bool CollisionDetector::CheckCollision(Model& character, std::vector<Model>& environment) {
-        for (auto& object : environment) {
-            if (AABBvsAABB(character, object)) {
-                return true; // 发现碰撞
+
+    bool CollisionDetector::PlayerAABBvsAABB(Player& player, Model& obj) {
+        glm::vec4 playerAABBmax = glm::vec4(player.model->meshes[0].meshAABB.max, 1.f);
+        glm::vec4 playerAABBmin = glm::vec4(player.model->meshes[0].meshAABB.min, 1.f);
+        glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0), player.getTranslation());
+        //modelMatrix = glm::rotate(modelMatrix, glm::radians(player.getYRotation()), glm::vec3(0, 1, 0));
+        //modelMatrix = glm::rotate(modelMatrix, glm::radians(player.getXRotation()), glm::vec3(1, 0, 0));
+        //modelMatrix = glm::rotate(modelMatrix, glm::radians(player.getZRotation()), glm::vec3(0, 0, 1));
+        modelMatrix = glm::scale(modelMatrix, player.getScale());
+        glm::vec4 playerAABBmaxTrans = modelMatrix * playerAABBmax;
+        glm::vec4 playerAABBminTrans = modelMatrix * playerAABBmin;
+
+        for (int i = 0; i < obj.meshes.size(); i++) {
+            if (obj.meshes[i].meshAABB.min.x <= playerAABBmaxTrans.x &&
+                obj.meshes[i].meshAABB.max.x >= playerAABBminTrans.x &&
+                obj.meshes[i].meshAABB.min.y <= playerAABBmaxTrans.y &&
+                obj.meshes[i].meshAABB.max.y >= playerAABBminTrans.y &&
+                obj.meshes[i].meshAABB.min.z <= playerAABBmaxTrans.z &&
+                obj.meshes[i].meshAABB.max.z >= playerAABBminTrans.z
+                ) {
+                return true;
             }
         }
-        return false; // 未发现碰撞
-    }
-
-    bool CollisionDetector::AABBvsAABB(Model& obj1, Model& obj2) {
-        // 假设Model类有方法获取AABB的最小点(min)和最大点(max)
-        auto obj1Min = obj1.GetAABBMin();
-        auto obj1Max = obj1.GetAABBMax();
-        auto obj2Min = obj2.GetAABBMin();
-        auto obj2Max = obj2.GetAABBMax();
-
-        // 检查所有轴上的重叠 detect all the axis
-        if (obj1Max.x < obj2Min.x || obj1Min.x > obj2Max.x) return false;
-        if (obj1Max.y < obj2Min.y || obj1Min.y > obj2Max.y) return false;
-        if (obj1Max.z < obj2Min.z || obj1Min.z > obj2Max.z) return false;
-
-        return true; // AABBs重叠
+        return false;
     }
 
     //detect the ray and object
@@ -68,24 +70,3 @@ namespace Enigma {
         return data;
     }
 }
-
-/*调用#include "Core/Collision/CollisionDetector.h"
-
-// 假设有character和environment对象
-bool collisionDetected = CollisionDetector::CheckCollision(character, environment);
-if (collisionDetected) {
-    // use the collision detection 使用碰撞检测（角色与环境）
-}
-
-bool bulletHit = CollisionDetector::CheckBulletCollision(bullet, character);
-if (bulletHit) {
-    // 处理子弹击中角色的逻辑，比如减少生命值等
-}
-
-Enigma::Ray bulletRay(bulletOrigin, bulletDirection);
-for (const auto& target : targets) { // 假设targets是一系列模型
-    if (Enigma::RayIntersectsAABB(bulletRay, target.GetModelAABB())) {
-        // 处理碰撞逻辑，例如减少生命值等  response the collision logic,like reduce health bar
-    }
-}
-*/

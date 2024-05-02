@@ -4,8 +4,6 @@
 
 #include "../Graphics/Character.h"
 
-class Camera;
-
 namespace Enigma
 {
 	class Player : public Character
