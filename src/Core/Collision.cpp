@@ -68,24 +68,3 @@ namespace Enigma {
         return data;
     }
 }
-
-/*调用#include "Core/Collision/CollisionDetector.h"
-
-// 假设有character和environment对象
-bool collisionDetected = CollisionDetector::CheckCollision(character, environment);
-if (collisionDetected) {
-    // use the collision detection 使用碰撞检测（角色与环境）
-}
-
-bool bulletHit = CollisionDetector::CheckBulletCollision(bullet, character);
-if (bulletHit) {
-    // 处理子弹击中角色的逻辑，比如减少生命值等
-}
-
-Enigma::Ray bulletRay(bulletOrigin, bulletDirection);
-for (const auto& target : targets) { // 假设targets是一系列模型
-    if (Enigma::RayIntersectsAABB(bulletRay, target.GetModelAABB())) {
-        // 处理碰撞逻辑，例如减少生命值等  response the collision logic,like reduce health bar
-    }
-}
-*/
