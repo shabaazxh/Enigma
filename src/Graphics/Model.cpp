@@ -316,50 +316,29 @@ namespace Enigma
 
 		const std::string prefix = pathEnd ? std::string(pathBegin, pathEnd + 1) : "";
 
-		const aiScene* scene = importer.ReadFile(filepath,
-			aiProcess_CalcTangentSpace |
+		m_Scene = importer.ReadFile(filepath,
 			aiProcess_Triangulate |
-			aiProcess_JoinIdenticalVertices |
-			aiProcess_SortByPType |
-			aiProcess_GenNormals | 
-			aiProcess_LimitBoneWeights |
-			aiProcess_ImproveCacheLocality | 
-			aiProcess_RemoveRedundantMaterials | 
-			aiProcess_SplitLargeMeshes | 
-			aiProcess_FindInvalidData | 
-			aiProcess_OptimizeMeshes | 
-			aiProcess_ValidateDataStructure | 
-			aiProcess_OptimizeGraph); 
+			aiProcess_FlipUVs |
+			aiProcess_CalcTangentSpace);
 
-		m_Scene = scene;
-		/*
-		if (scene && scene->mRootNode) {
-			// 设置全局逆变换矩阵
-			globalInverseTransform = scene->mRootNode->mTransformation;
-			globalInverseTransform.Inverse();
+		if (!m_Scene || !m_Scene->HasMeshes()) {
+			std::cerr << "Error loading model: " << filepath << std::endl;
+			return;
 		}
 
-		
-		if (scene->HasAnimations()) {
-			hasAnimations = true;
-			for (unsigned int i = 0; i < scene->mNumAnimations; i++) {
-				aiAnimation* anim = scene->mAnimations[i];
-				// Process each animation
-			}
-		}
-		*/
+		m_filePath = filepath.substr(0, filepath.find_last_of('/'));
 
-		processNode(scene->mRootNode, scene);
+		processNode(m_Scene->mRootNode, m_Scene);
 		
-		for (int i = 0; i < scene->mNumMaterials; i++) {
+		for (int i = 0; i < m_Scene->mNumMaterials; i++) {
 			Material mi;
-			mi.materialName = scene->mMaterials[i]->GetName().C_Str();
+			mi.materialName = m_Scene->mMaterials[i]->GetName().C_Str();
 			aiColor3D color(0.f, 0.f, 0.f);
-			scene->mMaterials[i]->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+			m_Scene->mMaterials[i]->Get(AI_MATKEY_COLOR_DIFFUSE, color);
 			mi.diffuseColour = glm::vec3(color.r, color.g, color.b);
 
 			aiString diffPath;
-			scene->mMaterials[i]->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), diffPath);
+			m_Scene->mMaterials[i]->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), diffPath);
 			std::string dPath = fixFilePath(diffPath.C_Str());
 			if (dPath == "") {
 				mi.diffuseTexturePath = "../resources/textures/jpeg/sponza_floor_a_diff.jpg";
@@ -470,7 +449,6 @@ namespace Enigma
 				boneIndex = boneMapping[boneName];
 			}
 
-
 			boneMapping[boneName] = boneIndex;
 			boneInfo[boneIndex].offsetMatrix = aiMat4x4toMat4(mesh->mBones[i]->mOffsetMatrix);
 
@@ -482,24 +460,36 @@ namespace Enigma
 		}
 	}
 
-	void Model::processMesh(aiMesh* mesh, const aiScene* scene) {
+	Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
 		std::vector<Vertex> vertices(mesh->mNumVertices);
 		std::vector<unsigned int> indices;
+		Material material;
 
-		// Process vertices: positions, normals, and texture coordinates
+		// Process vertex positions, normals, and texture coordinates
 		for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
 			Vertex vertex;
-			// Processing position
-			vertex.pos = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+			glm::vec3 vector;  // Convert Assimp data types to glm for processing positions, normals, and texture coordinates
 
-			// Processing normals
+			// Process vertex positions
+			vector.x = mesh->mVertices[i].x;
+			vector.y = mesh->mVertices[i].y;
+			vector.z = mesh->mVertices[i].z;
+			vertex.pos = vector;
+
+			// Process vertex normals
 			if (mesh->HasNormals()) {
-				vertex.normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+				vector.x = mesh->mNormals[i].x;
+				vector.y = mesh->mNormals[i].y;
+				vector.z = mesh->mNormals[i].z;
+				vertex.normal = vector;
 			}
 
-			// Processing texture coordinates
-			if (mesh->HasTextureCoords(0)) { // Assumption: only using the first set of UV coordinates
-				vertex.tex = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
+			// Process texture coordinates
+			if (mesh->HasTextureCoords(0)) { // Mesh has texture coordinates
+				glm::vec2 tex;
+				tex.x = mesh->mTextureCoords[0][i].x;
+				tex.y = mesh->mTextureCoords[0][i].y;
+				vertex.tex = tex;
 			}
 			else {
 				vertex.tex = glm::vec2(0.0f, 0.0f);
@@ -508,36 +498,46 @@ namespace Enigma
 			vertices[i] = vertex;
 		}
 
-		if ((mesh->HasBones())) {
-			loadBones(mesh, vertices);
-		}
-
 		// Process indices
-		for (unsigned int i = 0; i < mesh->mNumFaces; i++) 
-		{
+		for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
 			aiFace face = mesh->mFaces[i];
 			for (unsigned int j = 0; j < face.mNumIndices; j++) {
 				indices.push_back(face.mIndices[j]);
 			}
 		}
 
-		Mesh tempMesh;
-		tempMesh.vertices = vertices;
-		tempMesh.indices = indices;
+		// Process material information if available
 		if (mesh->mMaterialIndex >= 0) {
-			tempMesh.materialIndex = mesh->mMaterialIndex;
-		}
-		tempMesh.meshName = mesh->mName.C_Str();
-		tempMesh.textured = mesh->HasTextureCoords(0);
+			aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
+			aiColor3D color(0.f, 0.f, 0.f);
 
-		meshes.push_back(std::move(tempMesh));
+			/*
+			* light
+			// Read the diffuse color
+			if (mat->Get(AI_MATKEY_COLOR_DIFFUSE, color) == AI_SUCCESS) {
+				material.diffuse = glm::vec3(color.r, color.g, color.b);
+			}
+			// Process more material properties like shininess, opacity, etc.
+			// For example: AI_MATKEY_SHININESS, AI_MATKEY_OPACITY
+			*/
+		}
+
+		if (mesh->HasBones()) {
+			loadBones(mesh, vertices);
+		}
+
+		Mesh temp;
+		temp.vertices = vertices;
+		temp.indices = indices;
+		temp.meshName = mesh->mName.C_Str();
+		return temp;
 	}
 
 	void Model::processNode(aiNode* node, const aiScene* scene) {
 		// Process all meshes in the node
 		for (unsigned int i = 0; i < node->mNumMeshes; i++) {
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-			processMesh(mesh, scene);
+			meshes.push_back( processMesh(mesh, scene));
 		}
 		// Process all child nodes
 		for (unsigned int i = 0; i < node->mNumChildren; i++) {
@@ -565,14 +565,14 @@ namespace Enigma
 			return;
 
 		for (auto& anim : animations) {
-			float ticksPerSecond = (anim.ticksPerSecond != 0 ? anim.ticksPerSecond : 25.0f); // 获取每秒的tick数，如果没有指定则默认为25
-			float timeInTicks = deltaTime * ticksPerSecond; // 计算当前时间增量对应的tick数
-			float animationTime = fmod(timeInTicks, anim.duration); // 根据动画持续时间循环计算动画当前时间
+			float ticksPerSecond = (anim.ticksPerSecond != 0 ? anim.ticksPerSecond : 25.0f); // Get the number of ticks per second, defaulting to 25 if not specified
+			float timeInTicks = deltaTime * ticksPerSecond; // Calculate the number of ticks corresponding to the current time increment
+			float animationTime = fmod(timeInTicks, anim.duration); // Calculate the current animation time by looping based on the animation duration
 
-			readNodeHierarchy(animationTime, rootNode, glm::mat4(1.0f), anim); // 调用readNodeHierarchy，传递当前动画时间、根节点、初始变换矩阵和当前动画
+			readNodeHierarchy(animationTime, rootNode, glm::mat4(1.0f), anim); // Call readNodeHierarchy with the current animation time, root node, initial transformation matrix, and current animation
 		}
 
-		updateBoneTransforms(); // 更新骨骼变换矩阵
+		updateBoneTransforms(); // Update bone transformation matrices
 	}
 
 	void Model::readNodeHierarchy(float animationTime, Node* node, const glm::mat4& parentTransform, const Animation& anim) {

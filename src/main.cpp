@@ -47,9 +47,9 @@ int main() {
 
     //add enemy to the world class
     world.Enemies.push_back(new Enigma::Enemy("../resources/zombie-walk-test/source/ZombieWalk.fbx", context, ENIGMA_LOAD_FBX_FILE, glm::vec3(60.f, 0.1f, 0.f), glm::vec3(0.1f, 0.1f, 0.1f), 0, 180, 0));
-    world.Enemies.push_back(new Enigma::Enemy("../resources/zombie-walk-test/source/ZombieWalk.fbx", context, ENIGMA_LOAD_FBX_FILE, glm::vec3(60.f, 0.1f, 50.f), glm::vec3(0.1f, 0.1f, 0.1f), 0, 180, 0));
+    //world.Enemies.push_back(new Enigma::Enemy("../resources/zombie-walk-test/source/ZombieWalk.fbx", context, ENIGMA_LOAD_FBX_FILE, glm::vec3(60.f, 0.1f, 50.f), glm::vec3(0.1f, 0.1f, 0.1f), 0, 180, 0));
 
-    //world.Enemies[0]->model->updateAnimation(world.Enemies[0]->model->m_Scene, timer->deltaTime);
+    world.Enemies[0]->model->updateAnimation(timer->deltaTime);
 
     //add player to world class
     world.player = new Enigma::Player("../resources/player.fbx", context, ENIGMA_LOAD_FBX_FILE, glm::vec3(-100.f, 0.1f, -40.f), glm::vec3(0.1f, 0.1f, 0.09f), 90, 0, 0);

@@ -38,9 +38,11 @@ namespace Enigma
 		glm::vec3 color;
 		glm::vec3 normal;
 
+		// Arrays to store bone IDs and weights for skeletal animation
 		std::array<uint32_t, MAX_BONES_PER_VERTEX> boneIDs = { 0, 0, 0, 0 };
 		std::array<float, MAX_BONES_PER_VERTEX> weights = { 0.f, 0.f, 0.f, 0.f };
 
+		// Method to add bone data to a vertex
 		void add(uint32_t boneID, float weight) {
 			for (uint32_t i = 0; i < MAX_BONES_PER_VERTEX; i++) {
 				if (weights[i] == 0.0f) {
@@ -150,44 +152,50 @@ namespace Enigma
 	};
 	*/
 
+	//Specifies a position keyframe within an animation.
 	struct KeyPosition {
-		float time;
-		glm::vec3 position;
+		float time;//The time at which this keyframe occurs.
+		glm::vec3 position;//The position of the node at this keyframe.
 	};
 
+	// Specifies a rotation keyframe within an animation.
 	struct KeyRotation {
-		float time;
-		glm::quat rotation;
+		float time;//The time at which this keyframe occurs.
+		glm::quat rotation; //The rotation of the node at this keyframe
 	};
 
+	//Specifies a scaling keyframe within an animation.
 	struct KeyScale {
-		float time;
-		glm::vec3 scale;
+		float time;//The time at which this keyframe occurs.
+		glm::vec3 scale;//The scale factor of the node at this keyframe.
 	};
 
+	//Represents the animation data for a single node (or bone) in the animation hierarchy.
 	struct NodeAnim {
 		std::string nodeName;
-		std::vector<KeyPosition> positions;
-		std::vector<KeyRotation> rotations;
-		std::vector<KeyScale> scales;
+		std::vector<KeyPosition> positions; //An array of KeyPosition structures detailing how the node's position changes over time.
+		std::vector<KeyRotation> rotations;//An array of KeyRotation structures detailing how the node's orientation changes over time.
+		std::vector<KeyScale> scales;//An array of KeyScale structures detailing how the node's scale changes over time.
 	};
 
+	//Represents an entire animation sequence that can be applied to a model.
 	struct Animation {
-		float ticksPerSecond;
-		float duration;
+		float ticksPerSecond;//the number of animation ticks per second, control animation speed
+		float duration;//The total duration of the animation sequence
 		std::vector<NodeAnim> channel; // Channel of animation for each node
 	};
 
+	//Represents a single node
 	struct Node {
 		std::string name;
-		glm::mat4 transformation;
+		glm::mat4 transformation;//The transformation matrix that applies to this node
 		std::vector<Node*> children;
 	};
 
 	struct BoneInfo {
 		glm::mat4 offsetMatrix;
 		glm::mat4 finalTransformation;
-		
+
 	};
 
 	class Model
@@ -209,7 +217,6 @@ namespace Enigma
 
 			std::unordered_map<std::string, int> boneMapping; // Global bone index mapping
 
-			//2021/04/29
 			std::vector<Animation> animations;
 			Node* rootNode;
 			std::vector<BoneInfo> boneInfo;
@@ -347,7 +354,7 @@ namespace Enigma
 			void loadBones(aiMesh* mesh, std::vector<Vertex>& boneData);
 
 			void processNode(aiNode* node, const aiScene* scene);
-			void processMesh(aiMesh* mesh, const aiScene* scene);
+			Mesh processMesh(aiMesh* mesh, const aiScene* scene);
 
 			void updateBoneTransforms();
 			//void LoadAnimations(const aiScene* scene);
