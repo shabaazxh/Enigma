@@ -17,37 +17,37 @@ namespace Enigma
 		std::vector<Character*> Characters;
 		Player* player;
 
-		void ManageAIs(std::vector<Character*> characters, Model* obj, Player* player, std::vector<Enemy*> Enemies) {
-			if (player->moved) {
-				for (int i = 0; i < Enemies.size(); i++) {
-					Enemies[i]->ManageAI(characters, obj, player);
-				}
-				player->moved = false;
-			}
-			for (int i = 0; i < Enemies.size(); i++) {
-				Enemies[i]->moveInDirection();
-				float distanceFromPlayer = vec3Length(Enemies[i]->getTranslation() - player->getTranslation());
-				if (distanceFromPlayer < 2.f) {
-					player->health -= 0.05f;
-				}
-			}
-		}
+		//void ManageAIs(std::vector<Character*> characters, Model* obj, Player* player, std::vector<Enemy*> Enemies) {
+		//	if (player->moved) {
+		//		for (int i = 0; i < Enemies.size(); i++) {
+		//			Enemies[i]->ManageAI(characters, obj, player);
+		//		}
+		//		player->moved = false;
+		//	}
+		//	for (int i = 0; i < Enemies.size(); i++) {
+		//		Enemies[i]->moveInDirection();
+		//		float distanceFromPlayer = vec3Length(Enemies[i]->getTranslation() - player->getTranslation());
+		//		if (distanceFromPlayer < 2.f) {
+		//			player->health -= 0.05f;
+		//		}
+		//	}
+		//}
 
-		void addMeshesToWorld(Player* p, std::vector<Enemy*> enemies) {
-			if (!p->noModel) {
-				this->Meshes.push_back(p->model);
-			}
-			for (int i = 0; i < enemies.size(); i++) {
-				this->Meshes.push_back(enemies[i]->model);
-			}
-		}
+		//void addMeshesToWorld(Player* p, std::vector<Enemy*> enemies) {
+		//	if (!p->noModel) {
+		//		this->Meshes.push_back(p->model);
+		//	}
+		//	for (int i = 0; i < enemies.size(); i++) {
+		//		this->Meshes.push_back(enemies[i]->model);
+		//	}
+		//}
 
-		void addCharactersToWorld(Player* p, std::vector<Enemy*> enemies) {
-			this->Characters.push_back(p);
-			for (int i = 0; i < enemies.size(); i++) {
-				this->Characters.push_back(enemies[i]);
-			}
-		}
+		//void addCharactersToWorld(Player* p, std::vector<Enemy*> enemies) {
+		//	this->Characters.push_back(p);
+		//	for (int i = 0; i < enemies.size(); i++) {
+		//		this->Characters.push_back(enemies[i]);
+		//	}
+		//}
 
 		void addCharctersToNavmesh(std::vector<Character*> characters) {
 			for (int i = 0; i < characters.size(); i++) {

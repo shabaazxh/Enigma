@@ -30,7 +30,7 @@ namespace Enigma
 	private:
 		const VulkanContext& context;
 		Pipeline m_pipeline;
-		Pipeline m_aabPipeline;
+		Pipeline AABBDraw;
 		PipelineLayout m_pipelineLayout;
 		uint32_t m_width;
 		uint32_t m_height;

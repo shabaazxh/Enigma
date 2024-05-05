@@ -37,8 +37,6 @@ namespace Enigma
 		// m_pipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/fragment.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 		//m_aabbPipeline = CreateGraphicsPipeline("../resources/Shaders/vertex.vert.spv", "../resources/Shaders/line.frag.spv", VK_FALSE, VK_TRUE, VK_TRUE, { Enigma::sceneDescriptorLayout, Enigma::descriptorLayoutModel }, m_pipelinePipelineLayout, VK_PRIMITIVE_TOPOLOGY_LINE_STRIP);
 
-		
-
 		//CreateBlood();
 	}
 
@@ -173,8 +171,32 @@ namespace Enigma
 
 			ImGui::Begin("Debug");
 			ImGui::TextColored(ImVec4(0.76, 0.5, 0.0, 1.0), "FPS: (%.1f FPS), %.3f ms/frame", ImGui::GetIO().Framerate, 1000.0f / ImGui::GetIO().Framerate);
+			
+			
 			ImGui::Text("Camera Position: (%.2f, %.2f, %.2f)",
 				camera->GetPosition().x, camera->GetPosition().y, camera->GetPosition().z);
+
+			ImGui::Text("Camera Direction: (%.2f, %.2f, %.2f)",
+				camera->GetDirection().x, camera->GetDirection().y, camera->GetDirection().z);
+
+
+			ImGui::Text("Player Camera Position: (%.2f, %.2f, %.2f)",
+				Enigma::WorldInst.player->GetCamera()->GetPosition().x, Enigma::WorldInst.player->GetCamera()->GetPosition().y, Enigma::WorldInst.player->GetCamera()->GetPosition().z);
+
+			ImGui::Text("Player Camera Direction: (%.2f, %.2f, %.2f)",
+				Enigma::WorldInst.player->GetCamera()->GetDirection().x, Enigma::WorldInst.player->GetCamera()->GetDirection().y, Enigma::WorldInst.player->GetCamera()->GetDirection().z);
+
+			if (Enigma::isDebug && !Enigma::enablePlayerCamera)
+			{
+				ImGui::Text("DEBUG - FREE CAMERA");
+			}
+			else if (Enigma::isDebug && Enigma::enablePlayerCamera)
+			{
+				ImGui::Text("DEBUG - PLAYER CAMERA");
+			}
+			else {
+				ImGui::Text("GAME MODE - FREE CAMERA");
+			}
 
 			if (!Enigma::WorldInst.Lights.empty())
 			{
@@ -215,21 +237,44 @@ namespace Enigma
 				debugSettings.thickness = Tweakables::thickness;
 				debugSettings.maxDistance = Tweakables::maxDistance;
 			}
-
 			// Use the ID to uniquely move each unique mesh we have inside the meshes array
 			int n = 0;
+			int m = 0;
 			for (const auto& model : Enigma::WorldInst.Meshes)
 			{
 				ImGui::PushID(n);
 				if (ImGui::CollapsingHeader(model->modelName.c_str()))
 				{
+
+				/*	for (auto& mesh : model->meshes)
+					{
+						ImGui::PushID(m);
+						if (ImGui::CollapsingHeader("mesh"))
+						{
+							auto pos = mesh.position;
+							float* p[3] = { &pos.x, &pos.y, &pos.z };
+							ImGui::SliderFloat3("Transform: ", *p, -1000.0f, 1000.0f);
+
+							mesh.position.x = pos.x;
+							mesh.position.y = pos.y;
+							mesh.position.z = pos.z;
+
+						}
+						ImGui::PopID();
+						m++;
+					}*/
+							
 					auto current_position = model->getTranslation();
 					auto current_scale = model->getScale();
 					float* pos[3] = { &current_position.x, &current_position.y, &current_position.z};
 					float* scale[3] = { &current_scale.x, &current_scale.y, &current_scale.z };
 					
-					ImGui::SliderFloat3("Transform: ", *pos, -1000.0f, 1000.0f);
-					ImGui::SliderFloat3("Scale: ", *scale, 0.f, 1.0);
+					if (ImGui::SliderFloat3("Transform: ", *pos, 0.0f, 20.0f))
+					{
+						std::cout << "Recalculating AABB" << std::endl;
+					}
+
+					ImGui::SliderFloat3("Scale: ", *scale, 0.f, 10.0);
 
 					model->setScale(current_scale);
 					model->setTranslation(current_position);
@@ -237,6 +282,27 @@ namespace Enigma
 				ImGui::PopID();
 				n++;
 			}
+
+
+			if (ImGui::CollapsingHeader("Player"))
+			{
+				auto player_pos = Enigma::WorldInst.player->GetPosition();
+				float* pos[3] = { &player_pos.x, &player_pos.y, &player_pos.z };
+				ImGui::SliderFloat3("Transform: ", *pos, -20.0f, 20.0f);
+
+				Enigma::WorldInst.player->SetPosition(player_pos);
+
+				float fov = 45.0f;
+				ImGui::SliderFloat("FOV: ", &fov, 45.0f, 90.0f);
+
+				Enigma::WorldInst.player->GetCamera()->SetFoV(fov);
+
+			}
+
+			ImGui::SliderFloat("transAmp: ", &translationAmplitude, 0.0f, 100.0f);
+			ImGui::SliderFloat("transFreq: ", &translationFrequency, 0.0f, 100.0f);
+			ImGui::SliderFloat("rotAmp: ", &rotationAmplitude, 0.0f, 100.0f);
+			ImGui::SliderFloat("rotFreq: ", &rotationFrequency, 0.0f, 100.0f);
 
 			ImGui::End();
 		}
@@ -386,7 +452,7 @@ namespace Enigma
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
-		if (Enigma::isDebug)
+		if (Enigma::isDebug && !Enigma::enablePlayerCamera)
 		{
 			glfwSetInputMode(window.window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		}
@@ -395,24 +461,28 @@ namespace Enigma
 			glfwSetInputMode(window.window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		}
 		
-		cam->Update(window.window);
 
 		UpdateImGui();
-
-		if (current_state != isPlayer) {
-			if (isPlayer) {
-				camera->SetPosition(Enigma::WorldInst.player->getTranslation() + glm::vec3(0.f, 13.f, 0.f));
-				camera->SetNearPlane(0.05f);
-			}
-			else {
-				camera->SetNearPlane(1.f);
-			}
-			current_state = isPlayer;
-		}
 		
 		m_shadowPass->Update();
-		m_gBufferPass->Update(cam);
-		m_lightingPass->Update(cam);
+
+		if (!Enigma::enablePlayerCamera)
+		{	
+			window.camera = cam;
+			glfwSetKeyCallback(window.window, window.glfw_callback_key_press);
+			cam->Update(window.window, window.swapchainExtent.width, window.swapchainExtent.height);
+			m_gBufferPass->Update(cam);
+			m_lightingPass->Update(cam);
+		}
+		else
+		{
+			window.camera = Enigma::WorldInst.player->GetCamera();
+			glfwSetKeyCallback(window.window, Enigma::WorldInst.player->PlayerKeyCallback);
+			Enigma::WorldInst.player->Update(window.window, window.swapchainExtent.width, window.swapchainExtent.height, context, Enigma::WorldInst.Meshes, *Enigma::EngineTime);
+			m_gBufferPass->Update(Enigma::WorldInst.player->GetCamera());
+			m_lightingPass->Update(Enigma::WorldInst.player->GetCamera());
+		}
+
 	}
 
 	void Renderer::DrawScene()
@@ -435,19 +505,19 @@ namespace Enigma
 			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 			ENIGMA_VK_CHECK(vkBeginCommandBuffer(m_renderCommandBuffers[Enigma::currentFrame], &beginInfo), "Failed to begin command buffer");
 
-			if (current_state) {
-				if (camera->GetPosition().x != Enigma::WorldInst.player->getTranslation().x ||
-					camera->GetPosition().z != Enigma::WorldInst.player->getTranslation().z
-					) {
-					Enigma::WorldInst.player->moved = true;
-					Enigma::WorldInst.player->setTranslation(glm::vec3(camera->GetPosition().x, 0.1f, camera->GetPosition().z));
-				}
-				glm::vec3 dir = camera->GetDirection();
-				dir = dir * glm::vec3(3.14, 3.14, 3.14);
-				if (!Enigma::WorldInst.player->getEquipmentVec().empty()) {
-					Enigma::WorldInst.player->getEquipment(Enigma::WorldInst.player->getCurrentEquipment())->getModel()->setRotationMatrix(glm::inverse(camera->GetCameraTransform().view));
-				}
-			}
+			//if (current_state) {
+			//	if (camera->GetPosition().x != Enigma::WorldInst.player->getTranslation().x ||
+			//		camera->GetPosition().z != Enigma::WorldInst.player->getTranslation().z
+			//		) {
+			//		Enigma::WorldInst.player->moved = true;
+			//		Enigma::WorldInst.player->setTranslation(glm::vec3(camera->GetPosition().x, 0.1f, camera->GetPosition().z));
+			//	}
+			//	glm::vec3 dir = camera->GetDirection();
+			//	dir = dir * glm::vec3(3.14, 3.14, 3.14);
+			//	if (!Enigma::WorldInst.player->getEquipmentVec().empty()) {
+			//		Enigma::WorldInst.player->getEquipment(Enigma::WorldInst.player->getCurrentEquipment())->getModel()->setRotationMatrix(glm::inverse(camera->GetCameraTransform().view));
+			//	}
+			//}
 
 			for (const auto& model : Enigma::WorldInst.Meshes)
 			{
@@ -857,7 +927,7 @@ namespace Enigma
 
 		// set blood value
 		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_bloodPipeline.handle);
-		UpdateBlood(Enigma::WorldInst.player->health / 100.f);
+		//UpdateBlood(Enigma::WorldInst.player->health / 100.f);
 		vkCmdPushConstants(cmdBuffer, m_bloodPipelineLayout.handle, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(glm::mat4),
 			&bloodTransformMatrix);
 		vkCmdDraw(cmdBuffer, 4, 1, 0, 0);

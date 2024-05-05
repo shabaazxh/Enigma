@@ -9,10 +9,16 @@
 #include <fstream>
 #include "../Core/Error.h"
 #include <string>
-
-
+#include "../Graphics/Model.h"
 
 namespace Enigma
 {
 	inline bool isDebug = true;
+	inline bool enablePlayerCamera = false;
+	inline std::vector<Model*> tempModels;
+
+	inline float translationAmplitude = 1.0f; // Adjust as needed
+	inline float translationFrequency = 1.0f; // Adjust as needed
+	inline float rotationAmplitude = 10.0f;     // Adjust as needed
+	inline float rotationFrequency = 0.5f;     // Adjust as needed
 }

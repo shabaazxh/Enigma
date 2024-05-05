@@ -1,0 +1,50 @@
+# Blender 4.0.2 MTL File: 'None'
+# www.blender.org
+
+newmtl crosshair
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl glove_hardknuckle
+Ka 1.000000 1.000000 1.000000
+Ks 0.231818 0.231818 0.231818
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd glove_hardknuckle_Base_color.png
+
+newmtl lambert1
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd lambert1_Base_color.png
+
+newmtl sleeve_st6_generalist
+Ns 156.384277
+Ka 1.000000 1.000000 1.000000
+Ks 0.290909 0.290909 0.290909
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd sleeve_st6_generalist_Base_color.png
+
+newmtl v_l_skin
+Ns 360.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.894220 0.896855 0.592804
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2

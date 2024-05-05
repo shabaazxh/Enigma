@@ -41,6 +41,8 @@ namespace Enigma
 			double current;
 	};
 
+	inline Time* EngineTime;
+
 
 	struct CameraTransform
 	{
@@ -123,7 +125,6 @@ namespace Enigma
 	inline VkSampler defaultSampler; // a default sampler for sampling textures 
 	inline VkSampler repeatSampler;
 	inline VkPipeline draw_line_list; // pipeline to draw meshes as a line
-
 	inline Navmesh navmesh;
 }
 

@@ -102,7 +102,7 @@ bool check(vec2 projectCoords)
 
 float LinearizeDepth(float d)
 {
-	return ubo.nearPlane * ubo.farPlane / (ubo.farPlane + d * (ubo.nearPlane - ubo.farPlane));
+	return (2.0 * ubo.nearPlane) / (ubo.farPlane + ubo.nearPlane - d * (ubo.farPlane - ubo.nearPlane));
 }
 
 
@@ -313,13 +313,16 @@ void main() {
 
    else if(debugRenderer.debugRenderTarget == 2)
    {
+   	  float sampleDepth = texture(depthTex, uv).x;
+	  float depthVpos = LinearizeDepth(sampleDepth);
 	  vec3 normal = normalize(texture(gBuffNormal, uv).xyz);
-	  outColor = vec4(normal, 1.0);
+	  outColor = vec4(vec3(depthVpos), 1.0);
    }
    else 
    {
-	  
-	   outColor = vec4(shade, 1.0);
+	   float sampleDepth = texture(depthTex, uv).x;
+	   float depthVpos = LinearizeDepth(sampleDepth);
+	   outColor = vec4(vec3(shade), 1.0);
    }
 }
 

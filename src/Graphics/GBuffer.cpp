@@ -52,7 +52,7 @@ namespace Enigma
 		CreateRenderPass(context.device);
 		CreateFramebuffer(context.device, targets);
 		CreatePipeline(context.device, window.swapchainExtent);
-		//CreateAABBPipeline(context.device, window.swapchainExtent);
+		CreateAABBPipeline(context.device, window.swapchainExtent);
 
 	}
 
@@ -83,10 +83,10 @@ namespace Enigma
 		rpBegin.renderArea.offset = { 0,0 };
 
 		VkClearValue clearValues[4]; // 3 color, 1 depth
-		clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
+		clearValues[0].color = { {0.3f, 0.5f, .7f, 1.0f} };
 		clearValues[1].depthStencil.depth = 1.0f;
-		clearValues[2].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
-		clearValues[3].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
+		clearValues[2].color = { {0.3f, 0.5f, .7f, 1.0f} };
+		clearValues[3].color = { {0.3f, 0.5f, .7f, 1.0f} };
 		rpBegin.clearValueCount = 4;
 		rpBegin.pClearValues = clearValues;
 
@@ -107,14 +107,27 @@ namespace Enigma
 		vkCmdBeginRenderPass(cmd, &rpBegin, VK_SUBPASS_CONTENTS_INLINE);
 		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout.handle, 0, 1, &m_sceneDescriptorSets[Enigma::currentFrame], 0, nullptr);
 
-		for (const auto& model : models)
+		for (const auto& model : Enigma::tempModels)
 		{
 			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
 			model->Draw(cmd, m_pipelineLayout.handle);
-			if (model->player && !Enigma::WorldInst.player->getEquipmentVec().empty()) {
-				vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
-				Enigma::WorldInst.player->getEquipment(Enigma::WorldInst.player->getCurrentEquipment())->getModel()->Draw(cmd, m_pipelineLayout.handle);
-			}
+		}
+
+		for (const auto& model : models)
+		{
+			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
+
+
+			model->Draw(cmd, m_pipelineLayout.handle);
+			//if (model->player && !Enigma::WorldInst.player->getEquipmentVec().empty()) {
+			//	vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
+			//	Enigma::WorldInst.player->getEquipment(Enigma::WorldInst.player->getCurrentEquipment())->getModel()->Draw(cmd, m_pipelineLayout.handle);
+			//}
+
+			Enigma::WorldInst.player->Draw(cmd, m_pipelineLayout.handle);
+			//Enigma::WorldInst.player->m_Model->DrawDebug(cmd, m_pipelineLayout.handle, AABBDraw.handle);
+			Enigma::WorldInst.player->DrawAABBDebug(cmd, m_pipelineLayout.handle, AABBDraw.handle, Enigma::WorldInst.player->m_Model->m_descriptorSet[0]);
+			model->DrawDebug(cmd, m_pipelineLayout.handle, AABBDraw.handle);
 		}
 
 		vkCmdEndRenderPass(cmd);
@@ -499,10 +512,10 @@ namespace Enigma
 		rasterInfo.depthClampEnable = VK_FALSE;
 		rasterInfo.rasterizerDiscardEnable = VK_FALSE;
 		rasterInfo.polygonMode = VK_POLYGON_MODE_FILL;
-		rasterInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+		rasterInfo.cullMode = VK_CULL_MODE_NONE;
 		rasterInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		rasterInfo.depthBiasClamp = VK_FALSE;
-		rasterInfo.lineWidth = 1.0f;
+		rasterInfo.lineWidth = 5.0f;
 
 		VkPipelineMultisampleStateCreateInfo samplingInfo{ VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
 		samplingInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
@@ -567,7 +580,7 @@ namespace Enigma
 		VkPipeline pipeline = VK_NULL_HANDLE;
 		ENIGMA_VK_CHECK(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Failed to create graphics pipeline.");
 
-		m_aabPipeline = Pipeline(device, pipeline);
+		AABBDraw = Pipeline(device, pipeline);
 	}
 	void GBuffer::BuildDescriptorSetLayout(const VulkanContext& context)
 	{

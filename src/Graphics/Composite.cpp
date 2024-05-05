@@ -54,7 +54,7 @@ namespace Enigma
 
 		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
 		vkCmdDraw(cmd, 3, 1, 0, 0);
-
+		
 		vkCmdEndRenderPass(cmd);
 
 	}

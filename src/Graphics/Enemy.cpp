@@ -30,8 +30,8 @@ namespace Enigma {
 		for (int i = 0; i < characters.size(); i++) {
 			addToNavmesh(characters[i], obj);
 		}
-		pathToEnemy = findDirection(player);
-		player->moved = false;
+		//pathToEnemy = findDirection(player);
+		//player->moved = false;
 		moveInDirection();
 	}
 
@@ -91,69 +91,70 @@ namespace Enigma {
 	}
 
 	std::vector<int> Enemy::findDirection(Player* player) {
-		int graphVertices = navmesh.vertices.size();
-		int startVertex = this->navmeshPosition;
-		int endVertex = player->navmeshPosition;
-		std::vector<int> Visited;
-		std::queue<int> toVisit;
-		dijkstraData graph;
+		//int graphVertices = navmesh.vertices.size();
+		//int startVertex = this->navmeshPosition;
+		//int endVertex = player->navmeshPosition;
+		//std::vector<int> Visited;
+		//std::queue<int> toVisit;
+		//dijkstraData graph;
 
-		//resize dijkstra's graph to have the same amount of vertices as navmesh
-		graph.distance.resize(graphVertices);
-		graph.edgeFrom.resize(graphVertices);
-		//fill dijkstra's graphs distance with very large value to imitate infinity
-		std::fill(graph.distance.begin(), graph.distance.end(), 1000000000.f);
-		//make start vertex the current vertex
-		int currentVertex = startVertex;
-		//mark start vertex as visited
-		Visited.push_back(startVertex);
-		//make inital vertex have no distance
-		graph.distance[currentVertex] = 0;
-		graph.edgeFrom[currentVertex] = currentVertex;
+		////resize dijkstra's graph to have the same amount of vertices as navmesh
+		//graph.distance.resize(graphVertices);
+		//graph.edgeFrom.resize(graphVertices);
+		////fill dijkstra's graphs distance with very large value to imitate infinity
+		//std::fill(graph.distance.begin(), graph.distance.end(), 1000000000.f);
+		////make start vertex the current vertex
+		//int currentVertex = startVertex;
+		////mark start vertex as visited
+		//Visited.push_back(startVertex);
+		////make inital vertex have no distance
+		//graph.distance[currentVertex] = 0;
+		//graph.edgeFrom[currentVertex] = currentVertex;
 
-		//add first vertex to visit so it enters the loop
-		toVisit.push(currentVertex);
-		while (!toVisit.empty()) {
-			//make current vertex the first element in the stack
-			currentVertex = toVisit.front();
-			//loop through it's neighbours
-			for (int i = 0; i < navmesh.edges[currentVertex].size(); i++) {
-				//if the neighbour vertex hasn't been visted
-				//get the distance and update the dijkstra's graphs data
-				//add the neighbour to the toVisit stack
-				if (notVisited(navmesh.edges[currentVertex][i].vertex2, Visited)) {
-					float dist = navmesh.edges[currentVertex][i].weight + graph.distance[currentVertex];
-					if (dist < graph.distance[navmesh.edges[currentVertex][i].vertex2]) {
-						graph.edgeFrom[navmesh.edges[currentVertex][i].vertex2] = currentVertex;
-						graph.distance[navmesh.edges[currentVertex][i].vertex2] = dist;
-						toVisit.push(navmesh.edges[currentVertex][i].vertex2);
-					}
-				}
-			}
-			//remove the current vertex from toVisit and add to visited
-			toVisit.pop();
-			Visited.push_back(currentVertex);
-		}
+		////add first vertex to visit so it enters the loop
+		//toVisit.push(currentVertex);
+		//while (!toVisit.empty()) {
+		//	//make current vertex the first element in the stack
+		//	currentVertex = toVisit.front();
+		//	//loop through it's neighbours
+		//	for (int i = 0; i < navmesh.edges[currentVertex].size(); i++) {
+		//		//if the neighbour vertex hasn't been visted
+		//		//get the distance and update the dijkstra's graphs data
+		//		//add the neighbour to the toVisit stack
+		//		if (notVisited(navmesh.edges[currentVertex][i].vertex2, Visited)) {
+		//			float dist = navmesh.edges[currentVertex][i].weight + graph.distance[currentVertex];
+		//			if (dist < graph.distance[navmesh.edges[currentVertex][i].vertex2]) {
+		//				graph.edgeFrom[navmesh.edges[currentVertex][i].vertex2] = currentVertex;
+		//				graph.distance[navmesh.edges[currentVertex][i].vertex2] = dist;
+		//				toVisit.push(navmesh.edges[currentVertex][i].vertex2);
+		//			}
+		//		}
+		//	}
+		//	//remove the current vertex from toVisit and add to visited
+		//	toVisit.pop();
+		//	Visited.push_back(currentVertex);
+		//}
 
-		//go backwards from the end vertex finding the shortest path to the start vertex
-		//add the path of vertices to the path vector
-		currentVertex = endVertex;
-		std::vector<int> path;
-		path.push_back(currentVertex);
-		while (currentVertex != startVertex) {
-			int nextVertex = graph.edgeFrom[currentVertex];
-			path.push_back(nextVertex);
-			if (nextVertex == startVertex) {
-				break;
-			}
-			else {
-				currentVertex = nextVertex;
-			}
-		}
-		currentNode = 0;
-		std::reverse(path.begin(), path.end());
+		////go backwards from the end vertex finding the shortest path to the start vertex
+		////add the path of vertices to the path vector
+		//currentVertex = endVertex;
+		//std::vector<int> path;
+		//path.push_back(currentVertex);
+		//while (currentVertex != startVertex) {
+		//	int nextVertex = graph.edgeFrom[currentVertex];
+		//	path.push_back(nextVertex);
+		//	if (nextVertex == startVertex) {
+		//		break;
+		//	}
+		//	else {
+		//		currentVertex = nextVertex;
+		//	}
+		//}
+		//currentNode = 0;
+		//std::reverse(path.begin(), path.end());
 
-		return path;
+		//return path;
+		return {};
 	}
 
 	void Enemy::moveInDirection() {

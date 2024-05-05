@@ -24,8 +24,14 @@ namespace Enigma
 
 	};
 
-	// Note from Ahmad: change filetype to be an ENUM class so it's clearer 
-	// also, doesn't fbx model load all formats and not just fbx since it's using assimp which loads all model types?
+	Model::Model(const std::string& filepath, const VulkanContext& context, int filetype, const std::string& name) : 
+		m_filePath { filepath }, context{ context }, modelName{name}
+	{
+		if (filetype == ENIGMA_LOAD_OBJ_FILE)
+			LoadOBJModel(filepath);
+		else if (filetype == ENIGMA_LOAD_FBX_FILE)
+			LoadFBXModel(filepath);
+	}
 	Model::Model(const std::string& filepath, const VulkanContext& context, int filetype) : m_filePath{filepath}, context{context}
 	{
 		if (filetype == ENIGMA_LOAD_OBJ_FILE)
@@ -668,7 +674,11 @@ namespace Enigma
 			vkDestroyCommandPool(context.device, commandPool, nullptr);
 		}
 
+		CreateAABBBuffers();
+	}
 
+	void Model::CreateAABBBuffers()
+	{
 		for (auto& mesh : meshes)
 		{
 			VkDeviceSize vertexSize = sizeof(mesh.aabbVertices[0]) * mesh.aabbVertices.size();
@@ -819,35 +829,21 @@ namespace Enigma
 	// Call to draw the model
 	void Model::Draw(VkCommandBuffer cmd, VkPipelineLayout layout)
 	{
+		// Update the AABB
+
 		for (auto& mesh : meshes)
 		{
+			// scale, rotate, translate -> T * R * S
 			ModelPushConstant push = {};
 			push.model = glm::mat4(1.0f);
-			if (player) {
-				push.model = glm::translate(push.model, this->translation + glm::vec3(0.f, 8.3f, 0.f));
-				//push.model = rotMatrix;
-				push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
-			}
-			else if (equipment) {
-				push.model = glm::translate(push.model, this->translation + offset);
-				push.model = rotMatrix;
-				push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
-			}
-			else {
-				push.model = glm::translate(push.model, this->translation);
-				push.model = rotMatrix;
-				push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
-			}
+			push.model = glm::translate(push.model, translation);
+			push.model = push.model * rotMatrix;
 			push.model = glm::scale(push.model, this->scale);
 			push.textureIndex = mesh.materialIndex;
 			push.isTextured = mesh.textured;
 
+			//UpdateAABB(mesh, push.model);
+			//mesh.position = translation;
 			vkCmdPushConstants(cmd, layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(ModelPushConstant), &push);
 
 			vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 1, 1, &m_descriptorSet[0], 0, nullptr);
@@ -868,27 +864,8 @@ namespace Enigma
 
 			ModelPushConstant push = {};
 			push.model = glm::mat4(1.0f);
-			if (player) {
-				push.model = glm::translate(push.model, this->translation + glm::vec3(0.f, 8.3f, 0.f));
-				//push.model = rotMatrix;
-				push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
-			}
-			else if (equipment) {
-				push.model = glm::translate(push.model, this->translation + offset);
-				push.model = rotMatrix;
-				push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
-			}
-			else {
-				push.model = glm::translate(push.model, this->translation);
-				push.model = rotMatrix;
-				push.model = glm::rotate(push.model, glm::radians(this->rotationY), glm::vec3(0, 1, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationX), glm::vec3(1, 0, 0));
-				push.model = glm::rotate(push.model, glm::radians(this->rotationZ), glm::vec3(0, 0, 1));
-			}
+			push.model = glm::translate(push.model, translation);
+			push.model = push.model * rotMatrix;
 			push.model = glm::scale(push.model, this->scale);
 			push.textureIndex = mesh.materialIndex;
 			push.isTextured = mesh.textured;
@@ -904,6 +881,29 @@ namespace Enigma
 			vkCmdBindIndexBuffer(cmd, mesh.AABB_indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 			vkCmdDrawIndexed(cmd, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 		}
+	}
+
+	void Model::DrawDebug(VkCommandBuffer cmd, VkPipelineLayout layout, VkPipeline AABBPipeline, int index)
+	{
+		auto &mesh = meshes[index];
+		ModelPushConstant push = {};
+		push.model = glm::mat4(1.0f);
+		push.model = glm::translate(push.model, translation);
+		push.model = push.model * rotMatrix;
+		push.model = glm::scale(push.model, this->scale);
+		push.textureIndex = mesh.materialIndex;
+		push.isTextured = mesh.textured;
+
+		vkCmdPushConstants(cmd, layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(ModelPushConstant), &push);
+
+		vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, AABBPipeline);
+		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 1, 1, &m_descriptorSet[0], 0, nullptr);
+
+		VkDeviceSize offset[] = { 0 };
+		vkCmdBindVertexBuffers(cmd, 0, 1, &mesh.AABB_buffer.buffer, offset);
+
+		vkCmdBindIndexBuffer(cmd, mesh.AABB_indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdDrawIndexed(cmd, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 	}
 }
 

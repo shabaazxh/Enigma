@@ -33,12 +33,9 @@ namespace Enigma
 					Enigma::isDebug = Enigma::isDebug ? false : true;
 				}
 
-				if (glfwGetKey(windowClass->window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+				if (GLFW_KEY_C == key && action == GLFW_PRESS)
 				{
-					windowClass->camera->SetSpeed(100.0f);
-				}
-				else {
-					windowClass->camera->SetSpeed(50.0f);
+					Enigma::enablePlayerCamera = Enigma::enablePlayerCamera ? false : true;
 				}
 
 				if (glfwGetKey(windowClass->window, GLFW_KEY_P) == GLFW_PRESS)
@@ -53,7 +50,7 @@ namespace Enigma
 				VulkanWindow* windowClass = reinterpret_cast<VulkanWindow*>(glfwGetWindowUserPointer(window));
 
 				// check if right mouse button is pressed, then move the camera
-				if (!Enigma::isDebug)
+				if (!Enigma::isDebug || Enigma::enablePlayerCamera)
 				{
 					double x_offset = x - windowClass->m_lastMousePosX;
 					double y_offset = windowClass->m_lastMousePosY - y;
@@ -61,17 +58,22 @@ namespace Enigma
 					windowClass->m_lastMousePosX = x;
 					windowClass->m_lastMousePosY = y;
 
-					const float mouseSensitivity = 0.1f;
+					const float mouseSensitivity = Enigma::enablePlayerCamera ? 0.01 : 0.1;
 					x_offset *= mouseSensitivity;
 					y_offset *= mouseSensitivity;
 
-					windowClass->yaw += x_offset;
-					windowClass->pitch += y_offset;
+					windowClass->camera->yaw += x_offset;
+					windowClass->camera->pitch += y_offset;
+
+					if (windowClass->camera->pitch > 89.0f)
+						windowClass->camera->pitch = 89.0f;
+					if (windowClass->camera->pitch < -89.0f)
+						windowClass->camera->pitch = -89.0f;
 
 					glm::vec3 direction = glm::vec3(0.0f);
-					direction.x = static_cast<float>(std::cos(glm::radians(windowClass->yaw)) * std::cos(glm::radians(windowClass->pitch)));
-					direction.y = static_cast<float>(std::sin(glm::radians(windowClass->pitch)));
-					direction.z = static_cast<float>(std::sin(glm::radians(windowClass->yaw)) * std::cos(glm::radians(windowClass->pitch)));
+					direction.x = static_cast<float>(std::cos(glm::radians(windowClass->camera->yaw)) * std::cos(glm::radians(windowClass->camera->pitch)));
+					direction.y = static_cast<float>(std::sin(glm::radians(windowClass->camera->pitch)));
+					direction.z = static_cast<float>(std::sin(glm::radians(windowClass->camera->yaw)) * std::cos(glm::radians(windowClass->camera->pitch)));
 					windowClass->camera->SetDirection(glm::normalize(direction));
 				}
 			}
@@ -96,9 +98,6 @@ namespace Enigma
 
 			double m_lastMousePosX;
 			double m_lastMousePosY;
-
-			double yaw = 30.0f;
-			double pitch = 0.0f;
 
 		private:
 			const VulkanContext& context;

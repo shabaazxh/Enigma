@@ -124,6 +124,7 @@ IF EXIST "$(SolutionDir)zlib1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlib1.dll"
     <ClInclude Include="..\src\Graphics\Light.h" />
     <ClInclude Include="..\src\Graphics\Lighting.h" />
     <ClInclude Include="..\src\Graphics\Model.h" />
+    <ClInclude Include="..\src\Graphics\Physics.h" />
     <ClInclude Include="..\src\Graphics\Player.h" />
     <ClInclude Include="..\src\Graphics\Renderer.h" />
     <ClInclude Include="..\src\Graphics\ShadowPass.h" />

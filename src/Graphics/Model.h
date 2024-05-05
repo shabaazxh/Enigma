@@ -115,6 +115,7 @@ namespace Enigma
 		Buffer AABB_buffer;
 		std::vector<Vertex> aabbVertices;
 		Buffer AABB_indexBuffer;
+		glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
 	};
 
 	struct ModelPushConstant
@@ -131,16 +132,18 @@ namespace Enigma
 			// @context - vulkan context which houses device
 			// @filetype - type of file, fbx or obj
 			Model(const std::string& filepath, const VulkanContext& context, int filetype);
+			Model(const std::string& filepath, const VulkanContext& context, int filetype, const std::string& name);
 			
 			// This will draw the the model without debug properties rendered
 			void Draw(VkCommandBuffer cmd, VkPipelineLayout layout);
 
 			// This will draw the model will debug prperties visibile such as AABB
 			void DrawDebug(VkCommandBuffer cmd, VkPipelineLayout layout, VkPipeline AABBPipeline);
+			void DrawDebug(VkCommandBuffer cmd, VkPipelineLayout layout, VkPipeline AABBPipeline, int index);
 
 			// Get the AABB min and max 
-			glm::vec3 GetAABBMin() { return m_AABB.min; };
-			glm::vec3 GetAABBMax() { return m_AABB.max; };
+			glm::vec3 GetAABBMin() const { return m_AABB.min; };
+			glm::vec3 GetAABBMax() const { return m_AABB.max; };
 
 			std::vector<Material> materials;
 			std::vector<Mesh> meshes;
@@ -151,6 +154,8 @@ namespace Enigma
 			aiAnimation** animations;
 
 			std::string modelName;
+			glm::mat4 modelMatrix = glm::mat4(1.0f);
+			std::vector<VkDescriptorSet> m_descriptorSet;
 		private:
 			glm::vec3 translation = glm::vec3(0.f, 0.f, 0.f);
 			float rotationX = 0.f;
@@ -161,7 +166,7 @@ namespace Enigma
 			glm::vec3 offset = glm::vec3(0.f, 0.f, 0.f);
 			std::vector<Image> loadedTextures;
 			std::vector<Image> MetallicTextures;
-			std::vector<VkDescriptorSet> m_descriptorSet;
+			
 			const VulkanContext& context;
 			std::string m_filePath;
 			AABB m_AABB;
@@ -185,6 +190,7 @@ namespace Enigma
 			void LoadOBJModel(const std::string& filepath);
 			void LoadFBXModel(const std::string& filepath);
 			void CreateBuffers();
+			void CreateAABBBuffers();
 		};
 }
 

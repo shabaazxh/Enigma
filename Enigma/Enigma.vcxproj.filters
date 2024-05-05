@@ -87,9 +87,6 @@
     <ClInclude Include="..\src\Graphics\Model.h">
       <Filter>src\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\Graphics\Player.h">
-      <Filter>src\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\Graphics\Renderer.h">
       <Filter>src\Graphics</Filter>
     </ClInclude>
@@ -115,6 +112,12 @@
       <Filter>src\Core</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Graphics\Equipment.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\Player.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\Physics.h">
       <Filter>src\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
@@ -179,9 +182,6 @@
     <ClCompile Include="..\src\Graphics\Model.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\Graphics\Player.cpp">
-      <Filter>src\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\Graphics\Renderer.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
@@ -204,6 +204,9 @@
       <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\Equipment.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Graphics\Player.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
