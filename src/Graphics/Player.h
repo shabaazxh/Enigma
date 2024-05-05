@@ -210,9 +210,6 @@ namespace Enigma
 
 						if (Enigma::Physics::isAABBColliding(m_AABB, m_position, box))
 						{
-							glm::vec3 displacement = Enigma::Physics::calculateCollisionResponse(m_AABB, m_position, box);
-
-							m_position += displacement;
 							std::cout << "Colliding" << std::endl;
 							return true;
 						}
