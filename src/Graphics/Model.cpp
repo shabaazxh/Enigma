@@ -419,6 +419,9 @@ namespace Enigma
 				
 				mesh.vertices.push_back(vert);
 			}
+			if (scene->HasAnimations()) {
+				loadBones(scene->mMeshes[i], mesh.vertices);
+			}
 			for (int j = 0; j < scene->mMeshes[i]->mNumFaces; j++) {
 				for (int k = 0; k < scene->mMeshes[i]->mFaces->mNumIndices; k++) {
 					mesh.indices.push_back(scene->mMeshes[i]->mFaces[j].mIndices[k]);
@@ -520,6 +523,31 @@ namespace Enigma
 		}
 
 		CreateBuffers();
+	}
+
+	void Model::loadBones(aiMesh* mesh, std::vector<Vertex>& boneData) {
+		for (uint32_t i = 0; i < mesh->mNumBones; i++) {
+			uint32_t boneIndex = 0;
+			std::string boneName(mesh->mBones[i]->mName.data);
+
+			if (boneMapping.find(boneName) == boneMapping.end()) {
+				boneIndex = numBones++;
+				//BoneInfo bi;
+				//boneInfo.push_back(bi);
+			}
+			else {
+				boneIndex = boneMapping[boneName];
+			}
+
+			boneMapping[boneName] = boneIndex;
+			//boneInfo[boneIndex].offsetMatrix = aiMat4x4toMat4(mesh->mBones[i]->mOffsetMatrix);
+
+			for (uint32_t j = 0; j < mesh->mBones[i]->mNumWeights; j++) {
+				uint32_t vertexID = mesh->mBones[i]->mWeights[j].mVertexId;
+				float weight = mesh->mBones[i]->mWeights[j].mWeight;
+				boneData[vertexID].add(boneIndex, weight);
+			}
+		}
 	}
 
 	void Model::CreateBuffers()

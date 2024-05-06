@@ -5,7 +5,7 @@ namespace Enigma
 	Equipment::Equipment(glm::vec3 v, Model* m) {
 		m->setRotationY(180);
 		m->setScale(glm::vec3(0.1f, 0.1f, 0.1f));
-		m->equipment = true;
+		//m->equipment = true;
 		m->setOffset(v);
 		offset = v;
 		model = m;

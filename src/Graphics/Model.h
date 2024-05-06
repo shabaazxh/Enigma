@@ -25,6 +25,9 @@
 #define ENIGMA_LOAD_OBJ_FILE 0
 #define ENIGMA_LOAD_FBX_FILE 1
 
+#define MAX_BONES 64
+#define MAX_BONES_PER_VERTEX 4
+
 namespace Enigma
 {
 	struct Vertex
@@ -33,6 +36,21 @@ namespace Enigma
 		glm::vec3 normal;
 		glm::vec2 tex;
 		glm::vec3 color;
+
+		// Arrays to store bone IDs and weights for skeletal animation
+		std::array<uint32_t, MAX_BONES_PER_VERTEX> boneIDs = { 0, 0, 0, 0 };
+		std::array<float, MAX_BONES_PER_VERTEX> weights = { 0.f, 0.f, 0.f, 0.f };
+
+		// Method to add bone data to a vertex
+		void add(uint32_t boneID, float weight) {
+			for (uint32_t i = 0; i < MAX_BONES_PER_VERTEX; i++) {
+				if (weights[i] == 0.0f) {
+					boneIDs[i] = boneID;
+					weights[i] = weight;
+					return;
+				}
+			}
+		}
 
 		static VkVertexInputBindingDescription GetBindingDescription()
 		{
@@ -67,6 +85,20 @@ namespace Enigma
 			attributes[3].location = 3;
 			attributes[3].format = VK_FORMAT_R32G32B32_SFLOAT;
 			attributes[3].offset = offsetof(Vertex, color);
+
+			// Bone IDs
+			attributes[4].binding = 0;
+			attributes[4].location = 3;
+			attributes[4].format = VK_FORMAT_R32G32B32A32_SINT; // Use SINT for bone IDs
+			attributes[4].offset = offsetof(Vertex, boneIDs);
+
+			// Bone weights
+			attributes[5].binding = 0;
+			attributes[5].location = 4;
+			attributes[5].format = VK_FORMAT_R32G32B32A32_SFLOAT; // Use SFLOAT for weights
+			attributes[5].offset = offsetof(Vertex, weights);
+
+			return attributes;
 			
 			return attributes;
 		}
@@ -107,10 +139,8 @@ namespace Enigma
 		
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
-		std::vector<glm::vec2> texcoords;
 		Buffer vertexBuffer;
 		Buffer indexBuffer;
-		glm::vec3 color;
 		AABB meshAABB;
 		Buffer AABB_buffer;
 		std::vector<Vertex> aabbVertices;
@@ -149,13 +179,13 @@ namespace Enigma
 			std::vector<Mesh> meshes;
 
 			bool player = false;
-			bool equipment = false;
 			bool hasAnimations = false;
 			aiAnimation** animations;
 
 			std::string modelName;
 			glm::mat4 modelMatrix = glm::mat4(1.0f);
 			std::vector<VkDescriptorSet> m_descriptorSet;
+
 		private:
 			glm::vec3 translation = glm::vec3(0.f, 0.f, 0.f);
 			float rotationX = 0.f;
@@ -170,6 +200,9 @@ namespace Enigma
 			const VulkanContext& context;
 			std::string m_filePath;
 			AABB m_AABB;
+
+			std::unordered_map<std::string, int> boneMapping;
+			unsigned int numBones;
 
 		public:
 			void setTranslation(glm::vec3 trans) { translation = trans; };
@@ -191,6 +224,8 @@ namespace Enigma
 			void LoadFBXModel(const std::string& filepath);
 			void CreateBuffers();
 			void CreateAABBBuffers();
+
+			void loadBones(aiMesh* mesh, std::vector<Vertex>& boneData);
 		};
 }
 
