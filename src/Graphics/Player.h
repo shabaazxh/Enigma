@@ -372,7 +372,7 @@ namespace Enigma
 			cameraPosition = m_position + glm::vec3(0.0f, 5.0f, 0.0f);
 			FPSCamera->SetPosition(cameraPosition);
 
-			modelPosition.y -= 3.0f;
+			modelPosition.y -= 1.0f;
 			m_Model->setTranslation(modelPosition);
 		}
 
@@ -396,6 +396,7 @@ namespace Enigma
 		AABB GetAABB() const { return m_AABB; }
 		int GetHealth() const { return m_health; }
 		Model* m_Model;
+		int navmeshPosition;
 
 	private:
 		Camera* FPSCamera;

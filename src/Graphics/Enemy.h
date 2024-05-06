@@ -18,6 +18,7 @@ namespace Enigma
 		Enemy(const std::string& filepath, const VulkanContext& context, int filetype, glm::vec3 trans, glm::vec3 scale, glm::mat4 rm);
 
 		void ManageAI(std::vector<Character*> characters, Model* obj, Player* player);
+		void addPlayerToNavmesh(Player* player, Model* obj);
 		void addToNavmesh(Character* character, Model* obj);
 		void moveInDirection();
 

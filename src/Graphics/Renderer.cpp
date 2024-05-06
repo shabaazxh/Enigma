@@ -505,34 +505,6 @@ namespace Enigma
 			beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 			ENIGMA_VK_CHECK(vkBeginCommandBuffer(m_renderCommandBuffers[Enigma::currentFrame], &beginInfo), "Failed to begin command buffer");
 
-			//if (current_state) {
-			//	if (camera->GetPosition().x != Enigma::WorldInst.player->getTranslation().x ||
-			//		camera->GetPosition().z != Enigma::WorldInst.player->getTranslation().z
-			//		) {
-			//		Enigma::WorldInst.player->moved = true;
-			//		Enigma::WorldInst.player->setTranslation(glm::vec3(camera->GetPosition().x, 0.1f, camera->GetPosition().z));
-			//	}
-			//	glm::vec3 dir = camera->GetDirection();
-			//	dir = dir * glm::vec3(3.14, 3.14, 3.14);
-			//	if (!Enigma::WorldInst.player->getEquipmentVec().empty()) {
-			//		Enigma::WorldInst.player->getEquipment(Enigma::WorldInst.player->getCurrentEquipment())->getModel()->setRotationMatrix(glm::inverse(camera->GetCameraTransform().view));
-			//	}
-			//}
-
-			for (const auto& model : Enigma::WorldInst.Meshes)
-			{
-				//vkCmdBindPipeline(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
-				//model->Draw(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle);
-				//if (model->player && !Enigma::WorldInst.player->getEquipmentVec().empty()) {
-				//	vkCmdBindPipeline(m_renderCommandBuffers[Enigma::currentFrame], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
-				//	Enigma::WorldInst.player->getEquipment(Enigma::WorldInst.player->getCurrentEquipment())->getModel()->Draw(m_renderCommandBuffers[Enigma::currentFrame], m_pipelinePipelineLayout.handle, m_aabbPipeline.handle);
-				//}
-			}
-
-			if (isPlayer) {
-				//DrawBlood(m_renderCommandBuffers[Enigma::currentFrame]);
-			}
-
 			m_shadowPass->Execute(m_renderCommandBuffers[Enigma::currentFrame], Enigma::WorldInst.Meshes);
 			m_gBufferPass->Execute(m_renderCommandBuffers[Enigma::currentFrame], Enigma::WorldInst.Meshes);
 			m_lightingPass->Execute(m_renderCommandBuffers[Enigma::currentFrame]);

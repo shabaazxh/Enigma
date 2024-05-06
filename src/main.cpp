@@ -50,31 +50,26 @@ int main() {
     Enigma::WorldInst.Meshes.push_back(obj1);
     Enigma::WorldInst.Meshes.push_back(LightBulb);
 
-    // Enigma::WorldInst.Meshes[0]->setScale(glm::vec3(10.0f, 10.0f, 10.0f));
-    //Enigma::WorldInst.Meshes[0]->setTranslation(glm::vec3(0.0f, 10.0f, 0.0f));
-
     //add enemy to the world class
-    Enigma::WorldInst.Enemies.push_back(new Enigma::Enemy("../resources/zombie-walk-test/source/Zombie_Walk.fbx", context, ENIGMA_LOAD_FBX_FILE, glm::vec3(60.f, 0.1f, 0.f), glm::vec3(0.1f, 0.1f, 0.1f), 0, 180, 0));
-    Enigma::WorldInst.Enemies.push_back(new Enigma::Enemy("../resources/zombie-walk-test/source/Zombie_Walk.fbx", context, ENIGMA_LOAD_FBX_FILE, glm::vec3(60.f, 0.1f, 50.f), glm::vec3(0.1f, 0.1f, 0.1f), 0, 180, 0));
+    Enigma::WorldInst.Enemies.push_back(new Enigma::Enemy("../resources/zombie-walk-test/source/Zombie_Walk.fbx", context, ENIGMA_LOAD_FBX_FILE, glm::vec3(60.f, 0.1f, 0.f), glm::vec3(0.1f, 0.1f, 0.1f), 0, 0, 0));
+    Enigma::WorldInst.Enemies.push_back(new Enigma::Enemy("../resources/zombie-walk-test/source/Zombie_Walk.fbx", context, ENIGMA_LOAD_FBX_FILE, glm::vec3(60.f, 0.1f, 50.f), glm::vec3(0.1f, 0.1f, 0.1f), 0, 0, 0));
 
     //world.Enemies[0]->model->updateAnimation(world.Enemies[0]->model->m_Scene, timer->deltaTime);
 
     //add player to world class
-    // Enigma::WorldInst.player = new Enigma::Player("../resources/player.fbx", context, ENIGMA_LOAD_FBX_FILE, glm::vec3(-100.f, 20.0f, -40.f), glm::vec3(0.1f, 0.1f, 0.09f), 90.f, 0.f, 0.f);
-    
-    Enigma::WorldInst.player = new Enigma::Player(context, "../resources/Weapon/g.obj", glm::vec3(-100.0f, 20.0f, -40.0f), 100, *Enigma::EngineTime);
-    //Enigma::WorldInst.player->addEquipment(new Enigma::Equipment(glm::vec3(0.f, 13.f, 0.f), new Enigma::Model("../resources/gun.obj", context, ENIGMA_LOAD_OBJ_FILE)));
+    Enigma::WorldInst.player = new Enigma::Player(context, "../resources/Weapon/g.obj", glm::vec3(-100.0f, 100.0f, -40.0f), 100, *Enigma::EngineTime);
+    Enigma::WorldInst.player->m_Model->setScale(glm::vec3(0.2f, 0.2f, 0.2f));
 
-    //Enigma::WorldInst.addMeshesToWorld(Enigma::WorldInst.player, Enigma::WorldInst.Enemies);
+    Enigma::WorldInst.addMeshesToWorld(Enigma::WorldInst.player, Enigma::WorldInst.Enemies);
 
     ////add the player and enemies to the correct query lists
-    //Enigma::WorldInst.addCharactersToWorld(Enigma::WorldInst.player, Enigma::WorldInst.Enemies);
+    Enigma::WorldInst.addCharactersToWorld(Enigma::WorldInst.player, Enigma::WorldInst.Enemies);
 
     Enigma::WorldInst.addCharctersToNavmesh(Enigma::WorldInst.Characters);
 
     // game loop: to keep updating and rendering the game
     while (!glfwWindowShouldClose(window.window)) {
-        //Enigma::WorldInst.ManageAIs(Enigma::WorldInst.Characters, Enigma::WorldInst.Meshes[0], Enigma::WorldInst.player, Enigma::WorldInst.Enemies);
+        Enigma::WorldInst.ManageAIs(Enigma::WorldInst.Characters, obj1, Enigma::WorldInst.player, Enigma::WorldInst.Enemies);
         Enigma::EngineTime->Update();
         FPSCamera.Update(window.swapchainExtent.width, window.swapchainExtent.height);
         renderer.Update(&FPSCamera);

@@ -119,13 +119,8 @@ namespace Enigma
 
 
 			model->Draw(cmd, m_pipelineLayout.handle);
-			//if (model->player && !Enigma::WorldInst.player->getEquipmentVec().empty()) {
-			//	vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
-			//	Enigma::WorldInst.player->getEquipment(Enigma::WorldInst.player->getCurrentEquipment())->getModel()->Draw(cmd, m_pipelineLayout.handle);
-			//}
 
 			Enigma::WorldInst.player->Draw(cmd, m_pipelineLayout.handle);
-			//Enigma::WorldInst.player->m_Model->DrawDebug(cmd, m_pipelineLayout.handle, AABBDraw.handle);
 			Enigma::WorldInst.player->DrawAABBDebug(cmd, m_pipelineLayout.handle, AABBDraw.handle, Enigma::WorldInst.player->m_Model->m_descriptorSet[0]);
 			model->DrawDebug(cmd, m_pipelineLayout.handle, AABBDraw.handle);
 		}
