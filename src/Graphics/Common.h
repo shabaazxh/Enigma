@@ -12,6 +12,7 @@
 #include "VulkanImage.h"
 
 class Model;
+class Enemy;
 
 namespace Enigma
 {
@@ -42,7 +43,6 @@ namespace Enigma
 	};
 
 	inline Time* EngineTime;
-
 
 	struct CameraTransform
 	{
@@ -112,7 +112,9 @@ namespace Enigma
 	inline Debug debugSettings;
 
 	inline VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
+	inline VkDescriptorSetLayout sceneDescriptorLayout = VK_NULL_HANDLE;
 	inline VkDescriptorSetLayout descriptorLayoutModel = VK_NULL_HANDLE;
+	inline VkDescriptorSetLayout boneTransformDescriptorLayout = VK_NULL_HANDLE;
 
 	inline Sampler sampler;
 	inline Image depth;
