@@ -5,22 +5,22 @@ float accum = 0;
 namespace Enigma {
 	Enemy::Enemy(const std::string& filepath, const VulkanContext& context, int filetype) : Character(filepath, context, filetype)
 	{
-
+		model->enemy = true;
 	}
 
 	Enemy::Enemy(const std::string& filepath, const VulkanContext& aContext, int filetype, glm::vec3 trans, glm::vec3 scale) : Character(filepath, aContext, filetype, trans, scale)
 	{
-
+		model->enemy = true;
 	}
 
 	Enemy::Enemy(const std::string& filepath, const VulkanContext& aContext, int filetype, glm::vec3 trans, glm::vec3 scale, float x, float y, float z) : Character(filepath, aContext, filetype, trans, scale, x, y, z)
 	{
-
+		model->enemy = true;
 	}
 
 	Enemy::Enemy(const std::string& filepath, const VulkanContext& aContext, int filetype, glm::vec3 trans, glm::vec3 scale, glm::mat4 rm) : Character(filepath, aContext, filetype, trans, scale, rm)
 	{
-
+		model->enemy = true;
 	}
 
 	void Enemy::ManageAI(std::vector<Character*> characters, Model* obj, Player* player)
@@ -34,6 +34,7 @@ namespace Enigma {
 		pathToEnemy = findDirection(player);
 		moveInDirection();
 	}
+
 	void Enemy::addPlayerToNavmesh(Player* player, Model* obj) {
 		//add the characters position to the navmesh as a vertex
 		player->navmeshPosition = navmesh.vertices.size();
@@ -215,19 +216,21 @@ namespace Enigma {
 		if (distFromCurrentNode < 0.5f && currentNode < pathToEnemy.size()) {
 			currentNode++;
 			float angle = acos(direction.z) + asin(direction.x);
-			angle = ((angle * 180) / 3.14);
 			rm = glm::inverse(glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, 0.f) - direction, glm::vec3(0.f, 1.f, 0.f)));
 			this->setRotationMatrix(rm);
 		}
 		else if (pathToEnemy[currentNode] != pathToEnemy.back()) {
 			this->setTranslation(this->getTranslation() + direction * 0.1f);
-			float angle = acos(direction.z) + asin(direction.x);
 			rm = glm::inverse(glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, 0.f) - direction, glm::vec3(0.f, 1.f, 0.f)));
 			this->setRotationMatrix(rm);
 		}
 		else if (distFromCurrentNode > 1.f) {
 			this->setTranslation(this->getTranslation() + direction * 0.1f);
-			float angle = acos(direction.z) + asin(direction.x);
+			rm = glm::inverse(glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, 0.f) - direction, glm::vec3(0.f, 1.f, 0.f)));
+			this->setRotationMatrix(rm);
+		}
+		else {
+			this->setTranslation(this->getTranslation());
 			rm = glm::inverse(glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, 0.f) - direction, glm::vec3(0.f, 1.f, 0.f)));
 			this->setRotationMatrix(rm);
 		}

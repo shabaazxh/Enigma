@@ -22,6 +22,9 @@ namespace Enigma
 		void addToNavmesh(Character* character, Model* obj);
 		void moveInDirection();
 
+		double deathTime;
+		bool dead = false;
+
 	private:
 		int currentNode;
 		std::vector<int> pathToEnemy;

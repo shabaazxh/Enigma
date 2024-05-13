@@ -26,6 +26,7 @@ namespace Enigma
 			m_Model = new Model(model, context, ENIGMA_LOAD_OBJ_FILE);
 			m_Model->modelName = "Player";
 			m_Model->setTranslation(m_position);
+			m_Model->player = true;
 
 			m_AABB = { {-9.0f, -5.0f, -9.0f}, {15.0f, 5.0f, 15.0f} };
 
@@ -204,14 +205,16 @@ namespace Enigma
 				{
 					for (auto& mesh : model->meshes)
 					{
-						AABB box = mesh.meshAABB;
-						box.min = box.min * model->getScale() + model->getTranslation();
-						box.max = box.max * model->getScale() + model->getTranslation();
+						if (!model->player && !model->enemy) {
+							AABB box = mesh.meshAABB;
+							box.min = box.min * model->getScale() + model->getTranslation();
+							box.max = box.max * model->getScale() + model->getTranslation();
 
-						if (Enigma::Physics::isAABBColliding(m_AABB, m_position, box))
-						{
-							std::cout << "Colliding" << std::endl;
-							return true;
+							if (Enigma::Physics::isAABBColliding(m_AABB, m_position, box))
+							{
+								printf("Colliding with: %s\n", mesh.meshName);
+								return true;
+							}
 						}
 					}
 				}
@@ -229,6 +232,7 @@ namespace Enigma
 			ModelPushConstant push = {};
 			push.model = glm::mat4(1.0f);
 			push.model = glm::translate(push.model, m_position);
+			push.model = glm::scale(push.model, m_Model->getScale());
 			push.textureIndex = 0;
 			push.isTextured = false;
 
@@ -253,6 +257,12 @@ namespace Enigma
 		void TakeDamage(int amount)
 		{
 			m_health -= amount;
+		}
+
+		void setScale(glm::vec3 s) {
+			m_Model->setScale(s);
+			m_AABB.max = m_AABB.max * m_Model->getScale();
+			m_AABB.min = m_AABB.min * m_Model->getScale();
 		}
 
 		void Update(GLFWwindow* window, uint32_t width, uint32_t height, const VulkanContext& context, const std::vector<Model*> meshes, const Time& time)
@@ -300,11 +310,11 @@ namespace Enigma
 						AABB box = meshes[model]->meshes[i].meshAABB;
 						box.min = box.min * meshes[model]->getScale() + meshes[model]->getTranslation();
 						box.max = box.max * meshes[model]->getScale() + meshes[model]->getTranslation();
-						if (Enigma::Physics::RayIntersectAABB(ray, box))
+						if (Enigma::Physics::RayIntersectAABB(ray, box) && meshes[model]->enemy)
 						{
 							// could clear info regarding the mesh which got hit instead?
-							std::cout << "Hit: " << meshes[model]->modelName << std::endl;
-							//delete meshes[model];
+							std::cout << "Hit: " << meshes[model]->meshes[i].meshName << std::endl;
+							meshes[model]->hit = true;
 							break;
 						}
 					}
@@ -364,16 +374,18 @@ namespace Enigma
 				velocity = glm::normalize(velocity) * speed * (float)time.deltaTime; // need to multiply by delta time 
 			}
 
+			m_position += velocity;
 			if (isCollidingWithPlayer(meshes))
 			{
-				//velocity = glm::vec3(0.0f, 0.0f, 0.0f);
+				m_position -= velocity;
 			}
-			m_position += velocity;
-			cameraPosition = m_position + glm::vec3(0.0f, 5.0f, 0.0f);
-			FPSCamera->SetPosition(cameraPosition);
+			else {
+				cameraPosition = m_position + glm::vec3(0.0f, 5.0f, 0.0f);
+				FPSCamera->SetPosition(cameraPosition);
 
-			modelPosition.y -= 1.0f;
-			m_Model->setTranslation(modelPosition);
+				modelPosition.y -= 1.0f;
+				m_Model->setTranslation(modelPosition);
+			}
 		}
 
 		void SetPosition(glm::vec3 newpos)

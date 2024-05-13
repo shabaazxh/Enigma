@@ -866,6 +866,9 @@ namespace Enigma
 			push.model = glm::mat4(1.0f);
 			push.model = glm::translate(push.model, translation);
 			push.model = push.model * rotMatrix;
+			push.model = glm::rotate(push.model, (float)((this->getXRotation() * 3.141) / 180), glm::vec3(1.f, 0.f, 0.f));
+			push.model = glm::rotate(push.model, (float)((this->getYRotation() * 3.141) / 180), glm::vec3(0.f, 1.f, 0.f));
+			push.model = glm::rotate(push.model, (float)((this->getZRotation() * 3.141) / 180), glm::vec3(0.f, 0.f, 1.f));
 			push.model = glm::scale(push.model, this->scale);
 			push.textureIndex = mesh.materialIndex;
 			push.isTextured = mesh.textured;
@@ -894,6 +897,9 @@ namespace Enigma
 			push.model = glm::mat4(1.0f);
 			push.model = glm::translate(push.model, translation);
 			push.model = push.model * rotMatrix;
+			push.model = glm::rotate(push.model, (float)((this->getXRotation() * 3.141) / 180), glm::vec3(1.f, 0.f, 0.f));
+			push.model = glm::rotate(push.model, (float)((this->getYRotation() * 3.141) / 180), glm::vec3(0.f, 1.f, 0.f));
+			push.model = glm::rotate(push.model, (float)((this->getZRotation() * 3.141) / 180), glm::vec3(0.f, 0.f, 1.f));
 			push.model = glm::scale(push.model, this->scale);
 			push.textureIndex = mesh.materialIndex;
 			push.isTextured = mesh.textured;
@@ -918,6 +924,9 @@ namespace Enigma
 		push.model = glm::mat4(1.0f);
 		push.model = glm::translate(push.model, translation);
 		push.model = push.model * rotMatrix;
+		push.model = glm::rotate(push.model, (float)((this->getXRotation() * 3.141) / 180), glm::vec3(1.f, 0.f, 0.f));
+		push.model = glm::rotate(push.model, (float)((this->getYRotation() * 3.141) / 180), glm::vec3(0.f, 1.f, 0.f));
+		push.model = glm::rotate(push.model, (float)((this->getZRotation() * 3.141) / 180), glm::vec3(0.f, 0.f, 1.f));
 		push.model = glm::scale(push.model, this->scale);
 		push.textureIndex = mesh.materialIndex;
 		push.isTextured = mesh.textured;

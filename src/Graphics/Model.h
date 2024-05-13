@@ -179,7 +179,9 @@ namespace Enigma
 			std::vector<Mesh> meshes;
 
 			bool player = false;
+			bool enemy = false;
 			bool hasAnimations = false;
+			bool hit = false;
 			aiAnimation** animations;
 
 			std::string modelName;

@@ -58,7 +58,7 @@ int main() {
 
     //add player to world class
     Enigma::WorldInst.player = new Enigma::Player(context, "../resources/Weapon/g.obj", glm::vec3(-100.0f, 100.0f, -40.0f), 100, *Enigma::EngineTime);
-    Enigma::WorldInst.player->m_Model->setScale(glm::vec3(0.2f, 0.2f, 0.2f));
+    Enigma::WorldInst.player->setScale(glm::vec3(0.2f, 0.2f, 0.2f));
 
     Enigma::WorldInst.addMeshesToWorld(Enigma::WorldInst.player, Enigma::WorldInst.Enemies);
 
@@ -69,7 +69,7 @@ int main() {
 
     // game loop: to keep updating and rendering the game
     while (!glfwWindowShouldClose(window.window)) {
-        Enigma::WorldInst.ManageAIs(Enigma::WorldInst.Characters, obj1, Enigma::WorldInst.player, Enigma::WorldInst.Enemies);
+        Enigma::WorldInst.ManageAIs(Enigma::WorldInst.Characters, obj1, Enigma::WorldInst.player, Enigma::WorldInst.Enemies, Enigma::EngineTime);
         Enigma::EngineTime->Update();
         FPSCamera.Update(window.swapchainExtent.width, window.swapchainExtent.height);
         renderer.Update(&FPSCamera);
