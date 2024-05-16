@@ -18,7 +18,7 @@
 #include "Composite.h"
 #include "ShadowPass.h"
 #include "ImGuiRenderer.h"
-
+#include "UIPass.h"
 
 namespace Enigma
 {
@@ -35,15 +35,6 @@ namespace Enigma
 			void CreateRendererResources();
 			void CreateDescriptorPool();
 
-			void CreateBlood();
-			void UpdateBlood(float value);
-			void DrawBlood(VkCommandBuffer cmdBuffer);
-
-			void CreateBloodPipeline();
-			void CreateBloodVertexBuffer();
-			void CreateHeadPipeline();
-			void CreateHeadImage();
-
 		private:
 			// vulkan and window context
 			const VulkanContext& context;
@@ -54,6 +45,7 @@ namespace Enigma
 			Lighting* m_lightingPass;
 			Composite* m_compositePass;
 			ShadowPass* m_shadowPass;
+            UIPass* m_uiPass;
 
 			// Rendering resources
 			std::vector<Fence> m_fences;
@@ -77,20 +69,5 @@ namespace Enigma
 
 			std::vector<Buffer> m_sceneUBO;
 			Buffer m_SSBO;
-
-			//blood
-			std::vector<glm::vec2> bloodVertices;
-			Buffer bloodVertexBuffer;
-			glm::mat4 bloodTransformMatrix;
-			Pipeline m_bloodPipeline;
-			Pipeline m_bloodPipeline2;
-			PipelineLayout m_bloodPipelineLayout;
-
-			Image m_headImage;
-			VkDescriptorSetLayout m_headDescriptorSetLayout;
-			VkDescriptorSet m_headDescriptorSet;
-			glm::mat4 m_headTransformMatrix;
-			PipelineLayout m_headPipelineLayout;
-			Pipeline m_headPipeline;
 	};
 }

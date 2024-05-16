@@ -54,6 +54,9 @@
     <ClInclude Include="..\src\Core\Error.h">
       <Filter>src\Core</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\Core\Settings.h">
+      <Filter>src\Core</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\Core\VulkanWindow.h">
       <Filter>src\Core</Filter>
     </ClInclude>
@@ -75,10 +78,16 @@
     <ClInclude Include="..\src\Graphics\Enemy.h">
       <Filter>src\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\Graphics\Equipment.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\Graphics\GBuffer.h">
       <Filter>src\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Graphics\ImGuiRenderer.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\Light.h">
       <Filter>src\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Graphics\Lighting.h">
@@ -87,10 +96,19 @@
     <ClInclude Include="..\src\Graphics\Model.h">
       <Filter>src\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\Graphics\Physics.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\Player.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\Graphics\Renderer.h">
       <Filter>src\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Graphics\ShadowPass.h">
+      <Filter>src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Graphics\UIPass.h">
       <Filter>src\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Graphics\VulkanBuffer.h">
@@ -103,21 +121,6 @@
       <Filter>src\Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Graphics\VulkanObjects.h">
-      <Filter>src\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Graphics\Light.h">
-      <Filter>src\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Core\Settings.h">
-      <Filter>src\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Graphics\Equipment.h">
-      <Filter>src\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Graphics\Player.h">
-      <Filter>src\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\Graphics\Physics.h">
       <Filter>src\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
@@ -167,6 +170,9 @@
     <ClCompile Include="..\src\Graphics\Enemy.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\Graphics\Equipment.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\Graphics\GBuffer.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
@@ -182,7 +188,16 @@
     <ClCompile Include="..\src\Graphics\Model.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\Graphics\Player.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\Graphics\Renderer.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Graphics\ShadowPass.cpp">
+      <Filter>src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Graphics\UIPass.cpp">
       <Filter>src\Graphics</Filter>
     </ClCompile>
     <ClCompile Include="..\src\Graphics\VulkanBuffer.cpp">
@@ -199,15 +214,6 @@
     </ClCompile>
     <ClCompile Include="..\src\main.cpp">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\Graphics\ShadowPass.cpp">
-      <Filter>src\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\Graphics\Equipment.cpp">
-      <Filter>src\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\Graphics\Player.cpp">
-      <Filter>src\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -374,6 +374,11 @@ namespace Enigma
 				velocity = glm::normalize(velocity) * speed * (float)time.deltaTime; // need to multiply by delta time 
 			}
 
+			if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS)
+			{
+				Enigma::renderTemp = !Enigma::renderTemp;
+			}
+
 			m_position += velocity;
 			if (isCollidingWithPlayer(meshes))
 			{

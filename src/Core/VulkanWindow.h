@@ -38,6 +38,11 @@ namespace Enigma
 					Enigma::enablePlayerCamera = Enigma::enablePlayerCamera ? false : true;
 				}
 
+				if (GLFW_KEY_B == key && action == GLFW_PRESS)
+				{
+					Enigma::renderTemp = !Enigma::renderTemp;
+				}
+
 				if (glfwGetKey(windowClass->window, GLFW_KEY_P) == GLFW_PRESS)
 				{
 					isPlayer = !isPlayer;

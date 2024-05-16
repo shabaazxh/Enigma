@@ -25,6 +25,7 @@ namespace Enigma
 					Enemies[i]->model->hit = false;
 					if (Enemies[i]->health < 0.f && !Enemies[i]->dead) {
 						Enemies[i]->dead = true;
+						Enemies[i]->model->dead = true;
 						Enemies[i]->deathTime = timer->current;
 					}
 				}
@@ -35,12 +36,16 @@ namespace Enigma
 					if (timer->current - Enemies[i]->deathTime > 10) {
 						Enemies[i]->setRotationZ(0);
 						Enemies[i]->setTranslation(glm::vec3(60.f, 0.1f, 0.f));
+						Enemies[i]->setScale(glm::vec3(20.f));
 						Enemies[i]->health = 100.f;
 						Enemies[i]->dead = false;
+						Enemies[i]->model->dead = false;
 					}
 					else {
+						Enemies[i]->setRotationY(90);
 						Enemies[i]->setRotationZ(89);
 						Enemies[i]->setTranslation(Enemies[i]->getTranslation());
+						Enemies[i]->setScale(glm::vec3(0.15f));
 						glm::mat4 rm = glm::inverse(glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, 0.f) - glm::vec3(1.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f)));
 						Enemies[i]->setRotationMatrix(rm);
 					}

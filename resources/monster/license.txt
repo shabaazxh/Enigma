@@ -1,0 +1,11 @@
+Model Information:
+* title:	Kalaban - Bruiser Monster - Walking
+* source:	https://sketchfab.com/3d-models/kalaban-bruiser-monster-walking-a8197fd9861a49debe78954763481ff7
+* author:	Harri Jokinen (https://sketchfab.com/sirrandom)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Kalaban - Bruiser Monster - Walking" (https://sketchfab.com/3d-models/kalaban-bruiser-monster-walking-a8197fd9861a49debe78954763481ff7) by Harri Jokinen (https://sketchfab.com/sirrandom) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

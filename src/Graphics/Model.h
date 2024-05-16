@@ -258,6 +258,7 @@ namespace Enigma
 			bool enemy = false;
 			bool hasAnimations = false;
 			bool hit = false;
+			bool dead = false;
 			aiAnimation** animations;
 
 			std::string modelName;

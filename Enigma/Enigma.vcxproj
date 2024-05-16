@@ -61,7 +61,6 @@
       <Optimization>Disabled</Optimization>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
-      <PreprocessorDefinitions>GLM_FORCE_DEPTH_ZERO_TO_ONE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -83,7 +82,6 @@ IF EXIST "$(SolutionDir)zlib1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlib1.dll"
       <Optimization>Disabled</Optimization>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
-      <PreprocessorDefinitions>GLM_FORCE_DEPTH_ZERO_TO_ONE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,6 +126,7 @@ IF EXIST "$(SolutionDir)zlib1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlib1.dll"
     <ClInclude Include="..\src\Graphics\Player.h" />
     <ClInclude Include="..\src\Graphics\Renderer.h" />
     <ClInclude Include="..\src\Graphics\ShadowPass.h" />
+    <ClInclude Include="..\src\Graphics\UIPass.h" />
     <ClInclude Include="..\src\Graphics\VulkanBuffer.h" />
     <ClInclude Include="..\src\Graphics\VulkanContext.h" />
     <ClInclude Include="..\src\Graphics\VulkanImage.h" />
@@ -158,6 +157,7 @@ IF EXIST "$(SolutionDir)zlib1.dll"\ (xcopy /Q /E /Y /I "$(SolutionDir)zlib1.dll"
     <ClCompile Include="..\src\Graphics\Player.cpp" />
     <ClCompile Include="..\src\Graphics\Renderer.cpp" />
     <ClCompile Include="..\src\Graphics\ShadowPass.cpp" />
+    <ClCompile Include="..\src\Graphics\UIPass.cpp" />
     <ClCompile Include="..\src\Graphics\VulkanBuffer.cpp" />
     <ClCompile Include="..\src\Graphics\VulkanContext.cpp" />
     <ClCompile Include="..\src\Graphics\VulkanImage.cpp" />

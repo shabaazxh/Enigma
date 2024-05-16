@@ -88,14 +88,14 @@ namespace Enigma
 
 		for (const auto& model : models)
 		{
-            if(model->m_animations.empty()){
+            if(model->m_animations.empty() || model->dead){
 			    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
 			    model->Draw(cmd, m_pipelineLayout.handle);
             }
             else
             {
 			    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineAnim.handle);
-			    model->Draw(cmd, m_pipelineAnimLayout.handle);
+			    model->Draw2(cmd, m_pipelineAnimLayout.handle);
             }
 		}
 

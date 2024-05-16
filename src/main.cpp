@@ -54,7 +54,7 @@ int main() {
     // Enigma::WorldInst.Enemies.push_back(new Enigma::Enemy("../resources/zombie-walk-test/source/Zombie_Walk.fbx", context, ENIGMA_LOAD_FBX_FILE, glm::vec3(60.f, 0.1f, 0.f), glm::vec3(0.1f, 0.1f, 0.1f), 0, 0, 0));
     // Enigma::WorldInst.Enemies.push_back(new Enigma::Enemy("../resources/zombie-walk-test/source/Zombie_Walk.fbx", context, ENIGMA_LOAD_FBX_FILE, glm::vec3(60.f, 0.1f, 50.f), glm::vec3(0.1f, 0.1f, 0.1f), 0, 0, 0));
     Enigma::WorldInst.Enemies.push_back(new Enigma::Enemy("../resources/zombie_walk_test_gltf/scene.gltf", context, ENIGMA_LOAD_ASSIMP_FILE, glm::vec3(60.f, 0.1f, 0.f), glm::vec3(20.f, 20.f, 20.f), 0, 0, 0));
-    // Enigma::WorldInst.Enemies.push_back(new Enigma::Enemy("../resources/zombie_walk_test_gltf/scene.gltf", context, ENIGMA_LOAD_ASSIMP_FILE, glm::vec3(60.f, 0.1f, 50.f), glm::vec3(20.f, 20.f, 20.f), 0, 0, 0));
+    Enigma::WorldInst.Enemies.push_back(new Enigma::Enemy("../resources/zombie_walk_test_gltf/scene.gltf", context, ENIGMA_LOAD_ASSIMP_FILE, glm::vec3(60.f, 0.1f, 50.f), glm::vec3(20.f, 20.f, 20.f), 0, 0, 0));
 
     //world.Enemies[0]->model->updateAnimation(world.Enemies[0]->model->m_Scene, timer->deltaTime);
 
@@ -75,7 +75,7 @@ int main() {
         Enigma::EngineTime->Update();
         for(auto &e:Enigma::WorldInst.Enemies)
         {
-            if (!e->model->m_animations.empty()) e->model->updateAnimation2(Enigma::EngineTime->current, 0);
+            if (!e->model->m_animations.empty() && !e->dead) e->model->updateAnimation2(Enigma::EngineTime->current, 0);
         }
         FPSCamera.Update(window.swapchainExtent.width, window.swapchainExtent.height);
         renderer.Update(&FPSCamera);

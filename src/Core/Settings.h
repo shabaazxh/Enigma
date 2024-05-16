@@ -16,6 +16,7 @@ namespace Enigma
 	inline bool isDebug = true;
 	inline bool enablePlayerCamera = false;
 	inline std::vector<Model*> tempModels;
+	inline bool renderTemp = true;
 
 	inline float translationAmplitude = 1.0f; // Adjust as needed
 	inline float translationFrequency = 1.0f; // Adjust as needed

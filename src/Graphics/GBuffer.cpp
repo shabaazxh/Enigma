@@ -108,10 +108,12 @@ namespace Enigma
 		vkCmdBeginRenderPass(cmd, &rpBegin, VK_SUBPASS_CONTENTS_INLINE);
 		vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout.handle, 0, 1, &m_sceneDescriptorSets[Enigma::currentFrame], 0, nullptr);
 
-		for (const auto& model : Enigma::tempModels)
-		{
-			vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
-			model->Draw(cmd, m_pipelineLayout.handle);
+		if (Enigma::renderTemp) {
+			for (const auto& model : Enigma::tempModels)
+			{
+				vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
+				model->Draw(cmd, m_pipelineLayout.handle);
+			}
 		}
 
 		for (const auto& model : models)
@@ -120,7 +122,7 @@ namespace Enigma
 			Enigma::WorldInst.player->Draw(cmd, m_pipelineLayout.handle);
 			Enigma::WorldInst.player->DrawAABBDebug(cmd, m_pipelineLayout.handle, AABBDraw.handle, Enigma::WorldInst.player->m_Model->m_descriptorSet[0]);
 
-            if(model->m_animations.empty()){
+            if(model->m_animations.empty() || model->dead){
 			    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline.handle);
 			    model->Draw(cmd, m_pipelineLayout.handle);
 			    model->DrawDebug(cmd, m_pipelineLayout.handle, AABBDraw.handle);
